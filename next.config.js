@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   webpack: (config) => {
-    config.externals = ['knex','sqlite3'];
+    config.externals = [ ...config.externals, 'knex', 'sqlite3' ];
     return config;
   },
 }
