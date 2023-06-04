@@ -1,6 +1,6 @@
 import { Entity, Fields } from "remult";
 
-@Entity("regions", { allowApiCrud: true })
+@Entity("regions", { allowApiCrud: true, dbName: "region" })
 export class Region {
   @Fields.integer()
   code = 0;
