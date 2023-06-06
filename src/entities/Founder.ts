@@ -1,8 +1,10 @@
 import { Entity, Field, Fields } from "remult";
-import { Region } from "@/entities/Region";
+import { City } from "./City";
+import { CityDistrict } from "./CityDistrict";
+import { SchoolFounder } from "./SchoolFounder";
 
 @Entity("founders", { allowApiRead: true, dbName: "founder" })
-export class County {
+export class Founder {
   @Fields.integer()
   id = 0;
 
@@ -12,9 +14,27 @@ export class County {
   @Fields.string()
   ico = "";
 
-  @Field(() => Region, { key: "region_code",  })
-  regionName = "";
+  @Fields.object({ dbName: "founder_type_code" })
+  founderType = FounderType.City;
 
-  @Field(() => Region, { dbName: "region_code" })
-  region?: Region;
+  @Field(() => City, { dbName: "city_code" })
+  city!: City;
+
+  @Field(() => CityDistrict, { dbName: "city_district_code", allowNull: true })
+  cityDistrict?: CityDistrict;
+
+  @Fields.integer((options, remult) => {
+    options.serverExpression = async (founder) =>
+      (
+        await remult
+          .repo(SchoolFounder)
+          .find({ where: { founderId: founder.id } })
+      )?.length;
+  })
+  schoolCount = 0;
+}
+
+export enum FounderType {
+  City = 261,
+  District = 263,
 }

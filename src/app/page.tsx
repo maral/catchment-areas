@@ -1,44 +1,57 @@
-"use client";
+import { remult } from "remult";
 
-import { faBuilding } from "@fortawesome/free-regular-svg-icons";
-import Icon from "@/components/icons/Icon";
-// import { remult } from "remult";
-import { County } from "@/entities/County";
-import { useEffect, useState } from "react";
+import { Founder, FounderType } from "@/entities/Founder";
+import { api } from "./api/[...remult]/route";
 
-// const countiesRepo = remult.repo(County);
+const foundersRepo = remult.repo(Founder);
 
 export default async function Home() {
-  const [counties, setCounties] = useState([] as County[]);
-  useEffect(() => {
-    // countiesRepo.find().then((value) => {
-    const county = new County();
-    county.name = "Praha";
-    county.code = 123;
-    const value = [county];
-    setCounties(value);
-    console.log(value);
-    // });
-  }, []);
+  const founders = await api.withRemult(async () => await foundersRepo.find({ limit: 10 }));
+
   return (
     <>
       <h1 className="text-4xl text-rose-700 font-bold mb-8">
-        Welcome to the city 22 <Icon icon={faBuilding} />
+        Všichni zřizovatelé
       </h1>
-      <p className="mb-24">
-        You&apos;ve chosen or been chosen to relocate to one of our finest
-        remaining urban centers. asdfasd
-      </p>
+      <p className="mb-24">Demo, jak používat Remult v Next.js. Staticky generované na serveru.</p>
 
-      Length: {counties.length}
+      <table>
+        <thead>
+          <tr>
+            <th>Jméno</th>
+            <th>Kraj</th>
+            <th>Okres</th>
+            <th>ORP</th>
+            <th>Typ</th>
+            <th>Počet škol</th>
+            <th>Stav</th>
+            <th>Akce</th>
+          </tr>
+        </thead>
+        <tbody>
+        {founders.map((founder) => (
+          <tr key={founder.id}>
+            <td className="text-rose-700 font-bold p-2">{founder.name}</td>
 
-      {counties.map((county) => (
-        <div key={county.code}>
-          <h2 className="text-2xl text-rose-700 font-bold mb-4">
-            {county.name}
-          </h2>
-        </div>
-      ))}
+            <td className="p-2">{founder.city.region.name}</td>
+            <td className="p-2">{founder.city.county.name}</td>
+            <td className="p-2">{founder.city.orp.name}</td>
+            <td className="p-2">
+              {founder.founderType === FounderType.City ? "Obec" : "MČ/MO"}
+            </td>
+            <td className="p-2">{founder.schoolCount}</td>
+            <td className="p-2">
+              <div className="inline-block bg-emerald-500 text-white font-bold px-2 rounded-full text-sm">
+                Aktuální
+              </div>
+            </td>
+            <td className="p-2">
+              upravit vyhlášku | mapa | detail
+              </td>
+          </tr>
+        ))}
+        </tbody>
+      </table>
     </>
   );
 }

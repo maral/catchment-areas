@@ -1,8 +1,9 @@
 import { Entity, Field, Fields } from "remult";
 import { Region } from "@/entities/Region";
+import { County } from "./County";
 
-@Entity("counties", { allowApiRead: true, dbName: "county" })
-export class County {
+@Entity("orps", { allowApiRead: true, dbName: "orp" })
+export class Orp {
   @Fields.integer()
   code = 0;
 
@@ -11,4 +12,7 @@ export class County {
 
   @Field(() => Region, { dbName: "region_code" })
   region!: Region;
+
+  @Field(() => County, { dbName: "county_code" })
+  county!: County;
 }

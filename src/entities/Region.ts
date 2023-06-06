@@ -1,6 +1,6 @@
 import { Entity, Fields } from "remult";
 
-@Entity("regions", { allowApiCrud: true, dbName: "region" })
+@Entity("regions", { allowApiRead: true, dbName: "region" })
 export class Region {
   @Fields.integer()
   code = 0;
@@ -8,12 +8,12 @@ export class Region {
   @Fields.string()
   name = "";
 
-  @Fields.string()
-  short_name = "";
+  @Fields.string({ dbName: "short_name" })
+  shortName = "";
 
-  @Fields.integer()
-  csu_code_100 = 0;
+  @Fields.integer({ dbName: "csu_code_100" })
+  csuCode100 = 0;
 
-  @Fields.string()
-  csu_code_108_nuts = "";
+  @Fields.string({ dbName: "csu_code_108_nuts" })
+  csuCode108Nuts = "";
 }
