@@ -1,9 +1,9 @@
-import { Entity, Field, Fields } from "remult";
+import { Allow, Entity, Field, Fields } from "remult";
 import { City } from "./City";
 import { CityDistrict } from "./CityDistrict";
 import { SchoolFounder } from "./SchoolFounder";
 
-@Entity("founders", { allowApiRead: true, dbName: "founder" })
+@Entity("founders", { allowApiRead: Allow.authenticated, dbName: "founder" })
 export class Founder {
   @Fields.integer()
   id = 0;
