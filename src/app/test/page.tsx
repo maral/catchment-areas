@@ -1,5 +1,5 @@
 export default function Home() {
   return (
-    <>Ahoj</>
+    <>Ahoj jak se vede? Ne?</>
   )
 }
