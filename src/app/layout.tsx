@@ -4,8 +4,9 @@ import "./globals.css";
 import { Inter } from "next/font/google";
 import React, { useState } from "react";
 import { usePathname } from "next/navigation";
-import Toolbar from "@/components/layout/Toolbar";
+import Appbar from "@/components/layout/Appbar";
 import Navbar from "@/components/layout/Navbar";
+import UserMenu from "@/components/layout/UserMenu";
 
 export const metadata = {
   title: "Create Next App",
@@ -43,7 +44,9 @@ export default function RootLayout({
               } ease-in-out duration-300 h-screen`}
             ></Navbar>
             <div className="grow flex flex-col">
-              <Toolbar toggleNavbar={toggleNavbar}></Toolbar>
+              <Appbar toggleNavbar={toggleNavbar}>
+                <UserMenu/>
+              </Appbar>
               <main className="bg-slate-50 p-10 grow flex flex-col">
                 {children}
               </main>

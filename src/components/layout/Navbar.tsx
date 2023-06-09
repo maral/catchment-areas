@@ -2,7 +2,7 @@ import React from "react";
 import { List, ListItem } from "@tremor/react";
 import Link from "next/link";
 
-export default function Toolbar({
+export default function Navbar({
   className,
 }: {
   className?: string;

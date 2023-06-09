@@ -6,7 +6,7 @@ import { api } from "./api/[...remult]/route";
 const foundersRepo = remult.repo(Founder);
 
 export default async function Home() {
-  const founders = await api.withRemult(async () => await foundersRepo.find({ limit: 10 }));
+  // const founders = await api.withRemult(async () => await foundersRepo.find({ limit: 10 }));
 
   return (
     <>
@@ -15,7 +15,7 @@ export default async function Home() {
       </h1>
       <p className="mb-24">Demo, jak používat Remult v Next.js. Staticky generované na serveru.</p>
 
-      <table>
+      {/* <table>
         <thead>
           <tr>
             <th>Jméno</th>
@@ -51,7 +51,7 @@ export default async function Home() {
           </tr>
         ))}
         </tbody>
-      </table>
+      </table> */}
     </>
   );
 }

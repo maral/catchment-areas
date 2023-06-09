@@ -2,7 +2,7 @@ import { Icon } from "@tremor/react";
 import { Bars3Icon } from '@heroicons/react/24/solid';
 import React from 'react';
 
-export default function Toolbar ({
+export default function Appbar ({
   children,
   className,
   toggleNavbar
