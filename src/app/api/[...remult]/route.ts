@@ -8,6 +8,9 @@ import { Founder } from "@/entities/Founder";
 import { Orp } from "@/entities/Orp";
 import { School } from "@/entities/School";
 import { SchoolFounder } from "@/entities/SchoolFounder";
+import { getServerSession } from "next-auth";
+import { UserInfo } from "remult";
+import { authOptions } from "../auth/[...nextauth]/route";
 
 export const api = remultNextApp({
   entities: [
@@ -26,8 +29,13 @@ export const api = remultNextApp({
       filename: "./data/address_points.db",
     },
     useNullAsDefault: true,
+    // debug: true,
   }),
-  logApiEndPoints: true,
+  getUser: async (req) => {
+    console.log(await getServerSession(authOptions));
+    return  (await getServerSession(authOptions))?.user as UserInfo
+  }
+  // logApiEndPoints: true,
 });
 
 export const { GET, POST, PUT, DELETE } = api;

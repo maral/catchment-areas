@@ -1,7 +1,6 @@
+import Providers from "@/providers/Providers";
 import "./globals.css";
 import { Inter } from "next/font/google";
-import Image from "next/image";
-import { SessionProvider } from "next-auth/react";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -19,7 +18,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <main className="flex min-h-screen flex-col p-24">
-          <SessionProvider>{children}</SessionProvider>
+          <Providers>{children}</Providers>
         </main>
       </body>
     </html>
