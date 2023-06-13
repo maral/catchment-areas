@@ -42,7 +42,7 @@ export default function RootLayout({
             <Navbar
               className={`${
                 isNavbarOpen ? "w-64" : "w-0"
-              } ease-in-out h-screen`}
+              } ease-in-out duration-150 h-screen`}
             ></Navbar>
             <div className="grow flex flex-col">
               <Appbar toggleNavbar={toggleNavbar}>

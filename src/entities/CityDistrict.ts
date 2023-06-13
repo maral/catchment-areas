@@ -9,6 +9,6 @@ export class CityDistrict {
   @Fields.string()
   name = "";
 
-  @Field(() => City, { dbName: "city_code" })
+  @Field(() => City, { dbName: "city_code", lazy: true })
   city!: City;
 }

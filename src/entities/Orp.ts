@@ -10,9 +10,9 @@ export class Orp {
   @Fields.string()
   name = "";
 
-  @Field(() => Region, { dbName: "region_code" })
+  @Field(() => Region, { dbName: "region_code", lazy: true })
   region!: Region;
 
-  @Field(() => County, { dbName: "county_code" })
+  @Field(() => County, { dbName: "county_code", lazy: true })
   county!: County;
 }

@@ -20,6 +20,12 @@ export default function Navbar({
             Founder Overview
           </ListItem>
         </Link>
+
+        <Link href="/dynamic">
+          <ListItem className="cursor-pointer hover:bg-slate-50 rounded-md">
+            Všichni zřizovatelé
+          </ListItem>
+        </Link>
       </List>
     </div>
   );

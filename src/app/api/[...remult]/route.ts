@@ -35,7 +35,7 @@ export const api = remultNextApp({
     // debug: true,
   }),
   getUser: async (req) => {
-    console.log(await getServerSessionWithOptions());
+    // console.log(await getServerSessionWithOptions());
     return  (await getServerSessionWithOptions())?.user as UserInfo
   }
   // logApiEndPoints: true,

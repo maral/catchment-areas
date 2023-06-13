@@ -9,6 +9,6 @@ export class County {
   @Fields.string()
   name = "";
 
-  @Field(() => Region, { dbName: "region_code" })
+  @Field(() => Region, { dbName: "region_code", lazy: true })
   region!: Region;
 }

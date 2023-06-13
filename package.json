@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "init-db": "tsx src/bin/init-db.ts"
   },
   "dependencies": {
     "@auth/core": "^0.8.2",
