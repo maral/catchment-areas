@@ -1,8 +1,10 @@
 import { RemoveIndex } from "@/utils/types";
-import { AdapterAccount } from "@auth/core/adapters";
-import { Field, Fields } from "remult";
+import { Entity, Field, Fields } from "remult";
 import { User } from "./User";
+import { ProviderType } from "next-auth/providers";
+import { AdapterAccount } from "next-auth/adapters";
 
+@Entity("accounts", { dbName: "account" })
 export class Account implements RemoveIndex<AdapterAccount> {
   @Fields.uuid()
   id: string = "";
@@ -14,7 +16,7 @@ export class Account implements RemoveIndex<AdapterAccount> {
   userId: string = "";
 
   @Fields.string()
-  type!: "oauth" | "oidc" | "email";
+  type!: ProviderType;
 
   @Fields.string()
   provider!: string;
