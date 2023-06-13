@@ -1,6 +1,7 @@
 "use client";
 
 import { Founder, FounderType } from "@/entities/Founder";
+import { signOut, useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { remult } from "remult";
 
@@ -22,7 +23,10 @@ export default function Home() {
   const [total, setTotal] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
 
+  const session = useSession();
+
   useEffect(() => {
+    // remult.user = session.data?.user as UserInfo;
     setIsLoading(true);
     getData(page).then((founders) => {
       setFounders(founders);
@@ -41,7 +45,15 @@ export default function Home() {
       <h1 className="text-4xl text-rose-700 font-bold mb-8">
         Všichni zřizovatelé
       </h1>
+      <button
+        className="w-32 bg-sky-700 text-white rounded-full inline-block p-2"
+        onClick={() => signOut()}
+      >
+        Log out
+      </button>
       <p className="mb-24">
+        Logged in: {session.data?.user?.name ?? "unknown"}
+        <br />
         Demo, jak používat Remult v Next.js. Dynamicky generované v komponentě.
       </p>
 
