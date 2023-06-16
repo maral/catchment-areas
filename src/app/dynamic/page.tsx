@@ -1,7 +1,6 @@
 "use client";
 
 import { Founder, FounderType } from "@/entities/Founder";
-import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { remult } from "remult";
 
@@ -12,7 +11,6 @@ const getData = async (page: number): Promise<Founder[]> => {
   return foundersRepo.find({
     limit: perPage,
     page: page,
-    orderBy: { name: "asc" },
     load: (f) => [f.city!],
   });
 };
@@ -23,8 +21,6 @@ export default function Home() {
   const [page, setPage] = useState(_page);
   const [total, setTotal] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
-
-  const session = useSession();
 
   useEffect(() => {
     setIsLoading(true);
@@ -93,7 +89,7 @@ export default function Home() {
               {founders.map((founder) => (
                 <tr key={founder.id}>
                   <td className="text-rose-700 font-bold p-2">
-                    {founder.city?.name}
+                    {founder.name}
                   </td>
 
                   <td className="p-2">{founder.city?.region.name}</td>

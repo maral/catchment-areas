@@ -2,7 +2,7 @@ import { RemoveIndex } from "@/utils/types";
 import { AdapterUser } from "@auth/core/adapters";
 import { Entity, Fields } from "remult";
 
-@Entity("users", { dbName: "user" })
+@Entity("users", { dbName: "user", backendPrefilter: () => ({ isDeleted: false })})
 export class User implements RemoveIndex<AdapterUser> {
   @Fields.uuid()
   id: string = "";
@@ -19,6 +19,14 @@ export class User implements RemoveIndex<AdapterUser> {
   @Fields.string({ allowNull: true })
   image: string | null = null;
 
+  @Fields.object()
+  role = Role.User;
+
   @Fields.boolean()
   isDeleted: boolean = false;
+}
+
+export enum Role {
+  Admin = "admin",
+  User = "user",
 }
