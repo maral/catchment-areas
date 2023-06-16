@@ -1,8 +1,10 @@
+import texts from "@/utils/texts";
+
 export default function FounderOverview() {
   return (
     <>
       <div>
-        <h1>Founder Overview</h1>
+        <h1>{ texts.founders }</h1>
       </div>
     </>
   );

@@ -50,7 +50,7 @@ export default function Home() {
       </p>
       {founders.length === 0 && (
         <div className="text-center">
-          <div className="inline-block text-4xl">Načítáme</div>
+          <div className="inline-block text-4xl">Načítání...</div>
         </div>
       )}
 
