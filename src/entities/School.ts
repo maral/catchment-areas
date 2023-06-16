@@ -1,6 +1,6 @@
 import { Entity, Fields } from "remult";
 
-@Entity("schools", { allowApiRead: true, dbName: "school" })
+@Entity("schools", { allowApiCrud: false, allowApiRead: true, dbName: "school" })
 export class School {
   @Fields.string()
   izo = "";

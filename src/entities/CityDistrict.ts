@@ -1,7 +1,7 @@
 import { Entity, Field, Fields } from "remult";
 import { City } from "./City";
 
-@Entity("city-districts", { allowApiRead: true, dbName: "city_district" })
+@Entity("city-districts", { allowApiCrud: false, allowApiRead: true, dbName: "city_district" })
 export class CityDistrict {
   @Fields.integer()
   code = 0;

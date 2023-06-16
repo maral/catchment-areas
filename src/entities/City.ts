@@ -3,7 +3,7 @@ import { Entity, Field, Fields } from "remult";
 import { County } from "./County";
 import { Orp } from "./Orp";
 
-@Entity("cities", { allowApiRead: true, dbName: "city" })
+@Entity("cities", { allowApiCrud: false, allowApiRead: true, dbName: "city" })
 export class City {
   @Fields.integer()
   code = 0;

@@ -1,4 +1,4 @@
-import { User } from "@/entities/User";
+import { Role, User } from "@/entities/User";
 import { api } from "../[...remult]/route";
 import { Account } from "@/entities/Account";
 import { Remult, Repository } from "remult";
@@ -28,7 +28,9 @@ export function RemultAdapter(): Adapter {
     },
 
     async createUser(user) {
-      const newUser = await (await getUserRepo()).insert(user);
+      const newUser = await (
+        await getUserRepo()
+      ).insert({ ...user, isDeleted: false, role: Role.User });
       return newUser;
     },
 
@@ -102,7 +104,7 @@ let _remult: Remult;
 let _userRepo: Repository<User>;
 let _accountRepo: Repository<Account>;
 
-const getRemult = async (): Promise<Remult> => {
+export const getRemult = async (): Promise<Remult> => {
   if (!_remult) {
     // @ts-ignore
     _remult = await api.getRemult({});

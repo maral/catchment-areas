@@ -4,7 +4,7 @@ import { CityDistrict } from "./CityDistrict";
 import { SchoolFounder } from "./SchoolFounder";
 import { School } from "./School";
 
-@Entity("founders", { allowApiRead: Allow.authenticated, dbName: "founder" })
+@Entity("founders", { dbName: "founder", allowApiCrud: false, allowApiRead: Allow.authenticated })
 export class Founder extends EntityBase {
   @Fields.integer()
   id = 0;

@@ -4,7 +4,7 @@ import { User } from "./User";
 import { ProviderType } from "next-auth/providers";
 import { AdapterAccount } from "next-auth/adapters";
 
-@Entity("accounts", { dbName: "account" })
+@Entity("accounts", { dbName: "account", allowApiCrud: false })
 export class Account implements RemoveIndex<AdapterAccount> {
   @Fields.uuid()
   id: string = "";

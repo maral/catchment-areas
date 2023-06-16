@@ -1,7 +1,7 @@
 import { Entity, Field, Fields, remult } from "remult";
 import { School } from "./School";
 
-@Entity("school-founders", { allowApiRead: true, dbName: "school_founder" })
+@Entity("school-founders", { allowApiCrud: false, allowApiRead: true, dbName: "school_founder" })
 export class SchoolFounder {
   @Fields.autoIncrement()
   id = 0;

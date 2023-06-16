@@ -8,7 +8,7 @@ import { Region } from "@/entities/Region";
 import { School } from "@/entities/School";
 import { SchoolFounder } from "@/entities/SchoolFounder";
 import { User } from "@/entities/User";
-import { UserInfo } from "remult";
+import { remult } from "remult";
 import { createKnexDataProvider } from "remult/remult-knex";
 import { remultNextApp } from "remult/remult-next";
 import { getServerSessionWithOptions } from "../auth/[...nextauth]/route";
@@ -35,9 +35,16 @@ export const api = remultNextApp({
     // debug: true,
   }),
   getUser: async (req) => {
-    // console.log(await getServerSessionWithOptions());
-    return  (await getServerSessionWithOptions())?.user as UserInfo
-  }
+    const sessionUser = (await getServerSessionWithOptions())?.user;
+
+    if (!sessionUser || !sessionUser.email) return undefined;
+
+    return {
+      id: sessionUser.id,
+      name: sessionUser.name ?? undefined,
+      roles: [sessionUser.role],
+    };
+  },
   // logApiEndPoints: true,
 });
 
