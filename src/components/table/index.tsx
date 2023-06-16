@@ -1,28 +1,34 @@
-"use client"
+"use client";
 
 import { Table, TableHead, TableHeaderCell, TableBody, TableRow, TableCell } from "@tremor/react"
 import { useEffect, useState } from "react";
-
-type columnDefinition = {
-  title: string;
-  key: string;
-}
+import type { ColumnDefinition, TableState } from "@/types/tableTypes";
 
 export default function CatchmentTable({
   fetchItems,
-  columnDefinitions
+  columnDefinitions,
+  tableState,
+  setTableState,
+  count,
 }: {
   fetchItems: () => Promise<any[]>;
-  columnDefinitions: columnDefinition[];
+  columnDefinitions: ColumnDefinition[];
+  tableState: TableState;
+  setTableState: (tableState: TableState) => void;
+  count: () => Promise<number>;
 }) {
   const [items, setItems] = useState<any[]>([]);
-  const [page, setPage] = useState<number>(1);
-  const [total, setTotal] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   useEffect(() => {
     fetchData();
-  });
+  }, [tableState.page]);
+
+  useEffect(() => {
+    count().then((totalCounted) => {
+      setTableState({ ...tableState, total: totalCounted });
+    });
+  }, []);
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -31,28 +37,46 @@ export default function CatchmentTable({
     setIsLoading(false);
   }
 
+  const itterateThroughNestedAttrs = (object: Record<string, any>, keys: string): any => {
+    const key = keys.split('.')[0];
+    const nestedKeys = keys.split('.').slice(1).join('.');
+    if (nestedKeys.length > 0) {
+      return itterateThroughNestedAttrs(object[key], nestedKeys);
+    }
+    return object[key];
+  }
+
   return (
-    <Table>
-      <TableHead>
-        <TableRow>
-          {columnDefinitions.map((column) => (
-            <TableHeaderCell key={column.key}>
-              {column.title}
-            </TableHeaderCell>
-          ))}
-        </TableRow>
-      </TableHead>
-      <TableBody>
-        {items.map((item) => (
-          <TableRow key={item.id}>
+    <div>
+      <Table>
+        <TableHead>
+          <TableRow>
             {columnDefinitions.map((column) => (
-            <TableCell key={column.key}>
-              {item[column.key]}
-            </TableCell>
-          ))}
+              <TableHeaderCell key={column.key}>
+                {column.title}
+              </TableHeaderCell>
+            ))}
           </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+        </TableHead>
+        <TableBody>
+          {items.map((item) => (
+            <TableRow key={item.id}>
+              {columnDefinitions.map((column) => (
+              <TableCell key={column.key}>
+                {/* {item[column.key]} */}
+                {itterateThroughNestedAttrs(item, column.key)}
+              </TableCell>
+            ))}
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+      <div className="flex">
+        <span>
+          {tableState.page} / {Math.ceil(tableState.total / tableState.perPage)}
+        </span>
+        <select></select>
+      </div>
+    </div>
   );
 }
