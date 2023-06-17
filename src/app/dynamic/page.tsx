@@ -10,6 +10,7 @@ const pageSize = 50;
 const getData = async (page: number): Promise<Founder[]> => {
   return foundersRepo.find({
     limit: pageSize,
+    // where: { schoolCount: { $gt: 1 } },
     page: page,
     load: (f) => [f.city!],
   });

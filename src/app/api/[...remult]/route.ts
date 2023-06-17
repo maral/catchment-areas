@@ -8,12 +8,12 @@ import { Region } from "@/entities/Region";
 import { School } from "@/entities/School";
 import { SchoolFounder } from "@/entities/SchoolFounder";
 import { User } from "@/entities/User";
-import { remult } from "remult";
 import { createKnexDataProvider } from "remult/remult-knex";
 import { remultNextApp } from "remult/remult-next";
+import { RemultServerOptions } from "remult/server";
 import { getServerSessionWithOptions } from "../auth/[...nextauth]/route";
 
-export const api = remultNextApp({
+export const remultOptions = {
   entities: [
     City,
     CityDistrict,
@@ -34,7 +34,7 @@ export const api = remultNextApp({
     useNullAsDefault: true,
     // debug: true,
   }),
-  getUser: async (req) => {
+  getUser: async (req: Request) => {
     const sessionUser = (await getServerSessionWithOptions())?.user;
 
     if (!sessionUser || !sessionUser.email) return undefined;
@@ -46,6 +46,8 @@ export const api = remultNextApp({
     };
   },
   // logApiEndPoints: true,
-});
+}
+
+export const api = remultNextApp(remultOptions);
 
 export const { GET, POST, PUT, DELETE } = api;

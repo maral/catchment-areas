@@ -1,10 +1,22 @@
-import { Allow, Entity, EntityBase, Field, Fields, Filter, SqlDatabase, remult } from "remult";
+import {
+  Allow,
+  Entity,
+  EntityBase,
+  Field,
+  Fields,
+  remult,
+} from "remult";
 import { City } from "./City";
 import { CityDistrict } from "./CityDistrict";
 import { SchoolFounder } from "./SchoolFounder";
 import { School } from "./School";
 
-@Entity("founders", { dbName: "founder", allowApiCrud: false, allowApiRead: Allow.authenticated })
+@Entity("founders", {
+  dbName: "founder",
+  allowApiCrud: false,
+  allowApiRead: Allow.authenticated,
+  backendPrefilter: () => ({ schoolCount: { $gt: 1 } }),
+})
 export class Founder extends EntityBase {
   @Fields.integer()
   id = 0;
@@ -29,6 +41,7 @@ export class Founder extends EntityBase {
   cityDistrict?: CityDistrict;
 
   @Field(() => School, {
+    lazy: true,
     serverExpression: (founder: Founder) =>
       remult
         .repo(SchoolFounder)
@@ -37,12 +50,8 @@ export class Founder extends EntityBase {
   })
   schools!: School[];
 
-  @Fields.integer((options, remult) => {
-    options.serverExpression = async (founder) =>
-      await remult.repo(SchoolFounder).count({ founderId: founder.id });
-  })
+  @Fields.integer({ dbName: "school_count" })
   schoolCount = 0;
-
 }
 
 export enum FounderType {
