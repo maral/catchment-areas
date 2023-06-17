@@ -3,6 +3,7 @@
 import { Table, TableHead, TableHeaderCell, TableBody, TableRow, TableCell } from "@tremor/react"
 import { useEffect, useState } from "react";
 import type { ColumnDefinition, TableState } from "@/types/tableTypes";
+import { Select, SelectItem } from "@tremor/react";
 
 export default function CatchmentTable({
   fetchItems,
@@ -19,6 +20,8 @@ export default function CatchmentTable({
 }) {
   const [items, setItems] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  const pageSizes = [10, 25, 50, 100];
 
   useEffect(() => {
     fetchData();
@@ -83,7 +86,14 @@ export default function CatchmentTable({
         <span>
           {tableState.page} / {Math.ceil(tableState.total / tableState.perPage)}
         </span>
-        <select></select>
+        <Select value={String(tableState.perPage)} >
+          {pageSizes.map((pageSize, index) => (
+            <SelectItem
+              value={String(pageSize)}
+              key={index}
+            >{pageSize}</SelectItem>
+          ))}
+        </Select>
       </div>
     </div>
   );
