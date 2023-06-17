@@ -1,11 +1,13 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { usePathname } from "next/navigation";
 import Appbar from "@/components/layout/Appbar";
 import Navbar from "@/components/layout/Navbar";
 import UserMenu from "@/components/layout/UserMenu";
 import Providers from "@/providers/Providers";
+import constants from "@/utils/constants";
+import { useLocalStorage } from "@/utils/hooks";
 
 export default function AppMenu({
   children,
@@ -14,7 +16,8 @@ export default function AppMenu({
   children: React.ReactNode;
   appbarItems: React.ReactNode;
 }) {
-  const [isNavbarOpen, setIsNavbarOpen] = useState(false);
+
+  const [isNavbarOpen, setIsNavbarOpen] = useLocalStorage(constants.localStorageKey.isNavbarOpen, false);
 
   const pathname = usePathname();
 

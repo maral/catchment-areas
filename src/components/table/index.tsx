@@ -37,6 +37,7 @@ export default function CatchmentTable({
     setIsLoading(false);
   }
 
+  // Extracts nested attributes from an object using a string of keys
   const itterateThroughNestedAttrs = (object: Record<string, any>, keys: string): any => {
     const key = keys.split('.')[0];
     const nestedKeys = keys.split('.').slice(1).join('.');
@@ -58,18 +59,25 @@ export default function CatchmentTable({
             ))}
           </TableRow>
         </TableHead>
-        <TableBody>
-          {items.map((item) => (
-            <TableRow key={item.id}>
-              {columnDefinitions.map((column) => (
-              <TableCell key={column.key}>
-                {/* {item[column.key]} */}
-                {itterateThroughNestedAttrs(item, column.key)}
-              </TableCell>
-            ))}
-            </TableRow>
-          ))}
-        </TableBody>
+        {
+          isLoading ? (
+            <></>
+            // <div>Loading...</div>
+          ) : (
+            <TableBody>
+              {items.map((item) => (
+                <TableRow key={item.id}>
+                  {columnDefinitions.map((column) => (
+                  <TableCell key={column.key}>
+                    {itterateThroughNestedAttrs(item, column.key)}
+                  </TableCell>
+                ))}
+                </TableRow>
+              ))}
+            </TableBody>
+          )
+        }
+        
       </Table>
       <div className="flex">
         <span>
