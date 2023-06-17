@@ -1,12 +1,6 @@
-"use client";
-
 import "./globals.css";
 import { Inter } from "next/font/google";
-import React, { useState } from "react";
-import { usePathname } from "next/navigation";
-import Appbar from "@/components/layout/Appbar";
-import Navbar from "@/components/layout/Navbar";
-import UserMenu from "@/components/layout/UserMenu";
+import AppMenu from "@/components/layout/AppMenu";
 import Providers from "@/providers/Providers";
 
 export const metadata = {
@@ -21,39 +15,18 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [isNavbarOpen, setIsNavbarOpen] = useState(false);
-  const pathname = usePathname();
-
-  const toggleNavbar = () => {
-    setIsNavbarOpen(!isNavbarOpen);
-  };
+  const appbarItems = (<></>);  
 
   return (
     <html lang="en">
       <body className={`${inter.className} flex`}>
-        {pathname === "/login" ? (
-          <div className="grow flex flex-col">
-            <main className="bg-slate-50 p-10 grow flex flex-col h-screen">
+        <Providers>
+          <AppMenu appbarItems={appbarItems}>
+            <main className="bg-slate-50 p-10 grow flex flex-col">
               {children}
             </main>
-          </div>
-        ) : (
-          <Providers>
-            <Navbar
-              className={`${
-                isNavbarOpen ? "w-64" : "w-0"
-              } ease-in-out duration-150 h-screen`}
-            ></Navbar>
-            <div className="grow flex flex-col">
-              <Appbar toggleNavbar={toggleNavbar}>
-                <UserMenu />
-              </Appbar>
-              <main className="bg-slate-50 p-10 grow flex flex-col">
-                {children}
-              </main>
-            </div>
-          </Providers>
-        )}
+          </AppMenu>
+        </Providers>
       </body>
     </html>
   );

@@ -1,6 +1,7 @@
 import React from "react";
 import { List, ListItem } from "@tremor/react";
 import Link from "next/link";
+import texts from '@/utils/texts';
 
 export default function Navbar({
   className,
@@ -15,9 +16,10 @@ export default function Navbar({
             Test
           </ListItem>
         </Link>
+
         <Link href="/founderOverview">
           <ListItem className="cursor-pointer hover:bg-slate-50 rounded-md">
-            Founder Overview
+            { texts.founders }
           </ListItem>
         </Link>
 

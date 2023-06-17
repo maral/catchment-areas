@@ -5,11 +5,11 @@ import { useEffect, useState } from "react";
 import { remult } from "remult";
 
 const foundersRepo = remult.repo(Founder);
-const perPage = 50;
+const pageSize = 50;
 
 const getData = async (page: number): Promise<Founder[]> => {
   return foundersRepo.find({
-    limit: perPage,
+    limit: pageSize,
     page: page,
     load: (f) => [f.city!],
   });
@@ -34,7 +34,7 @@ export default function Home() {
     foundersRepo.count().then(setTotal);
   }, []);
 
-  const lastPage = Math.ceil(total / perPage);
+  const lastPage = Math.ceil(total / pageSize);
 
   return (
     <>
@@ -46,7 +46,7 @@ export default function Home() {
       </p>
       {founders.length === 0 && (
         <div className="text-center">
-          <div className="inline-block text-4xl">Načítáme</div>
+          <div className="inline-block text-4xl">Načítání...</div>
         </div>
       )}
 
