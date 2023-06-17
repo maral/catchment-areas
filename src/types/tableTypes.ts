@@ -1,7 +1,6 @@
 export type ColumnDefinition<T> = {
   title: string;
-  getValue: (entityItem: T) => any;
-  cellFactory?: (value: any) => JSX.Element;
+  cellFactory: (entityItem: T) => JSX.Element | any;
 }
   
 export type TableState = {

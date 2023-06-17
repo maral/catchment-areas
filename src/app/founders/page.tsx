@@ -1,7 +1,7 @@
 import texts from "@/utils/texts";
 import FoundersTable from "@/components/table/tableDefinitions/foundersTable";
 
-export default function FounderOverview() {
+export default function Founders() {
   return (
     <>
       <div>

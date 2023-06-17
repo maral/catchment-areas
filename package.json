@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "init-db": "tsx src/bin/init-db.ts"
+    "init-db": "tsx src/bin/init-db.ts",
+    "build-css": "tailwindcss build src/app/globals.css -o public/styles.css"
   },
   "dependencies": {
     "@auth/core": "^0.8.2",

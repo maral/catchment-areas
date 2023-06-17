@@ -70,15 +70,11 @@ export default function CatchmentTable<T>({
             </TableBody>
           ) : (
             <TableBody>
-              {items.map((item) => (
-                <TableRow key={item.id}>
+              {items.map((item, i) => (
+                <TableRow key={i}>
                   {columnDefinitions.map((column, index) => (
                   <TableCell key={index}>
-                    {
-                      column.cellFactory
-                        ? column.cellFactory(column.getValue(item))
-                        : column.getValue(item)
-                    }
+                    {column.cellFactory(item)}
                   </TableCell>
                 ))}
                 </TableRow>

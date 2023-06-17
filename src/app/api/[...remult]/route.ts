@@ -8,7 +8,6 @@ import { Region } from "@/entities/Region";
 import { School } from "@/entities/School";
 import { SchoolFounder } from "@/entities/SchoolFounder";
 import { User } from "@/entities/User";
-import { remult } from "remult";
 import { createKnexDataProvider } from "remult/remult-knex";
 import { remultNextApp } from "remult/remult-next";
 import { getServerSessionWithOptions } from "../auth/[...nextauth]/route";
