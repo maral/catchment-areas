@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import Appbar from "@/components/layout/Appbar";
 import Navbar from "@/components/layout/Navbar";
 import UserMenu from "@/components/layout/UserMenu";
-import Providers from "@/providers/Providers";
 import constants from "@/utils/constants";
 import { useLocalStorage } from "@/utils/hooks";
 
@@ -27,12 +26,12 @@ export default function AppMenu({
 
   return (
     <>
-      {pathname === "/login" ? (
-        <div className="grow flex flex-col">
+      {/\/auth/g.test(pathname) ? (
+        <div className="grow flex flex-col h-screen">
           {children}
         </div>
       ) : (
-        <Providers>
+        <>
           <Navbar
             className={`${
               isNavbarOpen ? "w-64" : "w-0"
@@ -45,7 +44,7 @@ export default function AppMenu({
             </Appbar>
             {children}
           </div>
-        </Providers>
+        </>
       )}
     </>
   );
