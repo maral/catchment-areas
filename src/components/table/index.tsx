@@ -1,31 +1,39 @@
 "use client";
 
 import { Table, TableHead, TableHeaderCell, TableBody, TableRow, TableCell } from "@tremor/react"
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import type { ColumnDefinition, TableState } from "@/types/tableTypes";
-import { Select, SelectItem } from "@tremor/react";
+import { ChevronRightIcon, ChevronLeftIcon } from '@heroicons/react/24/solid';
+import { Button } from "@tremor/react";
 
-export default function CatchmentTable({
+export default function CatchmentTable<T>({
   fetchItems,
   columnDefinitions,
   tableState,
   setTableState,
   count,
 }: {
-  fetchItems: () => Promise<any[]>;
-  columnDefinitions: ColumnDefinition[];
+  fetchItems: () => Promise<T[]>;
+  columnDefinitions: ColumnDefinition<T>[];
   tableState: TableState;
   setTableState: (tableState: TableState) => void;
   count: () => Promise<number>;
 }) {
-  const [items, setItems] = useState<any[]>([]);
+  const [items, setItems] = useState<T[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const pageSizes = [10, 25, 50, 100];
 
+  const fetchData = useCallback(async () => {
+    setIsLoading(true);
+    const response = await fetchItems();
+    setItems(response);
+    setIsLoading(false);
+  }, [fetchItems, setIsLoading, setItems])
+
   useEffect(() => {
     fetchData();
-  }, [tableState.page]);
+  }, [tableState.page, tableState.pageSize, fetchData]);
 
   useEffect(() => {
     count().then((totalCounted) => {
@@ -33,21 +41,8 @@ export default function CatchmentTable({
     });
   }, []);
 
-  const fetchData = async () => {
-    setIsLoading(true);
-    const response = await fetchItems();
-    setItems(response);
-    setIsLoading(false);
-  }
-
-  // Extracts nested attributes from an object using a string of keys
-  const itterateThroughNestedAttrs = (object: Record<string, any>, keys: string): any => {
-    const key = keys.split('.')[0];
-    const nestedKeys = keys.split('.').slice(1).join('.');
-    if (nestedKeys.length > 0) {
-      return itterateThroughNestedAttrs(object[key], nestedKeys);
-    }
-    return object[key];
+  const onPageSizeChange = (value: string) => {
+    setTableState({ ...tableState, pageSize: Number(value), page: 1 });
   }
 
   return (
@@ -55,8 +50,8 @@ export default function CatchmentTable({
       <Table>
         <TableHead>
           <TableRow>
-            {columnDefinitions.map((column) => (
-              <TableHeaderCell key={column.key}>
+            {columnDefinitions.map((column, index) => (
+              <TableHeaderCell key={index}>
                 {column.title}
               </TableHeaderCell>
             ))}
@@ -64,15 +59,26 @@ export default function CatchmentTable({
         </TableHead>
         {
           isLoading ? (
-            <></>
-            // <div>Loading...</div>
+            <TableBody>
+              <TableRow>
+                <TableCell colSpan={columnDefinitions.length}>
+                  <div>
+                    Loading...
+                  </div>
+                </TableCell>
+              </TableRow>
+            </TableBody>
           ) : (
             <TableBody>
               {items.map((item) => (
                 <TableRow key={item.id}>
-                  {columnDefinitions.map((column) => (
-                  <TableCell key={column.key}>
-                    {itterateThroughNestedAttrs(item, column.key)}
+                  {columnDefinitions.map((column, index) => (
+                  <TableCell key={index}>
+                    {
+                      column.cellFactory
+                        ? column.cellFactory(column.getValue(item))
+                        : column.getValue(item)
+                    }
                   </TableCell>
                 ))}
                 </TableRow>
@@ -82,18 +88,24 @@ export default function CatchmentTable({
         }
         
       </Table>
-      <div className="flex">
+      <div className="flex justify-end">
+        <Button icon={ChevronLeftIcon} />
         <span>
-          {tableState.page} / {Math.ceil(tableState.total / tableState.perPage)}
+          {tableState.page} / {Math.ceil(tableState.total / tableState.pageSize)}
         </span>
-        <Select value={String(tableState.perPage)} >
+        <Button icon={ChevronRightIcon} />
+        
+        <select
+          value={String(tableState.pageSize)}
+          onChange={(event) => onPageSizeChange(event.target.value)}
+        >
           {pageSizes.map((pageSize, index) => (
-            <SelectItem
+            <option
               value={String(pageSize)}
               key={index}
-            >{pageSize}</SelectItem>
+            >{pageSize}</option>
           ))}
-        </Select>
+        </select>
       </div>
     </div>
   );

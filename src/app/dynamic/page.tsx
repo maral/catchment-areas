@@ -6,11 +6,11 @@ import { useEffect, useState } from "react";
 import { remult } from "remult";
 
 const foundersRepo = remult.repo(Founder);
-const perPage = 50;
+const pageSize = 50;
 
 const getData = async (page: number): Promise<Founder[]> => {
   return foundersRepo.find({
-    limit: perPage,
+    limit: pageSize,
     page: page,
     orderBy: { name: "asc" },
     load: (f) => [f.city!],
@@ -38,7 +38,7 @@ export default function Home() {
     foundersRepo.count().then(setTotal);
   }, []);
 
-  const lastPage = Math.ceil(total / perPage);
+  const lastPage = Math.ceil(total / pageSize);
 
   return (
     <>
