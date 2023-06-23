@@ -2,27 +2,25 @@
 
 import React from "react";
 import { Button, Icon } from "@tremor/react";
-import { UserCircleIcon } from "@heroicons/react/24/solid";
+import Aavatar from "@/components/Avatar";
 import { signOut, useSession } from "next-auth/react";
-import Image from "next/image";
+import { ArrowLeftOnRectangleIcon } from "@heroicons/react/24/solid";
+import texts from "@/utils/texts";
+import IconBtn from "../buttons/IconBtn";
 
 export default function UserMenu() {
   const session = useSession();
 
   if (session && session.status === "authenticated") {
     return (
-      <div className="flex">
-        <Image
-          width="48"
-          height="48"
-          src={session.data?.user?.image ?? ""}
-          alt="Fotka uživatele"
-          className="rounded-full"
-        />
-        <span>{session.data?.user?.name}</span>
-        <Button className="ml-2" onClick={() => signOut()}>
-          Odhlásit se
-        </Button>
+      <div className="flex items-center h-full mx-2">
+        <Aavatar className="" image={session.data?.user?.image ?? ""} size="md" />
+        <span className="p-1 mr-2">{session.data?.user?.name}</span>
+        <IconBtn
+            icon={ArrowLeftOnRectangleIcon}
+            tooltip={texts.logout}
+            onClick={() => signOut()}
+          />
       </div>
     );
   } else {

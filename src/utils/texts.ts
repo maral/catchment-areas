@@ -1,6 +1,7 @@
 const texts  = {
     founders: 'Zřizovatelé',
-    regions: 'Kraje'
+    regions: 'Kraje',
+    logout: 'Odhlásit se',
 }
 
 export default texts;

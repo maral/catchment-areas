@@ -13,7 +13,7 @@ export default function Appbar ({
 }) {
   return (
     <div className={className}>
-      <div className="flex justify-between bg-slate-100 h-12 border-b">
+      <div className="flex justify-between bg-slate-50 h-14 border-b">
         <Icon
           className="cursor-pointer"
           icon={Bars3Icon}

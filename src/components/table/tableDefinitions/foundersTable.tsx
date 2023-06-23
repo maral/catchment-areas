@@ -6,6 +6,8 @@ import { Founder } from "@/entities/Founder";
 import { useState } from "react";
 import Link from 'next/link'
 import type { ColumnDefinition, TableState } from "@/types/tableTypes";
+import { Button } from "@tremor/react";
+import { Colors } from "@/styles/Themes";
 
 const foundersRepo = remult.repo(Founder);
 
@@ -13,12 +15,23 @@ const foundersRepo = remult.repo(Founder);
 export default function FoundersTable() {
   const renderActionBtns = (item: Founder) => (
     <div className="flex">
-      <button className="primary-btn mr-2">
+      <Button
+        className="mr-2"
+        color={Colors.Primary}
+        onClick={() => {
+          console.log('map btn click', item.id)
+        }}
+      >
         mapa
-      </button>
-      <button className="secondary-btn">
+      </Button>
+      <Button
+        color={Colors.Secondary}
+        onClick={() => {
+          console.log('edit btn click', item.id)
+        }}
+      >
         upravit vyhlášku
-      </button>
+      </Button>
     </div>
   );
 
@@ -26,8 +39,10 @@ export default function FoundersTable() {
     {
       title: 'Název',
       cellFactory: (item) => (
-        <Link href={`/founders/${item.id}`} className="emerald-link">
-          {item.name}
+        <Link href={`/founders/${item.id}`}>
+          <span className="text-emerald-500 hover:text-emerald-600 font-bold">
+            {item.name}
+          </span>
         </Link>
       )
     },
@@ -59,7 +74,8 @@ export default function FoundersTable() {
     
   const [tableState, setTableState] = useState<TableState>({
     page: 1,
-    pageSize: 25,
+    pageSize: 10
+    ,
     total: 0,
   });
     

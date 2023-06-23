@@ -8,7 +8,7 @@ export default function Navbar({
   className?: string;
 }) {
   return (
-    <div className={`${className} border-r border-slate-300`}>
+    <div className={`${className ?? ""} bg-slate-100 border-r border-slate-300`}>
       <List className="p-4">
         <Link href="/test">
           <ListItem className="cursor-pointer hover:bg-slate-50 rounded-md">
