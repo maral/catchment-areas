@@ -1,42 +1,13 @@
-"use client";
-import Editor, { useMonaco, loader } from "@monaco-editor/react";
-import { useEffect, useState } from "react";
-import * as monaco from 'monaco-editor';
-import { configureMonaco } from "./configureMonaco";
+import Editor from "@/components/editor/Editor";
+import { readFileSync } from "fs";
+import "@/utils/textToMapInit";
 
-loader.config({ monaco });
-
-// loader.config({
-//   "vs/nls": { availableLanguages: { "*": "cs" } },
-// });
-
-export default function EditorPage() {
-  const [initialContent, setInitialContent] = useState("");
-  const [content, setContent] = useState("");
-
-  useEffect(() => {
-    fetch("vyhlaska_CL.txt")
-      .then((res) => res.text())
-      .then((text) => setInitialContent(text));
-  }, []);
-
-  const monaco = useMonaco();
-
-  useEffect(() => {
-    if (monaco && initialContent) {
-      monaco.editor.getModels()[0].setValue(initialContent);
-    }
-  }, [monaco, initialContent]);
+export default async function EditorPage() {
+  const text = readFileSync("public/vyhlaska_CL.txt", "utf-8");
 
   return (
-    <Editor
-      theme="street-markdown"
-      beforeMount={configureMonaco}
-      className={`h-[calc(100vh-8rem)]`}
-      value={content}
-      onChange={(value) => setContent(value ?? "")}
-      options={{}}
-      language="street-markdown"
-    />
+    <div>
+      <Editor text={text} />
+    </div>
   );
 }
