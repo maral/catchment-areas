@@ -2,8 +2,10 @@ export type RemoveIndex<T> = {
   [K in keyof T as {} extends Record<K, 1> ? never : K]: T[K]
 }
 
-export interface ErrorCallbackParams {
-  lineNumber: number;
+export interface TextToMapError {
+  message: string;
   line: string;
-  errors: string[];
+  lineNumber: number;
+  startOffset: number;
+  endOffset: number;
 }

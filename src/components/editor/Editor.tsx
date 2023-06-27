@@ -1,8 +1,8 @@
 "use client";
-import { TextToMapController } from "@/controllers/TextToMapController";
 import MonacoEditor, { useMonaco } from "@monaco-editor/react";
 import debounce from "lodash/debounce";
 // import * as monaco from "monaco-editor";
+import { TextToMapError } from "@/utils/types";
 import type { editor } from "monaco-editor";
 import { useCallback, useEffect, useState } from "react";
 import { configureMonaco } from "./configureMonaco";
@@ -14,7 +14,6 @@ export default function Editor({ text }: { text: string }) {
   const [markers, setMarkers] = useState<editor.IMarkerData[]>([]);
 
   const monacoInstance = useMonaco();
-
 
   useEffect(() => {
     if (monacoInstance) {
@@ -32,9 +31,17 @@ export default function Editor({ text }: { text: string }) {
       if (monacoInstance) {
         const lines = monacoInstance.editor.getModels()[0].getLinesContent();
         const markers: editor.IMarkerData[] = [];
-        const { errors, warnings } = await TextToMapController.parseOrdinance(
-          lines
-        );
+        const response = await fetch("/api/text-to-map", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ lines }),
+        });
+        const { errors, warnings } = (await response.json()) as {
+          errors: TextToMapError[];
+          warnings: TextToMapError[];
+        };
 
         errors.forEach((error) => {
           markers.push(
@@ -42,7 +49,9 @@ export default function Editor({ text }: { text: string }) {
               8, //MarkerSeverity.Error,
               error.message,
               error.lineNumber,
-              error.line
+              error.line,
+              error.startOffset,
+              error.endOffset
             )
           );
         });
@@ -53,7 +62,9 @@ export default function Editor({ text }: { text: string }) {
               4, //MarkerSeverity.Warning,
               warning.message,
               warning.lineNumber,
-              warning.line
+              warning.line,
+              warning.startOffset,
+              warning.endOffset
             )
           );
         });
@@ -63,6 +74,12 @@ export default function Editor({ text }: { text: string }) {
     }, 1000),
     [monacoInstance]
   );
+
+  useEffect(() => {
+    if (monacoInstance) {
+      validate();
+    }
+  }, [monacoInstance, validate]);
 
   return (
     <div>
@@ -86,14 +103,16 @@ const createMarker = (
   severity: number, //MarkerSeverity,
   message: string,
   lineNumber: number,
-  line: string
+  line: string,
+  startOffset: number,
+  endOffset: number
 ): editor.IMarkerData => {
   return {
     severity,
     message,
     startLineNumber: lineNumber,
-    startColumn: 1,
+    startColumn: startOffset + 1,
     endLineNumber: lineNumber,
-    endColumn: line.length + 1,
+    endColumn: endOffset + 1,
   };
 };

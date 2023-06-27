@@ -1,5 +1,4 @@
 import { FounderController } from "@/controllers/FounderController";
-import { TextToMapController } from "@/controllers/TextToMapController";
 import { Account } from "@/entities/Account";
 import { City } from "@/entities/City";
 import { CityDistrict } from "@/entities/CityDistrict";
@@ -27,7 +26,7 @@ export const remultOptions = {
     User,
     Account,
   ],
-  controllers: [TextToMapController, FounderController],
+  controllers: [FounderController],
   dataProvider: createKnexDataProvider({
     client: "sqlite3",
     connection: {
