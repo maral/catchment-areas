@@ -31,7 +31,7 @@ export default function Editor({ text }: { text: string }) {
       if (monacoInstance) {
         const lines = monacoInstance.editor.getModels()[0].getLinesContent();
         const markers: editor.IMarkerData[] = [];
-        const response = await fetch("/api/text-to-map", {
+        const response = await fetch("/api/text-to-map/validate", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

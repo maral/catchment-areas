@@ -90,8 +90,8 @@ async function main() {
   const path = await download(
     // "https://sbirkapp.gov.cz/detail/SPPGYQJQ3E23KIGC/text", // doc
     // "https://sbirkapp.gov.cz/detail/SPPI2RSJQFSTLW4I/text", // docx
-    // "https://sbirkapp.gov.cz/detail/SPPQBCN2CY42CL2A/text", // pdf
-    "https://sbirkapp.gov.cz/detail/SPP5JSAM5JZWC6I6/text", // pdf with images
+    "https://sbirkapp.gov.cz/detail/SPPAVDN56WKCIHO6/text", // pdf
+    // "https://sbirkapp.gov.cz/detail/SPP5JSAM5JZWC6I6/text", // pdf with images
     randomName
   );
   const type = await fileTypeFromFile(path);
