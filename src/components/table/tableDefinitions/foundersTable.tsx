@@ -11,7 +11,6 @@ import { Colors } from "@/styles/Themes";
 
 const foundersRepo = remult.repo(Founder);
 
-
 export default function FoundersTable() {
   const renderActionBtns = (item: Founder) => (
     <div className="flex">
@@ -91,12 +90,12 @@ export default function FoundersTable() {
   };
 
   return (
-    <CatchmentTable
-      columnDefinitions={columnDefinitions}
-      fetchItems={fetchItems}
-      tableState={tableState}
-      setTableState={setTableState}
-      count={count}
-    />
+      <CatchmentTable
+        columnDefinitions={columnDefinitions}
+        fetchItems={fetchItems}
+        tableState={tableState}
+        setTableState={setTableState}
+        count={count}
+      />
   );
 }

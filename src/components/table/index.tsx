@@ -109,7 +109,7 @@ export default function CatchmentTable<T>({
         <TableHead>
           <TableRow>
             {columnDefinitions.map((column, index) => (
-              <TableHeaderCell key={index}>
+              <TableHeaderCell key={index} className="p-2">
                 {column.title}
               </TableHeaderCell>
             ))}
@@ -142,7 +142,7 @@ export default function CatchmentTable<T>({
         }
         
       </Table>
-      <div className="flex justify-end items-center">
+      <div className="flex justify-end items-center p-2">
         <div className="px-3">
           <IconBtn
             className="mx-2"

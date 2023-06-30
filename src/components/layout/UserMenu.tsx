@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Button, Icon } from "@tremor/react";
+import { Button, Title } from "@tremor/react";
 import Aavatar from "@/components/Avatar";
 import { signOut, useSession } from "next-auth/react";
 import { ArrowLeftOnRectangleIcon } from "@heroicons/react/24/solid";
@@ -15,7 +15,7 @@ export default function UserMenu() {
     return (
       <div className="flex items-center h-full mx-2">
         <Aavatar className="" image={session.data?.user?.image ?? ""} size="md" />
-        <span className="p-1 mr-2">{session.data?.user?.name}</span>
+        <Title className="p-1 mr-2">{session.data?.user?.name}</Title>
         <IconBtn
             icon={ArrowLeftOnRectangleIcon}
             tooltip={texts.logout}
