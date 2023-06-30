@@ -1,10 +1,18 @@
+import { createCanvas } from "canvas";
 import { fileTypeFromFile } from "file-type";
-import { createWriteStream, readFileSync, renameSync, unlinkSync } from "fs";
+import {
+  createWriteStream,
+  readFileSync,
+  renameSync,
+  unlinkSync,
+  writeFileSync,
+} from "fs";
 import { get } from "https";
 import { uniqueId } from "lodash";
 import pdf from "pdf-parse";
 import Tesseract from "tesseract.js";
 import WordExtractor from "word-extractor";
+import { convert } from "pdf-img-convert";
 
 // 'https://sbirkapp.gov.cz/detail/SPPAVDN56WKCIHO6/text',
 
@@ -12,9 +20,18 @@ import WordExtractor from "word-extractor";
 // - [X] download the document
 // - [X] identify type of document (docx/pdf)
 // - [X] text PDF to text
-// - [ ] image PDF - extract images
+// - [X] image PDF - extract images
 // - [X] OCR extracted images
 // - [X] DOCX to text
+
+async function extractImagesFromPdf(pdfPath: string) {
+  const outputImages = await convert(pdfPath);
+  return outputImages.map((image, i) => {
+    const path = "output" + i + ".png";
+    writeFileSync(path, image);
+    return path;
+  });
+}
 
 function parseContentDisposition(contentDisposition?: string) {
   if (!contentDisposition) return null;
@@ -73,8 +90,8 @@ async function main() {
   const path = await download(
     // "https://sbirkapp.gov.cz/detail/SPPGYQJQ3E23KIGC/text", // doc
     // "https://sbirkapp.gov.cz/detail/SPPI2RSJQFSTLW4I/text", // docx
-    "https://sbirkapp.gov.cz/detail/SPPQBCN2CY42CL2A/text", // pdf
-    // "https://sbirkapp.gov.cz/detail/SPP5JSAM5JZWC6I6/text", // pdf with images
+    // "https://sbirkapp.gov.cz/detail/SPPQBCN2CY42CL2A/text", // pdf
+    "https://sbirkapp.gov.cz/detail/SPP5JSAM5JZWC6I6/text", // pdf with images
     randomName
   );
   const type = await fileTypeFromFile(path);
@@ -90,7 +107,18 @@ async function main() {
   if (type) {
     if (type.mime === "application/pdf") {
       console.log("PDF");
-      console.log(await readPdf(path));
+      const text = await readPdf(path);
+      console.log(text);
+      if (text.length < 100) {
+        console.log("extracting images");
+        const images = await extractImagesFromPdf(path);
+        console.log(images);
+        for (const image of images) {
+          console.log("recognizing image");
+          const result = await recognizeImage(image);
+          console.log(result);
+        }
+      }
     } else if (
       type.mime === "application/x-cfb" ||
       type.mime ===
