@@ -11,19 +11,24 @@ import { User } from "@/entities/User";
 import { createKnexDataProvider } from "remult/remult-knex";
 import { remultNextApp } from "remult/remult-next";
 import { getServerSessionWithOptions } from "../auth/[...nextauth]/route";
+import { Ordinance } from "@/entities/Ordinance";
+import { StreetMarkdown } from "@/entities/StreetMarkdown";
 
 export const api = remultNextApp({
   entities: [
+    Account,
     City,
     CityDistrict,
     County,
     Founder,
+    Ordinance,
     Orp,
     Region,
     School,
     SchoolFounder,
+    StreetMarkdown,
     User,
-    Account,
+
   ],
   dataProvider: createKnexDataProvider({
     client: "sqlite3",

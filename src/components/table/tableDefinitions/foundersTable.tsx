@@ -4,7 +4,7 @@ import CatchmentTable from "@/components/table";
 import { remult } from "remult";
 import { Founder } from "@/entities/Founder";
 import { useState } from "react";
-import Link from 'next/link'
+import Link from "next/link";
 import type { ColumnDefinition, TableState } from "@/types/tableTypes";
 import { Button } from "@tremor/react";
 import { Colors } from "@/styles/Themes";
@@ -18,7 +18,7 @@ export default function FoundersTable() {
         className="mr-2"
         color={Colors.Primary}
         onClick={() => {
-          console.log('map btn click', item.id)
+          console.log("map btn click", item.id);
         }}
       >
         mapa
@@ -26,7 +26,7 @@ export default function FoundersTable() {
       <Button
         color={Colors.Secondary}
         onClick={() => {
-          console.log('edit btn click', item.id)
+          console.log("edit btn click", item.id);
         }}
       >
         upravit vyhlášku
@@ -36,50 +36,49 @@ export default function FoundersTable() {
 
   const columnDefinitions: ColumnDefinition<Founder>[] = [
     {
-      title: 'Název',
+      title: "Název",
       cellFactory: (item) => (
         <Link href={`/founders/${item.id}`}>
           <span className="text-emerald-500 hover:text-emerald-600 font-bold">
             {item.name}
           </span>
         </Link>
-      )
+      ),
     },
     {
-      title: 'IČO',
-      cellFactory: (item) => item.ico
+      title: "IČO",
+      cellFactory: (item) => item.ico,
     },
     {
-      title: 'Kraj',
-      cellFactory: (item) => item.city?.region?.name
+      title: "Kraj",
+      cellFactory: (item) => item.city?.region?.name,
     },
     {
-      title: 'Okres',
-      cellFactory: (item) => item.city?.county?.name
+      title: "Okres",
+      cellFactory: (item) => item.city?.county?.name,
     },
     {
-      title: 'ORP',
-      cellFactory: (item) => item.city?.orp?.name
+      title: "ORP",
+      cellFactory: (item) => item.city?.orp?.name,
     },
     {
-      title: 'Počet Škol',
-      cellFactory: (item) => item.schoolCount
+      title: "Počet Škol",
+      cellFactory: (item) => item.schoolCount,
     },
     {
-      title: '',
-      cellFactory: (item) => renderActionBtns(item)
+      title: "",
+      cellFactory: (item) => renderActionBtns(item),
     },
   ];
-    
+
   const [tableState, setTableState] = useState<TableState>({
     page: 1,
-    pageSize: 10
-    ,
+    pageSize: 10,
     total: 0,
   });
-    
+
   const count = async () => foundersRepo.count();
-    
+
   const fetchItems = async () => {
     return foundersRepo.find({
       limit: tableState.pageSize,
@@ -90,12 +89,12 @@ export default function FoundersTable() {
   };
 
   return (
-      <CatchmentTable
-        columnDefinitions={columnDefinitions}
-        fetchItems={fetchItems}
-        tableState={tableState}
-        setTableState={setTableState}
-        count={count}
-      />
+    <CatchmentTable
+      columnDefinitions={columnDefinitions}
+      fetchItems={fetchItems}
+      tableState={tableState}
+      setTableState={setTableState}
+      count={count}
+    />
   );
 }
