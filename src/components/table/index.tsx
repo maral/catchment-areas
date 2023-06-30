@@ -11,28 +11,29 @@ import { TextInput } from "@tremor/react";
 export default function CatchmentTable<T>({
   fetchItems,
   columnDefinitions,
-  tableState,
-  setTableState,
   count,
 }: {
-  fetchItems: () => Promise<T[]>;
+  fetchItems: (page: number, limit: number) => Promise<T[]>;
   columnDefinitions: ColumnDefinition<T>[];
-  tableState: TableState;
-  setTableState: (tableState: TableState) => void;
   count: () => Promise<number>;
 }) {
   const [items, setItems] = useState<T[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [tableState, setTableState] = useState<TableState>({
+    page: 1,
+    pageSize: 10,
+    total: 0,
+  } as TableState);
   const [newPage, setNewPage] = useState<number>(tableState.page);
 
   const pageSizes = [10, 25, 50, 100];
 
   const fetchData = useCallback(async () => {
     setIsLoading(true);
-    const response = await fetchItems();
+    const response = await fetchItems(tableState.page, tableState.pageSize);
     setItems(response);
     setIsLoading(false);
-  }, [fetchItems, setIsLoading, setItems])
+  }, [fetchItems, setIsLoading, setItems, tableState.page, tableState.pageSize])
 
   useEffect(() => {
     fetchData();
@@ -86,13 +87,11 @@ export default function CatchmentTable<T>({
   }
 
   const jumpToPage = (page: number): void => {
-    console.log('input', page);
     if (page < 1) {
       page = 1;
     } else if (page > Math.ceil(tableState.total / tableState.pageSize)) {
       page = Math.ceil(tableState.total / tableState.pageSize);
     }
-    console.log('output', page);
     if (page !== tableState.page) {
       paginate(page);
     }

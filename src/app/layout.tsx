@@ -22,7 +22,7 @@ export default function RootLayout({
       <body className={`${inter.className} flex`}>
         <Providers>
           <AppMenu appbarItems={appbarItems}>
-            <main className="p-10 grow flex flex-col bg-slate-50">
+            <main className="p-6 grow flex flex-col bg-slate-50">
               {children}
             </main>
           </AppMenu>

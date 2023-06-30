@@ -1,7 +1,29 @@
 const texts  = {
+    active: 'Aktivní',
+    addOrdinance: 'Přidat vyhlášku',
+    author: 'Autor',
+    comment: 'Komentář',
+    county: 'Okres',
+    downloadJson: 'Stáhnout JSON',
+    edited: 'Datum úpravy',
+    editHistory: 'Historie úprav',
+    editOrdinance: 'Upravit vyhlášku',
+    editOrdinanceText: 'Upravit text vyhlášky',
     founders: 'Zřizovatelé',
-    regions: 'Kraje',
+    ico: 'IČO',
     logout: 'Odhlásit se',
+    map: 'Mapa',
+    name: 'Název',
+    numberOfSchools: 'Počet škol',
+    ordinances: 'Vyhlášky',
+    orp: 'ORP',
+    region: 'Kraj',
+    regions: 'Kraje',
+    status: 'Stav',
+    url: 'URL',
+    validFrom: 'Platnost od',
+    validTo: 'Platnost do',
+    viewOnMap: 'Zobrazit na mapě',
 }
 
-export default texts;
+export { texts };

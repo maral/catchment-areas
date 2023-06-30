@@ -2,44 +2,38 @@
 
 import CatchmentTable from "@/components/table";
 import { Ordinance } from "@/entities/Ordinance";
-import type { ColumnDefinition, TableState } from "@/types/tableTypes";
-import { useState } from "react";
 import { remult } from "remult";
+import type { ColumnDefinition } from "@/types/tableTypes";
+import { texts } from "@/utils/texts";
 
 const ordinancesRepo = remult.repo(Ordinance);
 
 export default function OrdinancesTable() {
   const columnDefinitions: ColumnDefinition<Ordinance>[] = [
     {
-      title: "Url",
-      cellFactory: (item) => item.documentUrl,
+      title: texts.url,
+      cellFactory: (item) => item.documentUrl
     },
     {
-      title: "Platnost od",
-      cellFactory: (item) => item.validFrom,
+      title: texts.validFrom,
+      cellFactory: (item) => item.validFrom
     },
     {
-      title: "Platnost do",
-      cellFactory: (item) => item.validTo,
+      title: texts.validTo,
+      cellFactory: (item) => item.validTo
     },
     {
-      title: "Aktivní",
-      cellFactory: (item) => item.isActive,
+      title: texts.active,
+      cellFactory: (item) => item.isActive
     },
   ];
 
-  const [tableState, setTableState] = useState<TableState>({
-    page: 1,
-    pageSize: 10,
-    total: 0,
-  });
-
   const count = async () => ordinancesRepo.count();
 
-  const fetchItems = async () => {
+  const fetchItems = async (page: number, limit: number) => {
     return ordinancesRepo.find({
-      limit: tableState.pageSize,
-      page: tableState.page,
+      limit,
+      page,
       orderBy: { validFrom: "asc" },
     });
   };
@@ -48,8 +42,6 @@ export default function OrdinancesTable() {
     <CatchmentTable
       columnDefinitions={columnDefinitions}
       fetchItems={fetchItems}
-      tableState={tableState}
-      setTableState={setTableState}
       count={count}
     />
   );

@@ -1,5 +1,5 @@
 import { Badge, Card, Subtitle } from "@tremor/react"
-import OverviewBoxButtons from "@/components/OverviewBoxButtons";
+import OverviewBoxButtons from "@/components/founderDetail/OverviewBoxButtons";
 
 export default function OverviewBox({
   className

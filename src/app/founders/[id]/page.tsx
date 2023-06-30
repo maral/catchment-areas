@@ -1,6 +1,9 @@
-import OverviewBox from "@/components/OverviewBox";
+import OverviewBox from "@/components/founderDetail/OverviewBox";
 import OrdinancesTable from "@/components/table/tableDefinitions/OrdinancesTable";
 import { Card, Title } from "@tremor/react"
+import { texts } from "@/utils/texts";
+import EditHistoryTable from "@/components/table/tableDefinitions/EditHistoryTable";
+import OrdinanceHeader from "@/components/founderDetail/OrdinanceHeader";
 
 export default function Founder({
   params
@@ -13,7 +16,7 @@ export default function Founder({
       {/* TOP PART OF THE VIEW */}
       <div className="h-1/2 pb-4 flex">
         <Card className="grow m-1 mr-4">
-          <Title>Ordinances</Title>
+          <OrdinanceHeader />
           <OrdinancesTable />
         </Card>
         {/* overview box */}
@@ -22,7 +25,8 @@ export default function Founder({
       {/* BOTTOM PART OF THE VIEW */}
       <div className="h-1/2 p-1">
         <Card className="h-full">
-          {params.id}
+          <Title className="px-2 py-3 mb-2">{texts.editHistory}</Title>
+          <EditHistoryTable />
         </Card>
       </div>
     </div>
