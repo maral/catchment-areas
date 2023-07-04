@@ -7,8 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "ocr": "tsx src/bin/ocr.ts",
     "init-db": "tsx src/bin/init-db.ts",
-    "ocr": "tsx src/bin/ocr.ts"
+    "build-css": "tailwindcss build src/app/globals.css -o public/styles.css"
   },
   "dependencies": {
     "@auth/core": "^0.8.2",

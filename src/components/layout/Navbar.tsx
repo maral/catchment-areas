@@ -1,7 +1,6 @@
-import React from "react";
 import { List, ListItem } from "@tremor/react";
 import Link from "next/link";
-import texts from '@/utils/texts';
+import { texts } from '@/utils/texts';
 
 export default function Navbar({
   className,
@@ -9,7 +8,7 @@ export default function Navbar({
   className?: string;
 }) {
   return (
-    <div className={`${className} border-r border-slate-300`}>
+    <div className={`${className ?? ""} bg-slate-100 border-r border-slate-300`}>
       <List className="p-4">
         <Link href="/test">
           <ListItem className="cursor-pointer hover:bg-slate-50 rounded-md">
@@ -17,7 +16,7 @@ export default function Navbar({
           </ListItem>
         </Link>
 
-        <Link href="/founderOverview">
+        <Link href="/founders">
           <ListItem className="cursor-pointer hover:bg-slate-50 rounded-md">
             { texts.founders }
           </ListItem>

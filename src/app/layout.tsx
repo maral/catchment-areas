@@ -1,4 +1,4 @@
-import "./globals.css";
+import "../../public/styles.css";
 import { Inter } from "next/font/google";
 import AppMenu from "@/components/layout/AppMenu";
 import Providers from "@/providers/Providers";
@@ -22,7 +22,7 @@ export default function RootLayout({
       <body className={`${inter.className} flex`}>
         <Providers>
           <AppMenu appbarItems={appbarItems}>
-            <main className="bg-slate-50 p-10 grow flex flex-col">
+            <main className="p-6 grow flex flex-col bg-slate-50">
               {children}
             </main>
           </AppMenu>
