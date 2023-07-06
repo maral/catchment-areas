@@ -14,6 +14,7 @@ import { remultNextApp } from "remult/remult-next";
 import { getServerSessionWithOptions } from "../auth/[...nextauth]/route";
 import { Ordinance } from "@/entities/Ordinance";
 import { StreetMarkdown } from "@/entities/StreetMarkdown";
+import { OrdinanceMetadata } from "@/entities/OrdinanceMetadata";
 
 export const remultOptions = {
   entities: [
@@ -23,13 +24,13 @@ export const remultOptions = {
     County,
     Founder,
     Ordinance,
+    OrdinanceMetadata,
     Orp,
     Region,
     School,
     SchoolFounder,
     StreetMarkdown,
     User,
-
   ],
   controllers: [FounderController],
   dataProvider: createKnexDataProvider({

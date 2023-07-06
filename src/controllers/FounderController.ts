@@ -17,6 +17,6 @@ export class FounderController {
           WHERE ${schoolFounders}.${schoolFounders.founderId} = ${founders}.${founders.id}
         )`
     );
-    knex.destroy();
+    await knex.destroy();
   }
 }

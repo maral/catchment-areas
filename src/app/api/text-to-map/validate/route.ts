@@ -1,4 +1,3 @@
-import { textToMapOptions } from "@/utils/constants";
 import { TextToMapError } from "@/utils/types";
 import { NextRequest, NextResponse } from "next/server";
 import {
@@ -21,13 +20,7 @@ export async function POST(request: NextRequest) {
     });
   };
 
-  parseOrdinanceToAddressPoints(
-    lines,
-    textToMapOptions,
-    {},
-    onError,
-    onWarning
-  );
+  parseOrdinanceToAddressPoints(lines, {}, onError, onWarning);
 
   return NextResponse.json({
     errors: errorList,
