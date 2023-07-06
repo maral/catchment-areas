@@ -1,6 +1,9 @@
 const texts  = {
     active: 'Aktivní',
+    add: 'Přidat',
+    addOrdinanceManually: 'Přidat vyhlášku ručně',
     addOrdinance: 'Přidat vyhlášku',
+    addOrdinanceFromCollection: 'Přidat vyhlášku ze sbírky právních předpisů',
     author: 'Autor',
     comment: 'Komentář',
     county: 'Okres',
@@ -15,6 +18,7 @@ const texts  = {
     map: 'Mapa',
     name: 'Název',
     numberOfSchools: 'Počet škol',
+    ordinanceName: 'Název vyhlášky',
     ordinances: 'Vyhlášky',
     orp: 'ORP',
     region: 'Kraj',

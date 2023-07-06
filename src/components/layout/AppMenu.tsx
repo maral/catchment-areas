@@ -15,7 +15,6 @@ export default function AppMenu({
   children: React.ReactNode;
   appbarItems: React.ReactNode;
 }) {
-
   const [isNavbarOpen, setIsNavbarOpen] = useLocalStorage(constants.localStorageKey.isNavbarOpen, false);
 
   const pathname = usePathname();

@@ -4,14 +4,24 @@ import CatchmentTable from "@/components/table";
 import { remult } from "remult";
 import { Founder } from "@/entities/Founder";
 import Link from 'next/link'
-import type { ColumnDefinition, TableState } from "@/types/tableTypes";
+import type { ColumnDefinition } from "@/types/tableTypes";
 import { Button } from "@tremor/react";
 import { Colors } from "@/styles/Themes";
 import { texts } from "@/utils/texts";
+import { useNavigationContext } from "@/providers/Providers";
+import { useEffect } from "react";
 
 const foundersRepo = remult.repo(Founder);
 
 export default function FoundersTable() {
+  const { setNavigationItems } = useNavigationContext();
+
+  useEffect(() => {
+    setNavigationItems([
+      { href: "/founders", name: texts.founders }
+    ]);
+  }, []);
+
   const renderActionBtns = (item: Founder) => (
     <div className="flex">
       <Button
