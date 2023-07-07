@@ -1,11 +1,7 @@
-'use client';
-
 import { texts } from "@/utils/texts";
-import { Button, Card, TextInput, Title } from "@tremor/react"
+import { Card, Title } from "@tremor/react"
 import OrdinanceMetadataTable from "@/components/table/tableWrappers/OrdinanceMetadataTable";
-import { DatePicker, Subtitle } from "@tremor/react";
-import { Colors } from "@/styles/Themes";
-import { cs } from "date-fns/locale";
+import AddOrdinanceManually from "@/components/AddOrdinanceManually";
 
 export default function AddOrdinance({
   params
@@ -25,43 +21,9 @@ export default function AddOrdinance({
       </div>
       {/* BOTTOM PART OF THE VIEW */}
       <div className="h-1/2 p-1">
-        <Card className="h-full">
+        <Card className="flex justify-center h-full">
           <div className="w-1/4">
-            <Title className="px-2 py-3 mb-2">
-              {texts.addOrdinanceManually}
-            </Title>
-            <Subtitle className="ml-4">
-              {texts.ordinanceName}
-            </Subtitle>
-            <TextInput
-              className="mb-6 mt-2"
-              placeholder={texts.fillOutName}
-            />
-            <Subtitle className="ml-4">
-              {texts.validFrom}
-            </Subtitle>
-            <DatePicker
-              className="mb-6 mt-2"
-              placeholder={texts.selectDate}
-              locale={cs}
-              onChange={
-                (value) => {console.log('onChange', value)}
-              }
-            />
-            <Subtitle className="ml-4">
-              {texts.validTo}
-            </Subtitle>
-            <DatePicker
-              className="mb-6 mt-2"
-              placeholder={texts.selectDate}
-              locale={cs}
-            />
-            <Button
-              className="w-full mt-4"
-              color={Colors.Primary}
-            >
-              {texts.add}
-            </Button>
+            <AddOrdinanceManually />
           </div>
         </Card>
       </div>

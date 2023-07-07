@@ -4,7 +4,7 @@ import React from "react";
 import { Button, Title } from "@tremor/react";
 import Aavatar from "@/components/Avatar";
 import { signOut, useSession } from "next-auth/react";
-import { ArrowLeftOnRectangleIcon } from "@heroicons/react/24/solid";
+import { ArrowRightOnRectangleIcon } from "@heroicons/react/24/solid";
 import { texts } from "@/utils/texts";
 import IconBtn from "../buttons/IconBtn";
 
@@ -17,7 +17,7 @@ export default function UserMenu() {
         <Aavatar className="" image={session.data?.user?.image ?? ""} size="md" />
         <Title className="p-1 mr-2">{session.data?.user?.name}</Title>
         <IconBtn
-            icon={ArrowLeftOnRectangleIcon}
+            icon={ArrowRightOnRectangleIcon}
             tooltip={texts.logout}
             onClick={() => signOut()}
           />

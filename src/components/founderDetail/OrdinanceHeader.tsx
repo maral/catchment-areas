@@ -3,7 +3,7 @@
 import { texts } from "@/utils/texts";
 import { Title } from "@tremor/react"
 import { PlusIcon } from "@heroicons/react/24/solid";
-import LinkBtn from "../buttons/LinkBtn";
+import LinkBtn from "@/components/buttons/LinkBtn";
 
 export default function OrdinanceHeader({
   founderId,

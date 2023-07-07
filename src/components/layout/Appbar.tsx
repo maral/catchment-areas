@@ -1,5 +1,5 @@
 import { Icon } from "@tremor/react";
-import { Bars3Icon, ChevronLeftIcon } from '@heroicons/react/24/solid';
+import { Bars3Icon } from '@heroicons/react/24/solid';
 import React from 'react';
 
 export default function Appbar ({
@@ -20,13 +20,6 @@ export default function Appbar ({
           <Icon
             className="cursor-pointer hover:text-slate-600 hover:bg-slate-300 rounded-full p-1 ml-2"
             icon={Bars3Icon}
-            color="slate"
-            size="lg"
-            onClick={toggleNavbar}
-          />
-          <Icon
-            className="cursor-pointer hover:text-slate-600 hover:bg-slate-300 rounded-full p-1"
-            icon={ChevronLeftIcon}
             color="slate"
             size="lg"
             onClick={toggleNavbar}

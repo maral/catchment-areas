@@ -17,7 +17,7 @@ type OrdinanceVersion = {
 export default function OrdinanceVersionsTable() {
   const columnDefinitions: ColumnDefinition<OrdinanceVersion>[] = [
     {
-      title: texts.edited,
+      title: texts.editedAt,
       cellFactory: (item) => item.edited
     },
     {

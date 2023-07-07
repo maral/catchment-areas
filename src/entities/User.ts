@@ -9,7 +9,7 @@ export enum Role {
 
 @Entity("users", {
   dbName: "user",
-  allowApiCrud: Role.Admin.toString(),
+  // allowApiCrud: Role.Admin.toString(),
   backendPrefilter: () => ({ isDeleted: false }),
 })
 export class User implements RemoveIndex<AdapterUser> {

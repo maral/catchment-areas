@@ -4,6 +4,7 @@ import { ArrowDownIcon, PencilSquareIcon, MapPinIcon } from "@heroicons/react/24
 import { Button } from "@tremor/react"
 import { texts } from "@/utils/texts";
 import LinkBtn from "../buttons/LinkBtn";
+import { Colors } from "@/styles/Themes";
 
 export default function OverviewBoxButtons({
   founderId,
@@ -19,7 +20,7 @@ export default function OverviewBoxButtons({
         href={`/founders/${founderId}/${currentOrdinanceId}`}
         buttonProps={{
           icon: PencilSquareIcon,
-          color: 'slate',
+          color: Colors.Secondary,
         }}
       >
         {texts.editOrdinanceText}
@@ -29,12 +30,19 @@ export default function OverviewBoxButtons({
         href={`/founders/${founderId}/${currentOrdinanceId}/map`}
         buttonProps={{
           icon: MapPinIcon,
-          color: 'emerald',
+          color: Colors.Primary,
         }}
       >
         {texts.viewOnMap}
       </LinkBtn>
-      <Button className="mb-4 w-full" variant="secondary" icon={ArrowDownIcon} color="slate">{texts.downloadJson}</Button>
+      <Button
+        className="mb-4 w-full"
+        variant="secondary"
+        icon={ArrowDownIcon}
+        color={Colors.Secondary}
+      >
+        {texts.downloadJson}
+      </Button>
     </>
   );
 }

@@ -8,25 +8,29 @@ import { Button } from "@tremor/react";
 import { Colors } from "@/styles/Themes";
 import { texts } from "@/utils/texts";
 import CatchmentLink from "@/components/common/CatchmentLink";
+import LinkBtn from "@/components/buttons/LinkBtn";
+import { MapIcon, PencilSquareIcon } from "@heroicons/react/24/solid";
 
 const foundersRepo = remult.repo(Founder);
 
 export default function FoundersTable() {
   const renderActionBtns = (item: Founder) => (
     <div className="flex">
-      <Button
+      <LinkBtn
         className="mr-2"
-        color={Colors.Primary}
-        onClick={() => {
-          console.log("map btn click", item.id);
+        href={`/founders/${item.id}/map`}
+        buttonProps={{
+          icon: MapIcon,
+          color: Colors.Primary
         }}
       >
         {texts.map}
-      </Button>
+      </LinkBtn>
       <Button
         color={Colors.Secondary}
+        icon={PencilSquareIcon}
         onClick={() => {
-          console.log("edit btn click", item.id);
+          console.log("redirect to this url:", `/founders/${item.id}/fetchCurrentOrdinanceId`);
         }}
       >
         {texts.editOrdinance}
