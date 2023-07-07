@@ -13,13 +13,15 @@ export default function LinkBtn({
   buttonProps?: React.ComponentProps<typeof Button>;
 }) {
   return (
-    <Link
-        className={className ?? ''}
-        href={href}
-    >
-      <Button {...buttonProps}>
-        {children}
-      </Button>
-    </Link>
+    <div className={className ?? ''}>
+      <Link href={href}>
+        <Button
+          className="w-full"
+          {...buttonProps}
+        >
+          {children}
+        </Button>
+      </Link>
+    </div>
   );
 }

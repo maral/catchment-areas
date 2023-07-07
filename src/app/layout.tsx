@@ -12,16 +12,18 @@ const inter = Inter({ subsets: ["latin"] });
 
 export default function RootLayout({
   children,
+  breadcrumb
 }: {
   children: React.ReactNode;
+  breadcrumb: React.ReactNode;
 }) {
-  const appbarItems = (<></>);  
+  const breadcrumbNav = (<>{breadcrumb}</>);
 
   return (
     <html lang="en">
       <body className={`${inter.className} flex`}>
         <Providers>
-          <AppMenu appbarItems={appbarItems}>
+          <AppMenu breadcrumbNav={breadcrumbNav}>
             <main className="p-6 grow flex flex-col bg-slate-50">
               {children}
             </main>

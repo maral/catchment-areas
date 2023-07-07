@@ -7,21 +7,11 @@ import type { ColumnDefinition } from "@/types/tableTypes";
 import { Button } from "@tremor/react";
 import { Colors } from "@/styles/Themes";
 import { texts } from "@/utils/texts";
-import { useNavigationContext } from "@/providers/Providers";
-import { useEffect } from "react";
 import CatchmentLink from "@/components/common/CatchmentLink";
 
 const foundersRepo = remult.repo(Founder);
 
 export default function FoundersTable() {
-  const { setNavigationItems } = useNavigationContext();
-
-  useEffect(() => {
-    setNavigationItems([
-      { href: "/founders", name: texts.founders }
-    ]);
-  }, [setNavigationItems]);
-
   const renderActionBtns = (item: Founder) => (
     <div className="flex">
       <Button

@@ -1,5 +1,4 @@
 import { remult } from "remult";
-
 import { Founder, FounderType } from "@/entities/Founder";
 import { api } from "./api/[...remult]/route";
 

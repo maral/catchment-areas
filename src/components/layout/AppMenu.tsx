@@ -10,10 +10,10 @@ import { useLocalStorage } from "@/utils/hooks";
 
 export default function AppMenu({
   children,
-  appbarItems
+  breadcrumbNav
 }: {
   children: React.ReactNode;
-  appbarItems: React.ReactNode;
+  breadcrumbNav: React.ReactNode;
 }) {
   const [isNavbarOpen, setIsNavbarOpen] = useLocalStorage(constants.localStorageKey.isNavbarOpen, false);
 
@@ -37,8 +37,7 @@ export default function AppMenu({
             } ease-in-out duration-150 h-screen`}
           ></Navbar>
           <div className="grow flex flex-col">
-            <Appbar toggleNavbar={toggleNavbar}>
-              { appbarItems }
+            <Appbar toggleNavbar={toggleNavbar} breadcrumbNav={breadcrumbNav}>
               <UserMenu />
             </Appbar>
             {children}

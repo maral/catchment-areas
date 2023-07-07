@@ -17,10 +17,13 @@ export default function Founder({
       <div className="h-1/2 pb-5 flex">
         <Card className="grow m-1 mr-4">
           <OrdinanceHeader founderId={params.id} />
-          <OrdinancesTable founderId={params.id} />
+          <OrdinancesTable />
         </Card>
         {/* overview box */}
-        <OverviewBox className="flex-1 m-1 ml-2" />
+        <OverviewBox
+          className="flex-1 m-1 ml-2"
+          founderId={params.id}
+        />
       </div>
       {/* BOTTOM PART OF THE VIEW */}
       <div className="h-1/2 p-1">
