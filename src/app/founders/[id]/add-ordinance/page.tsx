@@ -7,8 +7,9 @@ import { useNavigationContext } from "@/providers/Providers";
 import { texts } from "@/utils/texts";
 import { Button, Card, TextInput, Title } from "@tremor/react"
 import OrdinanceMetasTable from "@/components/table/tableWrappers/OrdinancesMetaTable";
-import { DateRangePicker, DateRangePickerValue, Subtitle } from "@tremor/react";
+import { DatePicker, Subtitle } from "@tremor/react";
 import { Colors } from "@/styles/Themes";
+import { cs } from "date-fns/locale";
 
 const foundersRepo = remult.repo(Founder);
 
@@ -55,14 +56,15 @@ export default function AddOrdinance({
             </Subtitle>
             <TextInput
               className="mb-6 mt-2"
-              // placeholder={texts.ordinanceName}
+              placeholder={texts.fillOutName}
             />
             <Subtitle className="ml-4">
               {texts.validFrom}
             </Subtitle>
-            <DateRangePicker
+            <DatePicker
               className="mb-6 mt-2"
-              // placeholder={texts.validFrom}
+              placeholder={texts.selectDate}
+              locale={cs}
               onChange={
                 (value) => {console.log('onChange', value)}
               }
@@ -70,11 +72,15 @@ export default function AddOrdinance({
             <Subtitle className="ml-4">
               {texts.validTo}
             </Subtitle>
-            <DateRangePicker
+            <DatePicker
               className="mb-6 mt-2"
-              // placeholder={texts.validTo}
+              placeholder={texts.selectDate}
+              locale={cs}
             />
-            <Button className="w-full" color={Colors.Primary}>
+            <Button
+              className="w-full mt-4"
+              color={Colors.Primary}
+            >
               {texts.add}
             </Button>
           </div>

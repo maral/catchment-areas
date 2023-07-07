@@ -1,6 +1,6 @@
 "use client";
 
-import CatchmentTable from "@/components/table";
+import CatchmentTable from "@/components/table/CatchmentTable";
 import { Ordinance } from "@/entities/Ordinance";
 import { Founder } from "@/entities/Founder";
 import { remult } from "remult";

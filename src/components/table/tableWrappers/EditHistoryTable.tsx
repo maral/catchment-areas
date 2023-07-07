@@ -1,6 +1,6 @@
 "use client";
 
-import CatchmentTable from "@/components/table";
+import CatchmentTable from "@/components/table/CatchmentTable";
 import { remult } from "remult";
 import type { ColumnDefinition } from "@/types/tableTypes";
 import { texts } from "@/utils/texts";

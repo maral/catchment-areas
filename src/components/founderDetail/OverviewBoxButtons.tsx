@@ -7,9 +7,9 @@ import { texts } from "@/utils/texts";
 export default function OverviewBoxButtons() {
   return (
     <>
-      <Button className="my-2 w-full" icon={PencilSquareIcon} color="sky">{texts.editOrdinanceText}</Button>
+      <Button className="my-2 w-full" icon={PencilSquareIcon} color="slate">{texts.editOrdinanceText}</Button>
       <Button className="my-2 w-full" icon={MapPinIcon} color="emerald">{texts.viewOnMap}</Button>
-      <Button className="my-2 w-full" variant="secondary" icon={ArrowDownIcon} color="sky">{texts.downloadJson}</Button>
+      <Button className="my-2 w-full" variant="secondary" icon={ArrowDownIcon} color="slate">{texts.downloadJson}</Button>
     </>
   );
 }
