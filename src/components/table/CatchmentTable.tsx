@@ -16,14 +16,16 @@ export default function CatchmentTable<T>({
   fetchItems,
   columnDefinitions,
   count,
+  initialData,
   showPagination = true,
 }: {
   fetchItems: (page: number, limit: number) => Promise<T[]>;
   columnDefinitions: ColumnDefinition<T>[];
   count?: () => Promise<number>;
+  initialData?: T[];
   showPagination?: boolean;
 }) {
-  const [items, setItems] = useState<T[]>([]);
+  const [items, setItems] = useState<T[]>(initialData ?? []);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [tableState, setTableState] = useState<TableState>({
     page: 1,

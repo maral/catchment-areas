@@ -13,7 +13,7 @@ import { remult } from "remult";
 
 const foundersRepo = remult.repo(Founder);
 
-export default function FoundersTable() {
+export default function FoundersTable({ initialData }: { initialData: any[] }) {
   const renderActionButtons = (item: Founder) => (
     <div className="flex">
       <LinkButton
@@ -89,6 +89,7 @@ export default function FoundersTable() {
       columnDefinitions={columnDefinitions}
       fetchItems={fetchItems}
       count={count}
+      initialData={foundersRepo.fromJson(initialData)}
     />
   );
 }
