@@ -1,11 +1,4 @@
-import {
-  Allow,
-  Entity,
-  EntityBase,
-  Field,
-  Fields,
-  remult,
-} from "remult";
+import { Allow, Entity, EntityBase, Field, Fields, remult } from "remult";
 import { City } from "./City";
 import { CityDistrict } from "./CityDistrict";
 import { SchoolFounder } from "./SchoolFounder";
@@ -23,6 +16,9 @@ export class Founder extends EntityBase {
 
   @Fields.string()
   name = "";
+
+  @Fields.string({ dbName: "short_name" })
+  shortName = "";
 
   @Fields.string()
   ico = "";

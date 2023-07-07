@@ -1,21 +1,27 @@
 "use client";
 
-import { Table, TableHead, TableHeaderCell, TableBody, TableRow, TableCell } from "@tremor/react"
-import { useEffect, useState, useCallback } from "react";
 import type { ColumnDefinition, TableState } from "@/types/tableTypes";
-import { ChevronRightIcon, ChevronLeftIcon } from '@heroicons/react/24/solid';
-import Select from "../common/Select";
-import IconBtn from "../buttons/IconBtn";
-import { TextInput } from "@tremor/react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeaderCell,
+  TableRow,
+} from "@tremor/react";
+import { useCallback, useEffect, useState } from "react";
+import Pagination from "./Pagination";
 
 export default function CatchmentTable<T>({
   fetchItems,
   columnDefinitions,
   count,
+  showPagination = true,
 }: {
   fetchItems: (page: number, limit: number) => Promise<T[]>;
   columnDefinitions: ColumnDefinition<T>[];
-  count: () => Promise<number>;
+  count?: () => Promise<number>;
+  showPagination?: boolean;
 }) {
   const [items, setItems] = useState<T[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -23,84 +29,34 @@ export default function CatchmentTable<T>({
     page: 1,
     pageSize: 10,
     total: 0,
-  } as TableState);
-  const [newPage, setNewPage] = useState<number>(tableState.page);
-
-  const pageSizes = [10, 25, 50, 100];
+  });
 
   const fetchData = useCallback(async () => {
     setIsLoading(true);
     const response = await fetchItems(tableState.page, tableState.pageSize);
     setItems(response);
     setIsLoading(false);
-  }, [fetchItems, setIsLoading, setItems, tableState.page, tableState.pageSize])
+  }, [
+    fetchItems,
+    setIsLoading,
+    setItems,
+    tableState.page,
+    tableState.pageSize,
+  ]);
 
   useEffect(() => {
     fetchData();
   }, [tableState.page, tableState.pageSize, fetchData]);
 
   useEffect(() => {
-    count().then((totalCounted) => {
-      setTableState({ ...tableState, total: totalCounted });
-    });
-  }, []);
-
-  useEffect(() => {
-    setNewPage(tableState.page);
-  }, [tableState.page])
-
-  const onPageInputChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
-    setNewPage(Number(event.target.value));
-  }
-
-  const protectNumberInput = (event: React.FormEvent<HTMLInputElement>): void => {
-    let targetValue = (event.target as HTMLInputElement).value;
-    const inputValue = targetValue;
-    const numericValue = inputValue.replace(/[^0-9]/g, '');
-    targetValue = numericValue;
-  }
-
-  const handleInputKeydownEvents = (e: React.KeyboardEvent<HTMLInputElement>): void => {
-    if (e.key === 'Enter' || e.key === 'Tab') {
-      jumpToPage(newPage);
-    } else if (e.key === 'Escape') {
-      (e.target as HTMLInputElement).blur();
-      setNewPage(tableState.page);
+    if (count) {
+      count().then((totalCounted) => {
+        setTableState((prev) => ({ ...prev, total: totalCounted }));
+      });
     }
-  }
+  }, [count, setTableState]);
 
-  const goToNextPage = (): void => {
-    // TODO: add debounce
-    paginate(tableState.page + 1);
-  }
-
-  const goToPrevPage = (): void => {
-    // TODO: add debounce
-    paginate(tableState.page - 1);
-  }
-
-  const paginate = (page: number): void => {
-    if (page < 1 || page > Math.ceil(tableState.total / tableState.pageSize)) {
-      return;
-    }
-    setTableState({ ...tableState, page });
-  }
-
-  const jumpToPage = (page: number): void => {
-    if (page < 1) {
-      page = 1;
-    } else if (page > Math.ceil(tableState.total / tableState.pageSize)) {
-      page = Math.ceil(tableState.total / tableState.pageSize);
-    }
-    if (page !== tableState.page) {
-      paginate(page);
-    }
-    setNewPage(page);
-  }
-
-  const onPageSizeChange = (value: string | number) => {
-    setTableState({ ...tableState, pageSize: Number(value), page: 1 });
-  }
+  const noData = isLoading === false && items.length === 0;
 
   return (
     <div>
@@ -114,67 +70,22 @@ export default function CatchmentTable<T>({
             ))}
           </TableRow>
         </TableHead>
-        {
-          isLoading ? (
-            <TableBody>
-              <TableRow>
-                <TableCell colSpan={columnDefinitions.length}>
-                  <div>
-                    Loading...
-                  </div>
+
+        <TableBody className={`${isLoading ? "text-slate-500" : ""}`}>
+          {items.map((item, i) => (
+            <TableRow key={i}>
+              {columnDefinitions.map((column, index) => (
+                <TableCell key={index} className="p-2">
+                  {column.cellFactory(item)}
                 </TableCell>
-              </TableRow>
-            </TableBody>
-          ) : (
-            <TableBody>
-              {items.map((item, i) => (
-                <TableRow key={i}>
-                  {columnDefinitions.map((column, index) => (
-                  <TableCell key={index} className="p-2">
-                    {column.cellFactory(item)}
-                  </TableCell>
-                ))}
-                </TableRow>
               ))}
-            </TableBody>
-          )
-        }
-        
+            </TableRow>
+          ))}
+        </TableBody>
       </Table>
-      <div className="flex justify-end items-center p-2">
-        <div className="px-3">
-          <IconBtn
-            className="mx-2"
-            icon={ChevronLeftIcon}
-            onClick={goToPrevPage}
-          />
-        </div>
-        <span className="flex items-center">
-          <TextInput
-            className="w-8 mr-2"
-            value={String(newPage)}
-            color="slate"
-            onClick={(e) => (e.target as HTMLInputElement).select()}
-            onChange={onPageInputChange}
-            onKeyDown={(e) => handleInputKeydownEvents(e)}
-            onBlur={() => {
-              setNewPage(tableState.page);
-            }}
-            onInput={(e) => protectNumberInput(e)}
-          />
-          <span>/ {Math.ceil(tableState.total / tableState.pageSize)}</span>
-        </span>
-          <IconBtn
-            className="mx-2"
-            icon={ChevronRightIcon}
-            onClick={goToNextPage}
-          />
-        <Select
-          items={pageSizes}
-          selectValue={tableState.pageSize}
-          onValueChange={onPageSizeChange}
-        />
-      </div>
+      {showPagination && !noData && (
+        <Pagination tableState={tableState} setTableState={setTableState} />
+      )}
     </div>
   );
 }

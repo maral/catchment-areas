@@ -20,7 +20,7 @@ export default function BreadcrumbNav({
           <CatchmentLink href={item.href} className='mr-2'>
             {item.name}
           </CatchmentLink>
-          <Subtitle className="text-emerald-500 font-bold mr-2">
+          <Subtitle className="text-slate-300 font-bold mr-2">
             /
           </Subtitle>
         </div>

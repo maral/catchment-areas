@@ -1,7 +1,5 @@
-import { OrdinanceMetadata } from "@/entities/OrdinanceMetadata";
 import { syncOrdinancesToDb } from "@/utils/ordinanceSync";
-import { BackendMethod, dbNamesOf } from "remult";
-import { KnexDataProvider } from "remult/remult-knex";
+import { BackendMethod } from "remult";
 
 export class OrdinanceSyncController {
   @BackendMethod({ allowed: true })

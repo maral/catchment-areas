@@ -24,7 +24,9 @@
     "@types/react": "^18.2.8",
     "@types/react-dom": "18.2.4",
     "autoprefixer": "10.4.14",
+    "better-sqlite3": "^8.4.0",
     "cheerio": "^1.0.0-rc.12",
+    "dotenv": "^16.3.1",
     "eslint": "8.41.0",
     "eslint-config-next": "13.4.3",
     "exceljs": "^4.3.0",
@@ -46,7 +48,7 @@
     "sqlite3": "^5.1.6",
     "tailwindcss": "3.3.2",
     "tesseract.js": "^4.1.1",
-    "text-to-map": "^1.1.4",
+    "text-to-map": "^1.1.6",
     "tsx": "^3.12.7",
     "word-extractor": "^1.0.4"
   },

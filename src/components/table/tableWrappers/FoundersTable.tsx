@@ -20,7 +20,7 @@ export default function FoundersTable() {
     setNavigationItems([
       { href: "/founders", name: texts.founders }
     ]);
-  }, []);
+  }, [setNavigationItems]);
 
   const renderActionBtns = (item: Founder) => (
     <div className="flex">
@@ -49,7 +49,7 @@ export default function FoundersTable() {
       title: texts.name,
       cellFactory: (item) => (
         <CatchmentLink href={`/founders/${item.id}`}>
-          {item.name}
+          {item.shortName}
         </CatchmentLink>
       ),
     },
@@ -85,7 +85,7 @@ export default function FoundersTable() {
     return foundersRepo.find({
       limit,
       page,
-      orderBy: { name: "asc" },
+      orderBy: { shortName: "asc" },
       load: (f) => [f.city!],
     });
   };

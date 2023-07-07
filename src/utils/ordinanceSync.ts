@@ -86,7 +86,7 @@ async function downloadAndReadXLSX(
 }
 
 export async function syncOrdinancesToDb() {
-  const url = await findLink(XLSX_EXPORT_URL, 5, 5000);
+  const url = await findLink(XLSX_EXPORT_URL, 10, 5000);
 
   if (!url) {
     console.log("No link found!");

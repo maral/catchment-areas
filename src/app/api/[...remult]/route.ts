@@ -15,6 +15,9 @@ import { getServerSessionWithOptions } from "../auth/[...nextauth]/route";
 import { Ordinance } from "@/entities/Ordinance";
 import { StreetMarkdown } from "@/entities/StreetMarkdown";
 import { OrdinanceMetadata } from "@/entities/OrdinanceMetadata";
+import { configDotenv } from "dotenv";
+
+configDotenv({ path: ".env.local" });
 
 export const remultOptions = {
   entities: [
@@ -33,13 +36,13 @@ export const remultOptions = {
     User,
   ],
   controllers: [FounderController],
+  filename: "./" + process.env.TEXTTOMAP_SQLITE_PATH ?? "",
   dataProvider: createKnexDataProvider({
-    client: "sqlite3",
+    client: "better-sqlite3",
     connection: {
-      filename: "./data/address_points.db",
+      filename: "./" + process.env.TEXTTOMAP_SQLITE_PATH ?? "",
     },
     useNullAsDefault: true,
-    // debug: true,
   }),
   getUser: async (req: Request) => {
     if (GlobalSettings.isBackendOnly) {
