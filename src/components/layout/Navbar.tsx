@@ -11,19 +11,19 @@ export default function Navbar({
     <div className={`${className ?? ""} bg-slate-100 border-r border-slate-300`}>
       <List className="p-4">
         <Link href="/test">
-          <ListItem className="cursor-pointer hover:bg-slate-50 rounded-md">
+          <ListItem className="cursor-pointer hover:bg-slate-50 rounded-md px-2">
             Test
           </ListItem>
         </Link>
 
         <Link href="/founders">
-          <ListItem className="cursor-pointer hover:bg-slate-50 rounded-md">
+          <ListItem className="cursor-pointer hover:bg-slate-50 rounded-md px-2">
             { texts.founders }
           </ListItem>
         </Link>
 
         <Link href="/dynamic">
-          <ListItem className="cursor-pointer hover:bg-slate-50 rounded-md">
+          <ListItem className="cursor-pointer hover:bg-slate-50 rounded-md px-2">
             Všichni zřizovatelé
           </ListItem>
         </Link>
