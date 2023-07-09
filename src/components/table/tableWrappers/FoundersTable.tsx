@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import LinkButton from "@/components/buttons/LinkButton";
 import CatchmentLink from "@/components/common/CatchmentLink";
@@ -9,6 +9,10 @@ import type { ColumnDefinition } from "@/types/tableTypes";
 import { texts } from "@/utils/shared/texts";
 import { MapIcon, PencilSquareIcon } from "@heroicons/react/24/solid";
 import { Button } from "@tremor/react";
+import {
+  deserializeFounders,
+  loadFounders,
+} from "@/components/table/fetchFunctions/loadFounders";
 import { remult } from "remult";
 
 const foundersRepo = remult.repo(Founder);
@@ -49,39 +53,34 @@ export default function FoundersTable({ initialData }: { initialData: any[] }) {
     },
     {
       title: texts.ico,
-      cellFactory: (item) => item.ico
+      cellFactory: (item) => item.ico,
     },
     {
       title: texts.region,
-      cellFactory: (item) => item.city?.region?.name
+      cellFactory: (item) => item.city?.region?.name,
     },
     {
       title: texts.county,
-      cellFactory: (item) => item.city?.county?.name
+      cellFactory: (item) => item.city?.county?.name,
     },
     {
       title: texts.orp,
-      cellFactory: (item) => item.city?.orp?.name
+      cellFactory: (item) => item.city?.orp?.name,
     },
     {
       title: texts.numberOfSchools,
-      cellFactory: (item) => item.schoolCount
+      cellFactory: (item) => item.schoolCount,
     },
     {
       title: "",
       cellFactory: (item) => renderActionButtons(item),
     },
   ];
-    
+
   const count = async () => foundersRepo.count();
-    
+
   const fetchItems = async (page: number, limit: number) => {
-    return foundersRepo.find({
-      limit,
-      page,
-      orderBy: { shortName: "asc" },
-      load: (f) => [f.city!],
-    });
+    return loadFounders(page, limit);
   };
 
   return (
@@ -89,7 +88,7 @@ export default function FoundersTable({ initialData }: { initialData: any[] }) {
       columnDefinitions={columnDefinitions}
       fetchItems={fetchItems}
       count={count}
-      initialData={foundersRepo.fromJson(initialData)}
+      initialData={deserializeFounders(initialData)}
     />
   );
 }
