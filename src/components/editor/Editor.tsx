@@ -3,7 +3,7 @@ import { StreetMarkdownController } from "@/controllers/StreetMarkdownController
 import { Ordinance } from "@/entities/Ordinance";
 import { StreetMarkdown } from "@/entities/StreetMarkdown";
 import { Colors } from "@/styles/Themes";
-import { TextToMapError } from "@/utils/shared/types";
+import { SuggestionList, TextToMapError } from "@/utils/shared/types";
 import {
   ArrowDownOnSquareIcon,
   ArrowDownTrayIcon,
@@ -26,19 +26,19 @@ import {
 import { remult } from "remult";
 import LinkBtn from "../buttons/LinkBtn";
 import Spinner from "../common/Spinner";
-import { configureMonaco } from "./configureMonaco";
+import { Monaco, configureMonaco } from "./configureMonaco";
 
 const owner = "street-markdown";
 
 const ordinanceRepo = remult.repo(Ordinance);
 const streetMarkdownRepo = remult.repo(StreetMarkdown);
 
-// export default withAuthentication(Editor);
-
 export default function Editor({
+  suggestions,
   streetMarkdownJson,
   ordinanceJson,
 }: {
+  suggestions: SuggestionList[];
   streetMarkdownJson: any | null;
   ordinanceJson: any;
 }) {
@@ -188,7 +188,7 @@ export default function Editor({
           )}
           <MonacoEditor
             theme="smd-theme"
-            beforeMount={configureMonaco}
+            beforeMount={(monaco: Monaco) => configureMonaco(monaco, suggestions)}
             value={streetMarkdown?.sourceText || ""}
             onChange={() => {
               validate();

@@ -5,7 +5,7 @@ import { Orp } from "./Orp";
 
 @Entity("cities", { allowApiCrud: false, allowApiRead: true, dbName: "city" })
 export class City {
-  @Fields.integer()
+  @Fields.autoIncrement()
   code = 0;
 
   @Fields.string()

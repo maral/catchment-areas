@@ -19,6 +19,7 @@ import { StreetMarkdownController } from "@/controllers/StreetMarkdownController
 import { RemultServerOptions } from "remult/server";
 import { Remult } from "remult";
 import { getServerSessionWithOptions } from "../auth/[...nextauth]/config";
+import { StreetController } from "@/controllers/StreetController";
 
 configDotenv({ path: ".env.local" });
 
@@ -44,13 +45,18 @@ export function getRemultOptions(
         StreetMarkdown,
         User,
       ],
-      controllers: [FounderController, StreetMarkdownController],
+      controllers: [
+        FounderController,
+        StreetMarkdownController,
+        StreetController,
+      ],
       dataProvider: createKnexDataProvider({
         client: "better-sqlite3",
         connection: {
           filename: "./" + process.env.TEXTTOMAP_SQLITE_PATH ?? "",
         },
         useNullAsDefault: true,
+        // debug: true,
       }),
       getUser: async () => {
         if (isBackendOnly) {

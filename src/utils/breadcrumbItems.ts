@@ -35,6 +35,13 @@ export const addOrdinanceBreadcrumb: BreadcrumbItemFunction = async (founderId: 
   }
 }
 
+export const editOrdinanceBreadcrumb: BreadcrumbItemFunction = async (founderId: string) => {
+  return {
+    href: `/founders/${founderId}/edit-ordinance`,
+    title: texts.editOrdinance,
+  }
+}
+
 // USERS
 export const usersBreadcrumb: BreadcrumbItem = {
   href: "/users",

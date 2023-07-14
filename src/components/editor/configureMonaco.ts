@@ -1,8 +1,12 @@
+import { SuggestionList } from "@/utils/shared/types";
 import MonacoEditor, { IRange } from "monaco-editor";
 
 export type Monaco = typeof MonacoEditor;
 
-export const configureMonaco = (monaco: Monaco) => {
+export const configureMonaco = (
+  monaco: Monaco,
+  suggestions: SuggestionList[]
+) => {
   monaco.editor.defineTheme("smd-theme", {
     base: "vs",
     inherit: true,
@@ -83,23 +87,22 @@ export const configureMonaco = (monaco: Monaco) => {
 
   monaco.languages.registerCompletionItemProvider("street-markdown", {
     provideCompletionItems: (model, position) => {
-      const word = model.getWordUntilPosition(position);
       const range: IRange = {
         startLineNumber: position.lineNumber,
         endLineNumber: position.lineNumber,
-        startColumn: word.startColumn,
-        endColumn: word.endColumn,
+        startColumn: 0,
+        endColumn: model.getLineLength(position.lineNumber) + 1,
       };
       return {
-        suggestions: [
-          {
-            label: 'Akátová',
+        suggestions: suggestions.flatMap((suggestionList) =>
+          suggestionList.texts.map((suggestion) => ({
+            label: suggestion,
             kind: monaco.languages.CompletionItemKind.Value,
-            insertText: 'Akátová',
+            insertText: suggestion,
             range: range,
-            detail: "ulice"
-          },
-        ],
+            detail: suggestionList.detail,
+          }))
+        ),
       };
     },
   });

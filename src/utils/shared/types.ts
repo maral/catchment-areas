@@ -16,3 +16,8 @@ export interface TextExtractionResult {
   text: string | null;
   fileType: FileTypeResult | null;
 }
+
+export interface SuggestionList {
+  texts: string[];
+  detail: string;
+}

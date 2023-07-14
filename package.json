@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "ocr": "tsx src/bin/ocr.ts",
+    "school-counts": "tsx src/bin/school-counts.ts",
     "sync-ordinances": "tsx src/bin/sync-ordinances.ts",
     "init-db": "tsx src/bin/init-db.ts",
     "build-css": "tailwindcss build src/app/globals.css -o public/styles.css"

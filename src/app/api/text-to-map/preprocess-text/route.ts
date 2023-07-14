@@ -1,11 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
-import { ChatCompletionRequestMessage, Configuration, OpenAIApi } from "openai";
-import { api } from "../../[...remult]/route";
-import { remult } from "remult";
 import { Ordinance } from "@/entities/Ordinance";
 import { StreetMarkdown, StreetMarkdownState } from "@/entities/StreetMarkdown";
-import { getServerSessionWithOptions } from "../../auth/[...nextauth]/route";
 import { User } from "@/entities/User";
+import { NextRequest, NextResponse } from "next/server";
+import { ChatCompletionRequestMessage, Configuration, OpenAIApi } from "openai";
+import { remult } from "remult";
+import { api } from "../../[...remult]/route";
+import { getServerSessionWithOptions } from "../../auth/[...nextauth]/config";
 
 interface SchoolResult {
   school: string;
@@ -23,7 +23,7 @@ const getGptAnswer = async (
 ): Promise<string | undefined> => {
   try {
     const result = await openai.createChatCompletion({
-      model: "gpt-3.5-turbo-0613",
+      model: "gpt-3.5-turbo-16k",
       messages: messages,
       temperature: 0.1,
     });

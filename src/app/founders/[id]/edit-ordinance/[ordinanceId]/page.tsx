@@ -1,5 +1,6 @@
 import { api } from "@/app/api/[...remult]/route";
 import Editor from "@/components/editor/Editor";
+import { StreetController } from "@/controllers/StreetController";
 import { StreetMarkdownController } from "@/controllers/StreetMarkdownController";
 import { Ordinance } from "@/entities/Ordinance";
 import { StreetMarkdown } from "@/entities/StreetMarkdown";
@@ -11,7 +12,7 @@ export default async function EditorPage({
 }: {
   params: { id: string; ordinanceId: string };
 }) {
-  const { ordinanceJson, streetMarkdownJson } = await api.withRemult(
+  const { ordinanceJson, streetMarkdownJson, suggestions } = await api.withRemult(
     async () => {
       const ordinanceRepo = remult.repo(Ordinance);
       const streetMarkdownRepo = remult.repo(StreetMarkdown);
@@ -37,6 +38,7 @@ export default async function EditorPage({
       return {
         ordinanceJson: ordinanceRepo.toJson(ordinance),
         streetMarkdownJson,
+        suggestions: await StreetController.getAutocompleteSuggestions(Number(id)),
       };
     }
   );
@@ -44,6 +46,7 @@ export default async function EditorPage({
   return (
     <div>
       <Editor
+        suggestions={suggestions}
         ordinanceJson={ordinanceJson}
         streetMarkdownJson={streetMarkdownJson}
       />
