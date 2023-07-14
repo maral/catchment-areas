@@ -1,7 +1,7 @@
 import { Button } from "@tremor/react";
 import Link from "next/link";
 
-export default function LinkBtn({
+export default function LinkButton({
   href,
   children,
   className,

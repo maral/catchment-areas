@@ -3,7 +3,7 @@
 import { ArrowDownIcon, PencilSquareIcon, MapPinIcon } from "@heroicons/react/24/solid";
 import { Button } from "@tremor/react"
 import { texts } from "@/utils/texts";
-import LinkBtn from "../buttons/LinkBtn";
+import LinkButton from "../buttons/LinkButton";
 import { Colors } from "@/styles/Themes";
 
 export default function OverviewBoxButtons({
@@ -15,7 +15,7 @@ export default function OverviewBoxButtons({
 }) {
   return (
     <>
-      <LinkBtn
+      <LinkButton
         className="mb-4 w-full"
         href={`/founders/${founderId}/${currentOrdinanceId}`}
         buttonProps={{
@@ -24,8 +24,8 @@ export default function OverviewBoxButtons({
         }}
       >
         {texts.editOrdinanceText}
-      </LinkBtn>
-      <LinkBtn
+      </LinkButton>
+      <LinkButton
         className="mb-4 w-full"
         href={`/founders/${founderId}/${currentOrdinanceId}/map`}
         buttonProps={{
@@ -34,7 +34,7 @@ export default function OverviewBoxButtons({
         }}
       >
         {texts.viewOnMap}
-      </LinkBtn>
+      </LinkButton>
       <Button
         className="mb-4 w-full"
         variant="secondary"

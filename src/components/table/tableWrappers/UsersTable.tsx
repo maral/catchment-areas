@@ -6,7 +6,7 @@ import { User } from "@/entities/User";
 import type { ColumnDefinition } from "@/types/tableTypes";
 import { texts } from "@/utils/texts";
 import { Role } from "@/entities/User";
-import LinkBtn from "@/components/buttons/LinkBtn";
+import LinkButton from "@/components/buttons/LinkButton";
 import { Colors } from "@/styles/Themes";
 import { Button } from "@tremor/react";
 import { PencilSquareIcon, TrashIcon } from "@heroicons/react/24/solid";
@@ -16,7 +16,7 @@ const usersRepo = remult.repo(User);
 export default function UsersTable() {
   const renderActionBtns = (item: User) => (
     <div className="flex">
-      <LinkBtn
+      <LinkButton
         className="mr-2"
         href={`/users/${item.id}`}
         buttonProps={{
@@ -25,7 +25,7 @@ export default function UsersTable() {
         }}
       >
         {texts.edit}
-      </LinkBtn>
+      </LinkButton>
       <Button
         color={Colors.Error}
         icon={TrashIcon}

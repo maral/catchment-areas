@@ -8,7 +8,7 @@ import { Button } from "@tremor/react";
 import { Colors } from "@/styles/Themes";
 import { texts } from "@/utils/texts";
 import CatchmentLink from "@/components/common/CatchmentLink";
-import LinkBtn from "@/components/buttons/LinkBtn";
+import LinkButton from "@/components/buttons/LinkButton";
 import { MapIcon, PencilSquareIcon } from "@heroicons/react/24/solid";
 
 const foundersRepo = remult.repo(Founder);
@@ -16,7 +16,7 @@ const foundersRepo = remult.repo(Founder);
 export default function FoundersTable() {
   const renderActionBtns = (item: Founder) => (
     <div className="flex">
-      <LinkBtn
+      <LinkButton
         className="mr-2"
         href={`/founders/${item.id}/map`}
         buttonProps={{
@@ -25,7 +25,7 @@ export default function FoundersTable() {
         }}
       >
         {texts.map}
-      </LinkBtn>
+      </LinkButton>
       <Button
         color={Colors.Secondary}
         icon={PencilSquareIcon}

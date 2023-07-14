@@ -9,16 +9,18 @@ export type BreadcrumbItem = {
   title: string;
 };
 
+export type BreadcrumbItemFunction = (id: string) => Promise<BreadcrumbItem>
+
 const foundersRepo = remult.repo(Founder);
 const usersRepo = remult.repo(User);
 
 // FOUNDERS
-export const foundersBreadcrumb = {
+export const foundersBreadcrumb: BreadcrumbItem = {
   href: "/founders",
   title: texts.founders,
 }
 
-export const founderDetailBreadcrumb = async (founderId: string) => {
+export const founderDetailBreadcrumb: BreadcrumbItemFunction = async (founderId: string) => {
   const founder = await api.withRemult(() => foundersRepo.findId(Number(founderId)));
   return {
     href: `/founders/${founderId}`,
@@ -26,7 +28,7 @@ export const founderDetailBreadcrumb = async (founderId: string) => {
   }
 }
 
-export const addOrdinanceBreadcrumb = async (founderId: string) => {
+export const addOrdinanceBreadcrumb: BreadcrumbItemFunction = async (founderId: string) => {
   return {
     href: `/founders/${founderId}/add-ordinance`,
     title: texts.addOrdinance,
@@ -34,12 +36,12 @@ export const addOrdinanceBreadcrumb = async (founderId: string) => {
 }
 
 // USERS
-export const usersBreadcrumb = {
+export const usersBreadcrumb: BreadcrumbItem = {
   href: "/users",
   title: texts.users,
 }
 
-export const userDetailBreadcrumb = async (userId: string) => {
+export const userDetailBreadcrumb: BreadcrumbItemFunction = async (userId: string) => {
   const user = await api.withRemult(() => usersRepo.findId(userId));
   return {
     href: `/users/${userId}`,
@@ -47,7 +49,7 @@ export const userDetailBreadcrumb = async (userId: string) => {
   }
 }
 
-export const addUserBreadcrumb = {
+export const addUserBreadcrumb: BreadcrumbItem = {
   href: `/users/new`,
   title: texts.addUser,
 }

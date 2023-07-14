@@ -1,6 +1,7 @@
 "use client";
 
 import type { ColumnDefinition, TableState } from "@/types/tableTypes";
+<<<<<<< HEAD
 import {
   Table,
   TableBody,
@@ -11,6 +12,12 @@ import {
 } from "@tremor/react";
 import { useCallback, useEffect, useState } from "react";
 import Pagination from "./Pagination";
+=======
+import { ChevronRightIcon, ChevronLeftIcon } from '@heroicons/react/24/solid';
+import Select from "../common/Select";
+import IconButton from "../buttons/IconButton";
+import { TextInput } from "@tremor/react";
+>>>>>>> a234c01... refactor: after CR
 
 export default function CatchmentTable<T>({
   fetchItems,
