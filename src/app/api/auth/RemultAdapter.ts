@@ -1,8 +1,8 @@
-import { Role, User } from "@/entities/User";
-import { api } from "../[...remult]/route";
 import { Account } from "@/entities/Account";
-import { Remult, Repository } from "remult";
+import { Role, User } from "@/entities/User";
 import { Adapter } from "next-auth/adapters";
+import { Repository } from "remult";
+import { getRemult } from "../[...remult]/config";
 
 export function RemultAdapter(): Adapter {
   return {
@@ -100,17 +100,8 @@ export function RemultAdapter(): Adapter {
   };
 }
 
-let _remult: Remult;
 let _userRepo: Repository<User>;
 let _accountRepo: Repository<Account>;
-
-export const getRemult = async (): Promise<Remult> => {
-  if (!_remult) {
-    // @ts-ignore
-    _remult = await api.getRemult({});
-  }
-  return _remult;
-};
 
 const getUserRepo = async (): Promise<Repository<User>> => {
   if (!_userRepo) {
