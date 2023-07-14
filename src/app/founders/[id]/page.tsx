@@ -5,21 +5,19 @@ import { texts } from "@/utils/shared/texts";
 import EditHistoryTable from "@/components/table/tableWrappers/EditHistoryTable";
 import OrdinanceHeader from "@/components/founderDetail/OrdinanceHeader";
 import { api } from "@/app/api/[...remult]/route";
-import { remult } from "remult";
-import { Ordinance } from "@/entities/Ordinance";
+import { deserializeOrdinances, loadOrdinances, serializeOrdinances } from "@/components/table/fetchFunctions/loadOrdinances";
 
 export default async function FounderPage({
   params: { id },
 }: {
   params: { id: string };
-}) {
-  const ordinances = await api.withRemult(async () => {
-    return remult.repo(Ordinance).find({
-      where: { founder: { $id: id } },
-      orderBy: { validFrom: "desc" },
-    });
+}) { 
+  const serializedOrdinances = await api.withRemult(async () => {
+    return serializeOrdinances(await loadOrdinances(id));
   });
-  const activeOrdinance = ordinances.find((o) => o.isActive);
+  const activeOrdinanceId = await api.withRemult(async () => {
+    return deserializeOrdinances(serializedOrdinances).find((o) => o.isActive)?.id;
+  })
 
   return (
     <div className="flex flex-col h-full overflow-y-auto">
@@ -27,11 +25,11 @@ export default async function FounderPage({
       <div className="h-1/2 pb-5 flex">
         <Card className="grow m-1 mr-4">
           <OrdinanceHeader founderId={id} />
-          <OrdinancesTable founderId={id} />
+          <OrdinancesTable founderId={id} initialData={serializedOrdinances} />
         </Card>
         {/* overview box */}
         <OverviewBox
-          ordinance={activeOrdinance}
+          ordinanceId={activeOrdinanceId}
           founderId={id}
           className="flex-1 m-1 ml-2"
         />

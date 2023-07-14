@@ -17,7 +17,11 @@ import { remult } from "remult";
 
 const foundersRepo = remult.repo(Founder);
 
-export default function FoundersTable({ initialData }: { initialData: any[] }) {
+export default function FoundersTable({
+  initialData
+}: {
+  initialData: any[]
+}) {
   const renderActionButtons = (item: Founder) => (
     <div className="flex">
       <LinkButton

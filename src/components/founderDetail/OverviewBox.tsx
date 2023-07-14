@@ -1,14 +1,13 @@
 import { Badge, Card, Subtitle } from "@tremor/react";
 import OverviewBoxButtons from "@/components/founderDetail/OverviewBoxButtons";
-import { Ordinance } from "@/entities/Ordinance";
 
 export default function OverviewBox({
   founderId,
-  ordinance,
+  ordinanceId,
   className,
 }: {
   founderId: string;
-  ordinance?: Ordinance;
+  ordinanceId?: number;
   className?: string;
 }) {
   return (
@@ -23,8 +22,8 @@ export default function OverviewBox({
           <Subtitle>10</Subtitle>
         </div>
       </div>
-      {ordinance && (
-        <OverviewBoxButtons ordinanceId={ordinance.id} founderId={founderId} />
+      {ordinanceId && (
+        <OverviewBoxButtons ordinanceId={ordinanceId} founderId={founderId} />
       )}
     </Card>
   );

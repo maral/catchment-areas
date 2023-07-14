@@ -12,10 +12,17 @@ import {
 } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { remult } from "remult";
+import { deserializeOrdinances } from "../fetchFunctions/loadOrdinances";
 
 const ordinancesRepo = remult.repo(Ordinance);
 
-export default function OrdinancesTable({ founderId }: { founderId: string }) {
+export default function OrdinancesTable({
+  founderId,
+  initialData,
+}: {
+  founderId: string;
+  initialData: any[];
+}) {
   const columnDefinitions: ColumnDefinition<Ordinance>[] = [
     {
       title: texts.ordinanceNumber,
@@ -65,6 +72,7 @@ export default function OrdinancesTable({ founderId }: { founderId: string }) {
       fetchItems={fetchItems}
       count={count}
       showPagination={false}
+      initialData={deserializeOrdinances(initialData)}
     />
   );
 }
