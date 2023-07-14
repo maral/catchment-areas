@@ -30,9 +30,10 @@ export default async function FounderPage({
           <OrdinancesTable founderId={id} />
         </Card>
         {/* overview box */}
-        <OverviewBox ordinance={activeOrdinance} founderId={id}
+        <OverviewBox
+          ordinance={activeOrdinance}
+          founderId={id}
           className="flex-1 m-1 ml-2"
-          founderId={params.id}
         />
       </div>
       {/* BOTTOM PART OF THE VIEW */}

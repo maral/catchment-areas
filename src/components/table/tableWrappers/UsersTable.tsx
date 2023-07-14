@@ -4,7 +4,7 @@ import CatchmentTable from "@/components/table/CatchmentTable";
 import { remult } from "remult";
 import { User } from "@/entities/User";
 import type { ColumnDefinition } from "@/types/tableTypes";
-import { texts } from "@/utils/texts";
+import { texts } from "@/utils/shared/texts";
 import { Role } from "@/entities/User";
 import LinkButton from "@/components/buttons/LinkButton";
 import { Colors } from "@/styles/Themes";

@@ -1,7 +1,7 @@
 'use client';
 
 import { PlusIcon } from "@heroicons/react/24/solid";
-import { texts } from "@/utils/texts";
+import { texts } from "@/utils/shared/texts";
 import LinkButton from "@/components/buttons/LinkButton";
 
 export default function UsersActions() {

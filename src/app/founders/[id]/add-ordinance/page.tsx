@@ -1,6 +1,6 @@
 'use client';
 
-import OrdinanceMetadataTable from "@/components/table/tableWrappers/OrdinancesMetaTable";
+import OrdinanceMetadataTable from "@/components/table/tableWrappers/OrdinanceMetadataTable";
 import { Colors } from "@/styles/Themes";
 import { texts } from "@/utils/shared/texts";
 import { Button, Card, DatePicker, Subtitle, TextInput, Title } from "@tremor/react";

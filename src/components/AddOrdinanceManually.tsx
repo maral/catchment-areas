@@ -3,7 +3,7 @@
 import { Button, DatePicker, Subtitle, TextInput, Title } from "@tremor/react";
 import { Colors } from "@/styles/Themes";
 import { cs } from "date-fns/locale";
-import { texts } from "@/utils/texts";
+import { texts } from "@/utils/shared/texts";
 
 export default function AddOrdinanceManually() {
   return (

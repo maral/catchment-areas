@@ -2,7 +2,7 @@
 
 import { Role } from "@/entities/User";
 import { Colors } from "@/styles/Themes";
-import { texts } from "@/utils/texts";
+import { texts } from "@/utils/shared/texts";
 import { Button, Card, Select, SelectItem, Subtitle, TextInput } from "@tremor/react";
 import { useState } from "react";
 
