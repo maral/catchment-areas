@@ -14,7 +14,7 @@ import { PencilSquareIcon, TrashIcon } from "@heroicons/react/24/solid";
 const usersRepo = remult.repo(User);
 
 export default function UsersTable() {
-  const renderActionBtns = (item: User) => (
+  const renderActionButtons = (item: User) => (
     <div className="flex">
       <LinkButton
         className="mr-2"
@@ -58,7 +58,7 @@ export default function UsersTable() {
     },
     {
       title: '',
-      cellFactory: (item) => renderActionBtns(item)
+      cellFactory: (item) => renderActionButtons(item)
     }
   ];
 

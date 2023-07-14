@@ -4,7 +4,7 @@ import type { TableState } from "@/types/tableTypes";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/solid";
 import { TextInput } from "@tremor/react";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
-import IconBtn from "../buttons/IconBtn";
+import IconButton from "../buttons/IconButton";
 import Select from "../common/Select";
 
 const pageSizes = [10, 25, 50, 100];
@@ -84,7 +84,7 @@ export default function Pagination({
   return (
     <div className="flex justify-end items-center p-2">
       <div className="px-3">
-        <IconBtn
+        <IconButton
           className="mx-2"
           icon={ChevronLeftIcon}
           onClick={goToPrevPage}
@@ -105,7 +105,7 @@ export default function Pagination({
         />
         <span>/ {Math.ceil(tableState.total / tableState.pageSize)}</span>
       </span>
-      <IconBtn
+      <IconButton
         className="mx-2"
         icon={ChevronRightIcon}
         onClick={goToNextPage}

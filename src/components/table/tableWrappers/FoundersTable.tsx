@@ -14,7 +14,7 @@ import { MapIcon, PencilSquareIcon } from "@heroicons/react/24/solid";
 const foundersRepo = remult.repo(Founder);
 
 export default function FoundersTable() {
-  const renderActionBtns = (item: Founder) => (
+  const renderActionButtons = (item: Founder) => (
     <div className="flex">
       <LinkButton
         className="mr-2"
@@ -69,7 +69,7 @@ export default function FoundersTable() {
     },
     {
       title: "",
-      cellFactory: (item) => renderActionBtns(item),
+      cellFactory: (item) => renderActionButtons(item),
     },
   ];
     
