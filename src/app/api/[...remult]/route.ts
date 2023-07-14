@@ -16,6 +16,7 @@ import { Ordinance } from "@/entities/Ordinance";
 import { StreetMarkdown } from "@/entities/StreetMarkdown";
 import { OrdinanceMetadata } from "@/entities/OrdinanceMetadata";
 import { configDotenv } from "dotenv";
+import { StreetMarkdownController } from "@/controllers/StreetMarkdownController";
 
 configDotenv({ path: ".env.local" });
 
@@ -35,7 +36,7 @@ export const remultOptions = {
     StreetMarkdown,
     User,
   ],
-  controllers: [FounderController],
+  controllers: [FounderController, StreetMarkdownController],
   filename: "./" + process.env.TEXTTOMAP_SQLITE_PATH ?? "",
   dataProvider: createKnexDataProvider({
     client: "better-sqlite3",

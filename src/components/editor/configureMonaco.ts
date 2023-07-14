@@ -1,14 +1,14 @@
-import MonacoEditor from "monaco-editor";
+import MonacoEditor, { IRange } from "monaco-editor";
 
 export type Monaco = typeof MonacoEditor;
 
 export const configureMonaco = (monaco: Monaco) => {
-  monaco.editor.defineTheme("street-markdown", {
+  monaco.editor.defineTheme("smd-theme", {
     base: "vs",
     inherit: true,
     rules: [
       {
-        foreground: "df1067",
+        foreground: "1810b9",
         fontStyle: "bold",
         token: "type",
       },
@@ -48,26 +48,12 @@ export const configureMonaco = (monaco: Monaco) => {
     // prettier-ignore
     typeKeywords: [],
     // prettier-ignore
-    operators: [
-      '#',
-    ],
+    operators: ["#"],
     symbols: /[#!-]/,
-    // C# style strings
     escapes:
       /\\(?:[abfnrtv\\"']|x[0-9A-Fa-f]{1,4}|u[0-9A-Fa-f]{4}|U[0-9A-Fa-f]{8})/,
     tokenizer: {
       root: [
-        // identifiers and keywords
-        // [
-        //   /[a-zA-Z_$][\w$]*/,
-        //   {
-        //     cases: {
-        //       "@typeKeywords": "keyword.type",
-        //       "@keywords": "keyword",
-        //       "@default": "identifier",
-        //     },
-        //   },
-        // ],
         // whitespace
         { include: "@whitespace" },
 
@@ -92,6 +78,29 @@ export const configureMonaco = (monaco: Monaco) => {
         [/[ \t\r\n]+/, "white"],
         [/(^!.*$)/, "comment"],
       ],
+    },
+  });
+
+  monaco.languages.registerCompletionItemProvider("street-markdown", {
+    provideCompletionItems: (model, position) => {
+      const word = model.getWordUntilPosition(position);
+      const range: IRange = {
+        startLineNumber: position.lineNumber,
+        endLineNumber: position.lineNumber,
+        startColumn: word.startColumn,
+        endColumn: word.endColumn,
+      };
+      return {
+        suggestions: [
+          {
+            label: 'Akátová',
+            kind: monaco.languages.CompletionItemKind.Value,
+            insertText: 'Akátová',
+            range: range,
+            detail: "ulice"
+          },
+        ],
+      };
     },
   });
 };

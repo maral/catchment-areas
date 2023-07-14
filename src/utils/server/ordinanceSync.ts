@@ -2,9 +2,10 @@ import { OrdinanceMetadata } from "@/entities/OrdinanceMetadata";
 import { load } from "cheerio";
 import { Workbook } from "exceljs";
 import fetch from "node-fetch";
-import { dbNamesOf } from "remult";
+import { dbNamesOf, remult } from "remult";
 import { KnexDataProvider } from "remult/remult-knex";
 import chunk from "lodash/chunk";
+import { api } from "@/app/api/[...remult]/route";
 
 const XLSX_EXPORT_URL =
   "https://sbirkapp.gov.cz/vyhledavani/vysledek?format_exportu=xlsx&nazev=&number=&ovm=&platnost=&typ=ozv&ucinnost_do=&ucinnost_od=&znacka=&oblast=skolske-obvody-zakladni-skoly";
@@ -15,12 +16,16 @@ export interface ParsedOrdinanceMetadata {
   number: string;
   city: string;
   region: string;
-  publishedAt: Date;
-  validFrom: Date;
-  validTo?: Date;
-  approvedAt: Date;
+  publishedAt: string;
+  validFrom: string;
+  validTo?: string;
+  approvedAt: string;
   version: number;
   isValid: boolean;
+}
+
+export function getOrdinanceDocumentDownloadLink(ordinanceMetadataId: string) {
+  return `https://sbirkapp.gov.cz/detail/${ordinanceMetadataId}/text`;
 }
 
 async function findLink(
@@ -61,7 +66,7 @@ async function downloadAndReadXLSX(
 
   if (workbook && workbook.worksheets && workbook.worksheets[0]) {
     const worksheet = workbook.worksheets[0];
-    const rows = worksheet.getRows(1, worksheet.rowCount);
+    const rows = worksheet.getRows(2, worksheet.rowCount - 1);
     return (
       rows?.map((row) => {
         return {
@@ -70,19 +75,26 @@ async function downloadAndReadXLSX(
           number: row.getCell(4).value as string,
           city: row.getCell(5).value as string,
           region: row.getCell(8).value as string,
-          publishedAt: row.getCell(9).value as Date,
-          validFrom: row.getCell(10).value as Date,
-          approvedAt: row.getCell(11).value as Date,
+          publishedAt: row.getCell(9).value as string,
+          validFrom: row.getCell(10).value as string,
+          approvedAt: row.getCell(11).value as string,
           version: row.getCell(16).value as number,
           isValid: row.getCell(17).value as boolean,
-          validTo: row.getCell(10).value
-            ? (row.getCell(10).value as Date)
+          validTo: row.getCell(18).value
+            ? (row.getCell(18).value as string)
             : undefined,
         };
       }) ?? null
     );
   }
   return null;
+}
+
+function convertDate(dateString?: string) {
+  if (!dateString) {
+    return undefined;
+  }
+  return new Date(dateString);
 }
 
 export async function syncOrdinancesToDb() {
@@ -112,24 +124,46 @@ export async function syncOrdinancesToDb() {
 
   console.log(`Found ${newOrdinances.length} new ordinances.`);
 
-  const chunks = chunk(newOrdinances, 200);
-  for (const chunk of chunks) {
-    await knex(ordinanceMetadata.toString()).insert(
-      chunk.map((o) => ({
-        [ordinanceMetadata.id]: o.id,
-        [ordinanceMetadata.name]: o.name,
-        [ordinanceMetadata.number]: o.number,
-        [ordinanceMetadata.city]: o.city,
-        [ordinanceMetadata.region]: o.region,
-        [ordinanceMetadata.publishedAt]: o.publishedAt,
-        [ordinanceMetadata.validFrom]: o.validFrom,
-        [ordinanceMetadata.validTo]: o.validTo,
-        [ordinanceMetadata.approvedAt]: o.approvedAt,
-        [ordinanceMetadata.version]: o.version,
-        [ordinanceMetadata.isValid]: o.isValid,
-      }))
-    );
-  }
+  await api.withRemult(async () => {
+    const ordinanceMetadataRepo = remult.repo(OrdinanceMetadata);
+    const chunks = chunk(newOrdinances, 200);
+    for (const chunk of chunks) {
+      await ordinanceMetadataRepo.insert(
+        chunk.map((o) => ({
+          id: o.id,
+          name: o.name,
+          number: o.number,
+          city: o.city,
+          region: o.region,
+          publishedAt: convertDate(o.publishedAt),
+          validFrom: convertDate(o.validFrom),
+          validTo: convertDate(o.validTo),
+          approvedAt: convertDate(o.approvedAt),
+          version: o.version,
+          isValid: o.isValid,
+        }))
+      );
+    }
+  });
+
+  // const chunks = chunk(newOrdinances, 200);
+  // for (const chunk of chunks) {
+  //   await knex(ordinanceMetadata.toString()).insert(
+  //     chunk.map((o) => ({
+  //       [ordinanceMetadata.id]: o.id,
+  //       [ordinanceMetadata.name]: o.name,
+  //       [ordinanceMetadata.number]: o.number,
+  //       [ordinanceMetadata.city]: o.city,
+  //       [ordinanceMetadata.region]: o.region,
+  //       [ordinanceMetadata.publishedAt]: o.publishedAt,
+  //       [ordinanceMetadata.validFrom]: o.validFrom,
+  //       [ordinanceMetadata.validTo]: o.validTo,
+  //       [ordinanceMetadata.approvedAt]: o.approvedAt,
+  //       [ordinanceMetadata.version]: o.version,
+  //       [ordinanceMetadata.isValid]: o.isValid,
+  //     }))
+  //   );
+  // }
 
   await KnexDataProvider.getDb().destroy();
 }

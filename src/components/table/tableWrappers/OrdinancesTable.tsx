@@ -1,30 +1,50 @@
 "use client";
 
+import IconButton from "@/components/buttons/IconButton";
 import CatchmentTable from "@/components/table/CatchmentTable";
 import { Ordinance } from "@/entities/Ordinance";
-import { remult } from "remult";
+import { Colors } from "@/styles/Themes";
 import type { ColumnDefinition } from "@/types/tableTypes";
-import { texts } from "@/utils/texts";
+import { texts } from "@/utils/shared/texts";
+import {
+  ArrowDownTrayIcon,
+  PencilSquareIcon,
+} from "@heroicons/react/24/outline";
+import Link from "next/link";
+import { remult } from "remult";
 
 const ordinancesRepo = remult.repo(Ordinance);
 
-export default function OrdinancesTable() {
+export default function OrdinancesTable({ founderId }: { founderId: string }) {
   const columnDefinitions: ColumnDefinition<Ordinance>[] = [
     {
-      title: texts.url,
-      cellFactory: (item) => item.documentUrl
+      title: texts.ordinanceNumber,
+      cellFactory: (item) => item.number,
     },
     {
       title: texts.validFrom,
-      cellFactory: (item) => item.validFrom
+      cellFactory: (item) => item.validFrom.toLocaleDateString(),
     },
     {
       title: texts.validTo,
-      cellFactory: (item) => item.validTo
+      cellFactory: (item) => item.validTo?.toLocaleDateString() ?? "",
     },
     {
-      title: texts.active,
-      cellFactory: (item) => item.isActive
+      title: texts.actions,
+      cellFactory: (item) => (
+        <span className="whitespace-nowrap">
+          <Link className="inline-block" href={`/founders/${founderId}/edit-ordinance/${item.id}`}>
+            <IconButton color={Colors.Primary} icon={PencilSquareIcon} tooltip={texts.edit} size="md" />
+          </Link>
+          <Link className="inline-block" href={item.documentUrl} target="_blank">
+            <IconButton
+              icon={ArrowDownTrayIcon}
+              tooltip={texts.downloadOrdinanceDocument}
+              size="md"
+            />
+          </Link>
+        </span>
+      ),
     },
   ];
 
@@ -32,9 +52,10 @@ export default function OrdinancesTable() {
 
   const fetchItems = async (page: number, limit: number) => {
     return ordinancesRepo.find({
+      where: { founder: { $id: founderId } },
       limit,
       page,
-      orderBy: { validFrom: "asc" },
+      orderBy: { validFrom: "desc" },
     });
   };
 
@@ -43,6 +64,7 @@ export default function OrdinancesTable() {
       columnDefinitions={columnDefinitions}
       fetchItems={fetchItems}
       count={count}
+      showPagination={false}
     />
   );
 }

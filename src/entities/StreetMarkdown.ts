@@ -2,8 +2,8 @@ import { Allow, Entity, EntityBase, Field, Fields } from "remult";
 import { Ordinance } from "./Ordinance";
 import { User } from "./User";
 
-@Entity("ordinances", {
-  allowApiRead: Allow.authenticated,
+@Entity("street-markdowns", {
+  allowApiCrud: Allow.authenticated,
   dbName: "street_markdown",
 })
 export class StreetMarkdown extends EntityBase {
@@ -16,8 +16,8 @@ export class StreetMarkdown extends EntityBase {
   @Field(() => Ordinance, { dbName: "ordinance_id" })
   ordinance!: Ordinance;
 
-  @Fields.boolean({ dbName: "is_active" })
-  isActive: boolean = false;
+  @Fields.object({ dbName: "state" })
+  state = StreetMarkdownState.Initial;
 
   @Fields.date({ dbName: "created_at" })
   createdAt = new Date();
@@ -28,6 +28,18 @@ export class StreetMarkdown extends EntityBase {
   @Fields.string({ dbName: "source_text" })
   sourceText: string = "";
 
-  @Fields.json({ dbName: "json_data" })
+  @Fields.json({ dbName: "json_data", allowNull: true })
   jsonData: string = "";
+
+  static getAutosaveComment() {
+    return `Automatická záloha ${new Date().toLocaleString()}`;
+  }
+}
+
+export enum StreetMarkdownState {
+  Initial = "initial",
+  AutoSave = "auto-save",
+  Draft = "draft",
+  Active = "active",
+  Superseded = "superseded",
 }

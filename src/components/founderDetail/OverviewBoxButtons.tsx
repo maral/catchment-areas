@@ -1,45 +1,41 @@
-'use client';
+"use client";
 
-import { ArrowDownIcon, PencilSquareIcon, MapPinIcon } from "@heroicons/react/24/solid";
-import { Button } from "@tremor/react"
-import { texts } from "@/utils/texts";
-import LinkButton from "../buttons/LinkButton";
-import { Colors } from "@/styles/Themes";
+import { texts } from "@/utils/shared/texts";
+import {
+  ArrowDownIcon,
+  MapPinIcon,
+  PencilSquareIcon,
+} from "@heroicons/react/24/solid";
+import { Button } from "@tremor/react";
+import LinkBtn from "../buttons/LinkBtn";
 
 export default function OverviewBoxButtons({
   founderId,
-  currentOrdinanceId,
+  ordinanceId,
 }: {
   founderId: string;
-  currentOrdinanceId: string;
+  ordinanceId: number;
 }) {
   return (
     <>
-      <LinkButton
-        className="mb-4 w-full"
-        href={`/founders/${founderId}/${currentOrdinanceId}`}
+      <LinkBtn
+        href={`/founders/${founderId}/edit-ordinance/${ordinanceId}`}
         buttonProps={{
           icon: PencilSquareIcon,
-          color: Colors.Secondary,
+          color: "slate",
+          className: "my-2 w-full",
         }}
       >
         {texts.editOrdinanceText}
-      </LinkButton>
-      <LinkButton
-        className="mb-4 w-full"
-        href={`/founders/${founderId}/${currentOrdinanceId}/map`}
-        buttonProps={{
-          icon: MapPinIcon,
-          color: Colors.Primary,
-        }}
-      >
+      </LinkBtn>
+      <Button className="my-2 w-full" icon={MapPinIcon} color="emerald">
         {texts.viewOnMap}
-      </LinkButton>
+      </Button>
       <Button
-        className="mb-4 w-full"
+        className="my-2 w-full"
         variant="secondary"
         icon={ArrowDownIcon}
-        color={Colors.Secondary}
+        color="slate"
       >
         {texts.downloadJson}
       </Button>

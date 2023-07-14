@@ -1,7 +1,7 @@
 import { remult } from "remult";
 import { Founder } from "@/entities/Founder";
 import { User } from "@/entities/User";
-import { texts } from "./texts";
+import { texts } from "@/utils/shared/texts";
 import { api } from "@/app/api/[...remult]/route";
 
 export type BreadcrumbItem = {

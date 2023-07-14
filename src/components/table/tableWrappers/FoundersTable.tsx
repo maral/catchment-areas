@@ -1,15 +1,15 @@
 'use client';
 
-import CatchmentTable from "@/components/table/CatchmentTable";
-import { remult } from "remult";
-import { Founder } from "@/entities/Founder";
-import type { ColumnDefinition } from "@/types/tableTypes";
-import { Button } from "@tremor/react";
-import { Colors } from "@/styles/Themes";
-import { texts } from "@/utils/texts";
-import CatchmentLink from "@/components/common/CatchmentLink";
 import LinkButton from "@/components/buttons/LinkButton";
+import CatchmentLink from "@/components/common/CatchmentLink";
+import CatchmentTable from "@/components/table/CatchmentTable";
+import { Founder } from "@/entities/Founder";
+import { Colors } from "@/styles/Themes";
+import type { ColumnDefinition } from "@/types/tableTypes";
+import { texts } from "@/utils/shared/texts";
 import { MapIcon, PencilSquareIcon } from "@heroicons/react/24/solid";
+import { Button } from "@tremor/react";
+import { remult } from "remult";
 
 const foundersRepo = remult.repo(Founder);
 

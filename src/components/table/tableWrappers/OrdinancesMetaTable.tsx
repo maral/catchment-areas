@@ -2,22 +2,28 @@
 
 import CatchmentTable from "@/components/table/CatchmentTable";
 import { Founder } from "@/entities/Founder";
-import { remult } from "remult";
-import type { ColumnDefinition } from "@/types/tableTypes";
-import { texts } from "@/utils/texts";
-import { useEffect } from "react";
-import { useNavigationContext } from "@/providers/Providers";
 import { OrdinanceMetadata } from "@/entities/OrdinanceMetadata";
+import { useNavigationContext } from "@/providers/Providers";
+import { Colors } from "@/styles/Themes";
+import type { ColumnDefinition } from "@/types/tableTypes";
+import { getOrdinanceDocumentDownloadLink } from "@/utils/shared/ordinanceMetadata";
+import { texts } from "@/utils/shared/texts";
+import { Button } from "@tremor/react";
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { remult } from "remult";
 
 const ordinanceMetadataRepo = remult.repo(OrdinanceMetadata);
 const foundersRepo = remult.repo(Founder);
 
-export default function OrdinanceMetasTable({
+export default function OrdinanceMetadataTable({
   founderId,
+  addOrdinance,
 }: {
   founderId: string;
+  addOrdinance: (id: string) => void;
 }) {
+  const [addingOrdinance, setAddingOrdinance] = useState(false);
   const { setNavigationItems } = useNavigationContext();
 
   useEffect(() => {
@@ -37,11 +43,19 @@ export default function OrdinanceMetasTable({
       title: texts.ordinanceName,
       cellFactory: (item) => (
         <span className="whitespace-normal">
-          <Link href={`https://sbirkapp.gov.cz/detail/${item.id}/text`}>
+          <Link
+            prefetch={false}
+            href={getOrdinanceDocumentDownloadLink(item.id)}
+            target="_blank"
+          >
             {item.name}
           </Link>
         </span>
       ),
+    },
+    {
+      title: texts.ordinanceNumber,
+      cellFactory: (item) => item.number,
     },
     {
       title: texts.validFrom,
@@ -55,6 +69,21 @@ export default function OrdinanceMetasTable({
     {
       title: texts.active,
       cellFactory: (item) => (item.isValid ? texts.yes : texts.no),
+    },
+    {
+      title: "",
+      cellFactory: (item) => (
+        <Button
+          color={Colors.Primary}
+          loading={addingOrdinance}
+          onClick={() => {
+            setAddingOrdinance(true);
+            addOrdinance(item.id);
+          }}
+        >
+          {texts.add}
+        </Button>
+      ),
     },
   ];
 

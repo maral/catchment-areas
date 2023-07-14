@@ -1,12 +1,11 @@
 "use client";
 
-import React from "react";
-import { Button, Title } from "@tremor/react";
 import Aavatar from "@/components/Avatar";
-import { signOut, useSession } from "next-auth/react";
+import IconButton from "@/components/buttons/IconButton";
+import { texts } from "@/utils/shared/texts";
 import { ArrowRightOnRectangleIcon } from "@heroicons/react/24/solid";
-import { texts } from "@/utils/texts";
-import IconButton from "../buttons/IconButton";
+import { Button, Title } from "@tremor/react";
+import { signOut, useSession } from "next-auth/react";
 
 export default function UserMenu() {
   const session = useSession();
@@ -14,13 +13,17 @@ export default function UserMenu() {
   if (session && session.status === "authenticated") {
     return (
       <div className="flex items-center h-full mx-2">
-        <Aavatar className="" image={session.data?.user?.image ?? ""} size="md" />
+        <Aavatar
+          className=""
+          image={session.data?.user?.image ?? ""}
+          size="md"
+        />
         <Title className="p-1 mr-2">{session.data?.user?.name}</Title>
         <IconButton
-            icon={ArrowRightOnRectangleIcon}
-            tooltip={texts.logout}
-            onClick={() => signOut()}
-          />
+          icon={ArrowRightOnRectangleIcon}
+          tooltip={texts.logout}
+          onClick={() => signOut()}
+        />
       </div>
     );
   } else {

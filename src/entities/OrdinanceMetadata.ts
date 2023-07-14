@@ -38,16 +38,3 @@ export class OrdinanceMetadata extends EntityBase {
   @Fields.boolean({ dbName: "is_valid" })
   isValid = true;
 }
-
-export interface OrdinanceMetadataX {
-  id: string;
-  name: string;
-  number: string;
-  city: string;
-  region: string;
-  publishedAt: Date;
-  effectiveFrom: Date;
-  approvedAt: Date;
-  version: number;
-  isValid: boolean;
-}

@@ -1,5 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ChatCompletionRequestMessage, Configuration, OpenAIApi } from "openai";
+import { api } from "../../[...remult]/route";
+import { remult } from "remult";
+import { Ordinance } from "@/entities/Ordinance";
+import { StreetMarkdown, StreetMarkdownState } from "@/entities/StreetMarkdown";
+import { getServerSessionWithOptions } from "../../auth/[...nextauth]/route";
+import { User } from "@/entities/User";
 
 interface SchoolResult {
   school: string;
@@ -12,7 +18,7 @@ const configuration = new Configuration({
 
 const openai = new OpenAIApi(configuration);
 
-export const getGptAnswer = async (
+const getGptAnswer = async (
   messages: ChatCompletionRequestMessage[]
 ): Promise<string | undefined> => {
   try {
@@ -29,8 +35,22 @@ export const getGptAnswer = async (
 };
 
 export async function POST(request: NextRequest) {
-  // const { text } = await request.json();
-  const text = ordinanceText;
+  const { ordinanceId } = await request.json();
+
+  const session = await getServerSessionWithOptions();
+  if (!session) {
+    return NextResponse.json(
+      {
+        error: "You must be signed in.",
+      },
+      { status: 401 }
+    );
+  }
+
+  const ordinanceRepo = remult.repo(Ordinance);
+  const ordinance = await api.withRemult(async () => {
+    return await ordinanceRepo.findId(ordinanceId);
+  });
 
   const messages: ChatCompletionRequestMessage[] = [
     {
@@ -39,7 +59,7 @@ export async function POST(request: NextRequest) {
     },
     {
       role: "user",
-      content: text,
+      content: ordinance.originalText,
     },
   ];
 
@@ -55,30 +75,72 @@ export async function POST(request: NextRequest) {
       }
       processedText += "\n";
     }
+  } else {
+    processedText = ordinance.originalText;
   }
 
-  console.log(processedText);
+  const streetMarkdownRepo = remult.repo(StreetMarkdown);
+  const streetMarkdown = await api.withRemult(async () => {
+    const user = await remult.repo(User).findId(remult.user!.id);
+    console.log("user");
+
+    // initial version
+    await streetMarkdownRepo.insert({
+      ordinance,
+      createdAt: new Date(),
+      sourceText: processedText,
+      comment: "Automaticky zpracovaný text z vyhlášky.",
+      state: StreetMarkdownState.Initial,
+      user,
+    });
+
+    console.log("first streetMarkdown");
+
+    // insert autosave to write over immediately
+    return streetMarkdownRepo.insert({
+      ordinance,
+      sourceText: processedText,
+      comment: "Automatická záloha",
+      state: StreetMarkdownState.AutoSave,
+      user,
+    });
+  });
+
+  console.log("second streetMarkdown");
 
   return NextResponse.json({
     processedText,
+    autosaveStreetMarkdownId: streetMarkdown.id,
   });
 }
 
-const systemPrompt = `Uživatel ti pošle text z PDF spádové vyhlášky, ve které jsou uvedené definice ulic pro jednotlivé školy. Každá škola má určitý počet ulic (nebo je definovaná jiným popisem). Text z PDF je poměrně rozházený, protože se zbavil formátování. Uživatel z něj potřebuje získat vyčištěný seznam škol a všechny definice jejich ulic. Definice ulice vždy obsahuje název ulice a navíc může obsahovat popis čísel popisných / orientačních, rozsah od-do atp.
+const systemPrompt = `Uživatel ti pošle text z PDF spádové vyhlášky, ve které jsou uvedené definice ulic pro jednotlivé školy. Každá škola má určitý počet ulic (nebo je definovaná jiným popisem). Text z PDF je poměrně rozházený, protože se zbavil formátování. Uživatel z něj potřebuje získat vyčištěný seznam škol a všechny definice jejich ulic a částí obce, ze kterých se spádový obvod skládá. Definice ulice vždy obsahuje název ulice a navíc může obsahovat popis čísel popisných / orientačních, rozsah od-do atp. Části obcí obsahují pouze název části obce.
 
-Prosím výstup ve formátun JSON, podobně jako tady:
+Prosím výstup ve formátu JSON, podobně jako tady:
 [
 {
   "school": "Základní škola Dr. Miroslava Tyrše Děčín II, Vrchlického 630/5, příspěvková organizace",
   "streets": [
      "Akátová",
      "Příčná",
-     "Šrobárova",
-  ]
+     "Šrobárova - od č. 1 do č. 15",
+  ],
+  "municipalityParts": [
+    "Děčín II"
+  ],
 },
 { // další škola },
 { // další škola }
-]`;
+]
+
+U názvu školy prosím vždy uveď celý název školy, většinou bývá v názvu i adresa školy.
+
+U názvů ulic vždy odděluj upřesnění ulice (jako např. "od č. 1 do č. 15") od názvu ulice pomlčkou, např: Šrobárova - od č. 1 do č. 15. Odstraň závorky, pokud jsou v originále.
+
+U názvů částí obcí uveď pouze ty, které jsou celé pod danou školou. Pokud jsou pod částí obce uvedeny pouze vybrané ulice a není použita celá část, do výstupu tuto část obce neuváděj.
+
+Zkontroluj si, že jsi udělal všechny tyto kroky a že ti nechybí žádná škola, ulice ani část obce.
+`;
 
 const ordinanceText = `Město Rychnov nad Kněžnou
 Zastupitelstvo města

@@ -1,13 +1,17 @@
 import { Allow, Entity, EntityBase, Field, Fields } from "remult";
 import { Founder } from "./Founder";
+import { OrdinanceMetadata } from "./OrdinanceMetadata";
 
 @Entity("ordinances", {
-  allowApiRead: Allow.authenticated,
+  allowApiCrud: Allow.authenticated,
   dbName: "ordinance",
 })
 export class Ordinance extends EntityBase {
   @Fields.autoIncrement()
   id = 0;
+
+  @Fields.string()
+  number = "";
 
   @Fields.dateOnly({ dbName: "valid_from" })
   validFrom!: Date;
@@ -21,6 +25,12 @@ export class Ordinance extends EntityBase {
   @Field(() => Founder, { dbName: "founder_id" })
   founder!: Founder;
 
+  @Field(() => OrdinanceMetadata, { dbName: "ordinance_metadata_id", allowNull: true })
+  ordinanceMetadata!: OrdinanceMetadata;
+
   @Fields.string({ dbName: "document_url" })
   documentUrl: string = "";
+
+  @Fields.string({ dbName: "original_text" })
+  originalText: string = "";
 }

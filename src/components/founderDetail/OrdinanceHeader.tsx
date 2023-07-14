@@ -1,6 +1,6 @@
 'use client';
 
-import { texts } from "@/utils/texts";
+import { texts } from "@/utils/shared/texts";
 import { Title } from "@tremor/react"
 import { PlusIcon } from "@heroicons/react/24/solid";
 import LinkButton from "@/components/buttons/LinkButton";

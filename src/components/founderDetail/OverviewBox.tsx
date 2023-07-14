@@ -1,16 +1,19 @@
-import { Badge, Card, Subtitle } from "@tremor/react"
+import { Badge, Card, Subtitle } from "@tremor/react";
 import OverviewBoxButtons from "@/components/founderDetail/OverviewBoxButtons";
+import { Ordinance } from "@/entities/Ordinance";
 
 export default function OverviewBox({
-  className,
   founderId,
+  ordinance,
+  className,
 }: {
-  founderId: string
-  className?: string
+  founderId: string;
+  ordinance?: Ordinance;
+  className?: string;
 }) {
   return (
-    <Card className={`${className ?? ''}`}>
-      <div className="mb-6">
+    <Card className={`${className ?? ""}`}>
+      <div className="mb-4">
         <div className="flex justify-between w-60 my-1">
           <Subtitle className="text-tremor-content">Stav:</Subtitle>
           <Badge color="emerald">Aktuální</Badge>
@@ -20,10 +23,9 @@ export default function OverviewBox({
           <Subtitle>10</Subtitle>
         </div>
       </div>
-      <OverviewBoxButtons
-        founderId={founderId}
-        currentOrdinanceId="1"
-      />
+      {ordinance && (
+        <OverviewBoxButtons ordinanceId={ordinance.id} founderId={founderId} />
+      )}
     </Card>
   );
 }

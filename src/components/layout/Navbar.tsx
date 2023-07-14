@@ -1,6 +1,6 @@
 import { List, ListItem } from "@tremor/react";
 import Link from "next/link";
-import { texts } from '@/utils/texts';
+import { texts } from '@/utils/shared/texts';
 
 export default function Navbar({
   className,

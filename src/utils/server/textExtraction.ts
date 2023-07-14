@@ -8,20 +8,17 @@ import {
 } from "fs";
 import { get } from "https";
 import { uniqueId } from "lodash";
+import { tmpdir } from "os";
+import { join } from "path";
 import { convert } from "pdf-img-convert";
 import pdf from "pdf-parse";
 import Tesseract from "tesseract.js";
 import WordExtractor from "word-extractor";
+import { TextExtractionResult } from "@/utils/shared/types";
 
-// 'https://sbirkapp.gov.cz/detail/SPPAVDN56WKCIHO6/text',
-
-// todo:
-// - [X] download the document
-// - [X] identify type of document (docx/pdf)
-// - [X] text PDF to text
-// - [X] image PDF - extract images
-// - [X] OCR extracted images
-// - [X] DOCX to text
+function getFilePath(fileName: string) {
+  return join(tmpdir(), fileName);
+}
 
 async function extractImagesFromPdf(pdfPath: string) {
   const outputImages = await convert(pdfPath);
@@ -38,8 +35,7 @@ function parseContentDisposition(contentDisposition?: string) {
   return match ? match[1] : null;
 }
 
-function download(url: string, path: string): Promise<string> {
-  let fileName = path;
+function download(url: string, fileName: string): Promise<string> {
   return new Promise<string>((resolve, reject) => {
     get(url, async function (response) {
       console.log(response.headers);
@@ -48,7 +44,7 @@ function download(url: string, path: string): Promise<string> {
       );
       fileName = givenFileName ?? fileName;
 
-      const file = createWriteStream(fileName);
+      const file = createWriteStream(getFilePath(fileName));
 
       response.pipe(file);
       file.on("finish", function () {
@@ -78,44 +74,37 @@ async function recognizeImage(imagePath: string): Promise<string> {
   return result.data.text;
 }
 
-async function main() {
-  // const result = await recognizeImage(
-  //   "https://www.ustavprava.cz/uploads/source/usa3.jpg"
-  // );
-  // console.log(result);
-
-  console.log("downloading");
+export async function extractText(url: string): Promise<TextExtractionResult> {
   const randomName = uniqueId();
-  const path = await download(
-    // "https://sbirkapp.gov.cz/detail/SPPGYQJQ3E23KIGC/text", // doc
-    // "https://sbirkapp.gov.cz/detail/SPPI2RSJQFSTLW4I/text", // docx
-    "https://sbirkapp.gov.cz/detail/SPPAVDN56WKCIHO6/text", // pdf
-    // "https://sbirkapp.gov.cz/detail/SPP5JSAM5JZWC6I6/text", // pdf with images
-    randomName
-  );
+  const fileName = await download(url, randomName);
+  const path = getFilePath(fileName);
   const type = await fileTypeFromFile(path);
 
-  if (path === randomName) {
-    // rename the file
-    console.log("renaming");
-    const newPath = `${randomName}.${type?.ext}`;
-    renameSync(randomName, newPath);
+  if (!type) {
+    return {
+      text: null,
+      fileType: null,
+    };
   }
-  console.log("done");
+
+  // if the file name was not present in download link, rename with the correct extension
+  if (path === randomName) {
+    const newName = `${randomName}.${type.ext}`;
+    renameSync(getFilePath(randomName), getFilePath(newName));
+  }
+
+  let text = "";
 
   if (type) {
     if (type.mime === "application/pdf") {
-      console.log("PDF");
-      const text = await readPdf(path);
-      console.log(text);
-      if (text.length < 100) {
-        console.log("extracting images");
+      text = await readPdf(path);
+
+      if (text.length < 50) {
+        text = "";
         const images = await extractImagesFromPdf(path);
-        console.log(images);
+
         for (const image of images) {
-          console.log("recognizing image");
-          const result = await recognizeImage(image);
-          console.log(result);
+          text += await recognizeImage(image);
         }
       }
     } else if (
@@ -123,10 +112,12 @@ async function main() {
       type.mime ===
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
     ) {
-      console.log("DOC(X)");
-      console.log(await readDoc(path));
+      text = await readDoc(path);
     }
   }
-}
 
-main();
+  return {
+    text: text.length >= 50 ? text : null,
+    fileType: type,
+  };
+}

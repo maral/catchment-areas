@@ -1,4 +1,4 @@
-import { RemoveIndex } from "@/utils/types";
+import { RemoveIndex } from "@/utils/shared/types";
 import { Entity, Field, Fields } from "remult";
 import { User } from "./User";
 import { ProviderType } from "next-auth/providers";

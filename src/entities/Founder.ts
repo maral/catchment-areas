@@ -11,7 +11,7 @@ import { School } from "./School";
   backendPrefilter: () => ({ schoolCount: { $gt: 1 } }),
 })
 export class Founder extends EntityBase {
-  @Fields.integer()
+  @Fields.autoIncrement()
   id = 0;
 
   @Fields.string()

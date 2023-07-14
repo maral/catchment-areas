@@ -3,7 +3,7 @@
 import CatchmentTable from "@/components/table/CatchmentTable";
 import { remult } from "remult";
 import type { ColumnDefinition } from "@/types/tableTypes";
-import { texts } from "@/utils/texts";
+import { texts } from "@/utils/shared/texts";
 
 type OrdinanceVersion = {
   edited: string;
@@ -22,15 +22,15 @@ export default function OrdinanceVersionsTable() {
     },
     {
       title: texts.comment,
-      cellFactory: (item) => item.comment
+      cellFactory: (item) => item.comment,
     },
     {
       title: texts.author,
-      cellFactory: (item) => item.author
+      cellFactory: (item) => item.author,
     },
     {
       title: texts.status,
-      cellFactory: (item) => item.status
+      cellFactory: (item) => item.status,
     },
   ];
 
