@@ -5,7 +5,7 @@ import { KnexDataProvider } from "remult/remult-knex";
 
 export class FounderController {
   @BackendMethod({ allowed: true })
-  static async recalculateFounderSchoolCounts() {
+  static async recalculateFounderSchoolCounts(destroyKnex = true) {
     const founders = await dbNamesOf(Founder);
     const schoolFounders = await dbNamesOf(SchoolFounder);
     const knex = KnexDataProvider.getDb();
@@ -17,6 +17,8 @@ export class FounderController {
           WHERE ${schoolFounders}.${schoolFounders.founderId} = ${founders}.${founders.id}
         )`
     );
-    await knex.destroy();
+    if (destroyKnex) {
+      await knex.destroy();
+    }
   }
 }

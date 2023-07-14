@@ -8,7 +8,7 @@ const main = async () => {
   await downloadAndImportEverything();
   const api = getRemultAPI(true);
   await api.withRemult(async () => {
-    await FounderController.recalculateFounderSchoolCounts();
+    await FounderController.recalculateFounderSchoolCounts(false);
     await OrdinanceController.syncOrdinanceMetadata();
   });
   console.log("Done!");
