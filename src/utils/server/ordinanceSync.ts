@@ -5,7 +5,7 @@ import fetch from "node-fetch";
 import { dbNamesOf, remult } from "remult";
 import { KnexDataProvider } from "remult/remult-knex";
 import chunk from "lodash/chunk";
-import { api } from "@/app/api/[...remult]/route";
+import { getRemultAPI } from "@/app/api/[...remult]/config";
 
 const XLSX_EXPORT_URL =
   "https://sbirkapp.gov.cz/vyhledavani/vysledek?format_exportu=xlsx&nazev=&number=&ovm=&platnost=&typ=ozv&ucinnost_do=&ucinnost_od=&znacka=&oblast=skolske-obvody-zakladni-skoly";
@@ -124,7 +124,7 @@ export async function syncOrdinancesToDb() {
 
   console.log(`Found ${newOrdinances.length} new ordinances.`);
 
-  await api.withRemult(async () => {
+  await getRemultAPI().withRemult(async () => {
     const ordinanceMetadataRepo = remult.repo(OrdinanceMetadata);
     const chunks = chunk(newOrdinances, 200);
     for (const chunk of chunks) {
