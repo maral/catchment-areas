@@ -4,7 +4,7 @@ import { downloadAndImportEverything } from "text-to-map";
 
 const main = async () => {
   console.log("Starting...");
-  // await downloadAndImportEverything();
+  await downloadAndImportEverything();
   const api = getRemultAPI(true);
   await api.withRemult(async () =>
     FounderController.recalculateFounderSchoolCounts()
