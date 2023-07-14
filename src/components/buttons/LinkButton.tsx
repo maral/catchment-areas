@@ -1,7 +1,7 @@
 import { Button } from "@tremor/react";
 import Link from "next/link";
 
-export default function LinkBtn({
+export default function LinkButton({
   href,
   children,
   className,
@@ -13,13 +13,15 @@ export default function LinkBtn({
   buttonProps?: React.ComponentProps<typeof Button>;
 }) {
   return (
-    <Link
-        className={className ?? ''}
-        href={href}
-    >
-      <Button {...buttonProps}>
-        {children}
-      </Button>
-    </Link>
+    <div className={className ?? ''}>
+      <Link href={href}>
+        <Button
+          className="w-full"
+          {...buttonProps}
+        >
+          {children}
+        </Button>
+      </Link>
+    </div>
   );
 }

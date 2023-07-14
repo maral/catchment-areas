@@ -7,7 +7,7 @@ export default function Select(
     className,
   }: {
     items: string[] | number[];
-    selectValue: string | number;
+    selectValue?: string | number;
     onValueChange: (value: string | number) => void;
     size?: 'sm' | 'md' | 'lg';
     className?: string;
@@ -35,8 +35,10 @@ export default function Select(
           border-slate-200
           cursor-pointer
           rounded-md
-          hover:bg-slate-100
-          m-1
+          hover:bg-slate-50
+          w-full
+          p-2
+          text-tremor-default
           ${sizeToHeight(size)}
         `}
         value={selectValue}

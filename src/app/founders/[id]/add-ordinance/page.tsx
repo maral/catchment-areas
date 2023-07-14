@@ -1,38 +1,13 @@
-'use client';
-
-import { remult } from "remult";
-import { Founder } from "@/entities/Founder";
-import { useEffect } from "react";
-import { useNavigationContext } from "@/providers/Providers";
 import { texts } from "@/utils/texts";
-import { Button, Card, TextInput, Title } from "@tremor/react"
-import OrdinanceMetasTable from "@/components/table/tableWrappers/OrdinancesMetaTable";
-import { DatePicker, Subtitle } from "@tremor/react";
-import { Colors } from "@/styles/Themes";
-import { cs } from "date-fns/locale";
-
-const foundersRepo = remult.repo(Founder);
+import { Card, Title } from "@tremor/react"
+import OrdinanceMetadataTable from "@/components/table/tableWrappers/OrdinanceMetadataTable";
+import AddOrdinanceManually from "@/components/AddOrdinanceManually";
 
 export default function AddOrdinance({
   params
 } : {
   params: { id: string },
 }) {
-  const { setNavigationItems } = useNavigationContext();
-  
-  useEffect(() => {
-    let founder: Founder | null = null;
-    const fetchFounder = async (id: string) => {
-      founder = await foundersRepo.findId(Number(id));
-      setNavigationItems([
-        { href: "/founders", name: texts.founders },
-        { href: `/founders/${params.id}`, name: founder?.name ?? '' },
-        { href: `/founders/${params.id}/add-ordinance`, name: texts.addOrdinance },
-      ]);
-    }
-    fetchFounder(params.id).catch(console.error);
-  }, [params.id, setNavigationItems]);
-  
   return (
     <div className="flex flex-col h-full overflow-y-auto">
       {/* TOP PART OF THE VIEW */}
@@ -41,48 +16,14 @@ export default function AddOrdinance({
         <Title className="px-2 py-3 mb-2">
           {texts.addOrdinanceFromCollection}
         </Title>
-        <OrdinanceMetasTable founderId={params.id} />
+        <OrdinanceMetadataTable founderId={params.id} />
         </Card>
       </div>
       {/* BOTTOM PART OF THE VIEW */}
       <div className="h-1/2 p-1">
-        <Card className="h-full">
+        <Card className="flex justify-center h-full">
           <div className="w-1/4">
-            <Title className="px-2 py-3 mb-2">
-              {texts.addOrdinanceManually}
-            </Title>
-            <Subtitle className="ml-4">
-              {texts.ordinanceName}
-            </Subtitle>
-            <TextInput
-              className="mb-6 mt-2"
-              placeholder={texts.fillOutName}
-            />
-            <Subtitle className="ml-4">
-              {texts.validFrom}
-            </Subtitle>
-            <DatePicker
-              className="mb-6 mt-2"
-              placeholder={texts.selectDate}
-              locale={cs}
-              onChange={
-                (value) => {console.log('onChange', value)}
-              }
-            />
-            <Subtitle className="ml-4">
-              {texts.validTo}
-            </Subtitle>
-            <DatePicker
-              className="mb-6 mt-2"
-              placeholder={texts.selectDate}
-              locale={cs}
-            />
-            <Button
-              className="w-full mt-4"
-              color={Colors.Primary}
-            >
-              {texts.add}
-            </Button>
+            <AddOrdinanceManually />
           </div>
         </Card>
       </div>

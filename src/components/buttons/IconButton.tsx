@@ -1,6 +1,6 @@
 import { Icon } from "@tremor/react"
 
-export default function IconBtn({
+export default function IconButton({
   icon,
   onClick,
   size,

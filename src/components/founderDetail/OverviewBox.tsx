@@ -2,13 +2,15 @@ import { Badge, Card, Subtitle } from "@tremor/react"
 import OverviewBoxButtons from "@/components/founderDetail/OverviewBoxButtons";
 
 export default function OverviewBox({
-  className
+  className,
+  founderId,
 }: {
+  founderId: string
   className?: string
 }) {
   return (
     <Card className={`${className ?? ''}`}>
-      <div className="mb-4">
+      <div className="mb-6">
         <div className="flex justify-between w-60 my-1">
           <Subtitle className="text-tremor-content">Stav:</Subtitle>
           <Badge color="emerald">Aktuální</Badge>
@@ -18,7 +20,10 @@ export default function OverviewBox({
           <Subtitle>10</Subtitle>
         </div>
       </div>
-      <OverviewBoxButtons />
+      <OverviewBoxButtons
+        founderId={founderId}
+        currentOrdinanceId="1"
+      />
     </Card>
   );
 }

@@ -7,36 +7,30 @@ import type { ColumnDefinition } from "@/types/tableTypes";
 import { Button } from "@tremor/react";
 import { Colors } from "@/styles/Themes";
 import { texts } from "@/utils/texts";
-import { useNavigationContext } from "@/providers/Providers";
-import { useEffect } from "react";
 import CatchmentLink from "@/components/common/CatchmentLink";
+import LinkButton from "@/components/buttons/LinkButton";
+import { MapIcon, PencilSquareIcon } from "@heroicons/react/24/solid";
 
 const foundersRepo = remult.repo(Founder);
 
 export default function FoundersTable() {
-  const { setNavigationItems } = useNavigationContext();
-
-  useEffect(() => {
-    setNavigationItems([
-      { href: "/founders", name: texts.founders }
-    ]);
-  }, [setNavigationItems]);
-
-  const renderActionBtns = (item: Founder) => (
+  const renderActionButtons = (item: Founder) => (
     <div className="flex">
-      <Button
+      <LinkButton
         className="mr-2"
-        color={Colors.Primary}
-        onClick={() => {
-          console.log("map btn click", item.id);
+        href={`/founders/${item.id}/map`}
+        buttonProps={{
+          icon: MapIcon,
+          color: Colors.Primary
         }}
       >
         {texts.map}
-      </Button>
+      </LinkButton>
       <Button
         color={Colors.Secondary}
+        icon={PencilSquareIcon}
         onClick={() => {
-          console.log("edit btn click", item.id);
+          console.log("redirect to this url:", `/founders/${item.id}/fetchCurrentOrdinanceId`);
         }}
       >
         {texts.editOrdinance}
@@ -75,7 +69,7 @@ export default function FoundersTable() {
     },
     {
       title: "",
-      cellFactory: (item) => renderActionBtns(item),
+      cellFactory: (item) => renderActionButtons(item),
     },
   ];
     

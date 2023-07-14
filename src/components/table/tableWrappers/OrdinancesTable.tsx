@@ -2,36 +2,13 @@
 
 import CatchmentTable from "@/components/table/CatchmentTable";
 import { Ordinance } from "@/entities/Ordinance";
-import { Founder } from "@/entities/Founder";
 import { remult } from "remult";
 import type { ColumnDefinition } from "@/types/tableTypes";
 import { texts } from "@/utils/texts";
-import { useEffect } from "react";
-import { useNavigationContext } from "@/providers/Providers";
 
 const ordinancesRepo = remult.repo(Ordinance);
-const foundersRepo = remult.repo(Founder);
 
-export default function OrdinancesTable({
-  founderId,
-}: {
-  founderId: string;
-}) {
-  const { setNavigationItems } = useNavigationContext();
-  
-  useEffect(() => {
-    let founder: Founder | null = null;
-    const fetchFounder = async (id: string) => {
-      founder = await foundersRepo.findId(Number(id));
-      setNavigationItems([
-        { href: "/founders", name: texts.founders },
-        { href: `/founders/${founderId}`, name: founder?.name ?? '' },
-      ]);
-    }
-    fetchFounder(founderId).catch(console.error);
-  }, [founderId, setNavigationItems]);
-
-
+export default function OrdinancesTable() {
   const columnDefinitions: ColumnDefinition<Ordinance>[] = [
     {
       title: texts.url,

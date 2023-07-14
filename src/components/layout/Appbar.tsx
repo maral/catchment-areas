@@ -1,16 +1,17 @@
 import { Icon } from "@tremor/react";
-import { Bars3Icon, ChevronLeftIcon } from '@heroicons/react/24/solid';
+import { Bars3Icon } from '@heroicons/react/24/solid';
 import React from 'react';
-import BreadcrumbNav from "../BreadcrumbNav";
 
 export default function Appbar ({
   children,
+  breadcrumbNav,
   className,
   toggleNavbar
 }: {
-  toggleNavbar: () => void
-  children?: React.ReactNode,
-  className?: string
+  toggleNavbar: () => void;
+  breadcrumbNav: React.ReactNode;
+  children?: React.ReactNode;
+  className?: string;
 }) {
   return (
     <div className={className}>
@@ -23,14 +24,7 @@ export default function Appbar ({
             size="lg"
             onClick={toggleNavbar}
           />
-          <Icon
-            className="cursor-pointer hover:text-slate-600 hover:bg-slate-300 rounded-full p-1"
-            icon={ChevronLeftIcon}
-            color="slate"
-            size="lg"
-            onClick={toggleNavbar}
-          />
-          <BreadcrumbNav />
+          {breadcrumbNav}
         </div>
 
         <div>
