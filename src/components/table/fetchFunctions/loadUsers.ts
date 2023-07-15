@@ -11,6 +11,10 @@ export async function loadUsers(page: number, limit: number): Promise<User[]> {
   });
 }
 
+export async function getUsersCount(): Promise<number> {
+  return await usersRepo.count();
+}
+
 export function serializeUsers(users: User[]): any[] {
   return usersRepo.toJson(users);
 }

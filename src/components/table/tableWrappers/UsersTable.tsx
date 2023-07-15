@@ -16,8 +16,10 @@ const usersRepo = remult.repo(User);
 
 export default function UsersTable({
   initialData,
+  count,
 }: {
   initialData: any[];
+  count?: number;
 }) {
   const renderActionButtons = (item: User) => (
     <div className="flex">
@@ -66,8 +68,6 @@ export default function UsersTable({
       cellFactory: (item) => renderActionButtons(item)
     }
   ];
-
-  const count = async () => usersRepo.count();
 
   const fetchItems = async (page: number, limit: number) => {
     return usersRepo.find({

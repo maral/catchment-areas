@@ -54,6 +54,7 @@ const texts = {
   saving: "Ukládání...",
   schoolEditorLabel: "škola",
   selectDate: "Vyberte datum...",
+  shortName: "Zkratka",
   streetEditorLabel: "ulice",
   status: "Stav",
   unverified: "Neověřený",

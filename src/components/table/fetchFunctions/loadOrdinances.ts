@@ -10,6 +10,10 @@ export async function loadOrdinances(founderId: string): Promise<Ordinance[]> {
   });
 }
 
+export async function getOrdinancesCount(founderId: string): Promise<number> {
+  return await ordinancesRepo.count({ founder: { $id: founderId } })
+}
+
 export function serializeOrdinances(ordinances: Ordinance[]): any[] {
   return ordinancesRepo.toJson(ordinances);
 }

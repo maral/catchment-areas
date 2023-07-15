@@ -53,10 +53,10 @@ export default function CatchmentTable<T>({
   useEffect(() => {
     if (count) {
       count().then((totalCounted) => {
-        setTableState((prev) => ({ ...prev, total: totalCounted }));
+        setTableState({ ...tableState, total: totalCounted });
       });
     }
-  }, [count, setTableState]);
+  }, [count, tableState, setTableState]);
 
   const noData = isLoading === false && items.length === 0;
 
