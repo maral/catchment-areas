@@ -1,5 +1,6 @@
 'use client';
 
+import Header from "@/components/common/Header";
 import { Role } from "@/entities/User";
 import { Colors } from "@/styles/Themes";
 import { texts } from "@/utils/shared/texts";
@@ -17,8 +18,13 @@ export default function UserDetail() {
   };
 
   return (
-    <Card className="flex justify-center h-full">
-      <div className="w-1/4 mt-20">
+    <Card>
+      <div className="w-1/3 mx-auto my-12">
+        <div className="flex justify-center mb-10">
+          <Header className="shrink">
+            {texts.addUser}
+          </Header>
+        </div>
         <Subtitle>
           {texts.firstName}
         </Subtitle>

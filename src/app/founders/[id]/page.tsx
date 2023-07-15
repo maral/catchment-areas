@@ -1,17 +1,15 @@
 import { api } from "@/app/api/[...remult]/route";
 import OrdinanceHeader from "@/components/founderDetail/OrdinanceHeader";
 import OverviewBox from "@/components/founderDetail/OverviewBox";
-import {
-  loadOrdinances,
-  serializeOrdinances,
-} from "@/components/table/fetchFunctions/loadOrdinances";
 import EditHistoryTable from "@/components/table/tableWrappers/EditHistoryTable";
 import OrdinancesTable from "@/components/table/tableWrappers/OrdinancesTable";
 import { Founder } from "@/entities/Founder";
 import { texts } from "@/utils/shared/texts";
-import { Card, Title } from "@tremor/react";
+import { Card } from "@tremor/react";
 import { notFound } from "next/navigation";
 import { remult } from "remult";
+import { loadOrdinances, serializeOrdinances } from "@/components/table/fetchFunctions/loadOrdinances";
+import HeaderBox from "@/components/common/HeaderBox";
 
 export default async function FounderPage({
   params: { id },
@@ -52,7 +50,7 @@ export default async function FounderPage({
       {/* BOTTOM PART OF THE VIEW */}
       <div className="h-1/2 p-1">
         <Card className="h-full">
-          <Title className="px-2 py-3 mb-2">{texts.editHistory}</Title>
+          <HeaderBox title={texts.editHistory} />
           <EditHistoryTable />
         </Card>
       </div>

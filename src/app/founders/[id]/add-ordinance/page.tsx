@@ -1,5 +1,7 @@
 'use client';
 
+import Header from "@/components/common/Header";
+import HeaderBox from "@/components/common/HeaderBox";
 import OrdinanceMetadataTable from "@/components/table/tableWrappers/OrdinanceMetadataTable";
 import { Colors } from "@/styles/Themes";
 import { texts } from "@/utils/shared/texts";
@@ -41,19 +43,19 @@ export default function AddOrdinance({
       {/* TOP PART OF THE VIEW */}
       <div className="h-1/2 pb-5 flex">
         <Card className="grow m-1">
-        <Title className="px-2 py-3 mb-2">
-          {texts.addOrdinanceFromCollection}
-        </Title>
+        <HeaderBox title={texts.addOrdinanceFromCollection} />
         <OrdinanceMetadataTable founderId={params.id} addOrdinance={addOrdinanceFromCollection} />
         </Card>
       </div>
       {/* BOTTOM PART OF THE VIEW */}
       <div className="h-1/2 p-1">
         <Card className="h-full">
-          <div className="w-1/2">
-            <Title className="px-2 py-3 mb-2">
-              {texts.addOrdinanceManually}
-            </Title>
+          <div className="w-1/3 mx-auto my-8">
+            <div className="flex justify-center mb-10">
+              <Header className="shrink">
+                {texts.addOrdinanceManually}
+              </Header>
+            </div>
             <Subtitle className="ml-4">
               {texts.ordinanceName}
             </Subtitle>

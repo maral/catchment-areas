@@ -1,9 +1,9 @@
 'use client';
 
 import { texts } from "@/utils/shared/texts";
-import { Title } from "@tremor/react"
 import { PlusIcon } from "@heroicons/react/24/solid";
 import LinkButton from "@/components/buttons/LinkButton";
+import HeaderBox from "../common/HeaderBox";
 
 export default function OrdinanceHeader({
   founderId,
@@ -12,7 +12,7 @@ export default function OrdinanceHeader({
 }) {
   return (
     <div className="flex justify-between mb-2">
-      <Title className="px-2 py-3">{texts.ordinances}</Title>
+      <HeaderBox title={texts.ordinances} />
       <LinkButton
         className="m-2"
         href={`/founders/${founderId}/add-ordinance`}
