@@ -8,10 +8,10 @@ import HeaderBox from "@/components/common/HeaderBox";
 
 
 export default async function Users() {
-  const { serializedUsers } = await api.withRemult(async () => {
+  const { serializedUsers, count } = await api.withRemult(async () => {
     return {
       serializedUsers: serializeUsers(await loadUsers(1, 10)),
-      // count: await getUsersCount()
+      count: await getUsersCount()
     }
   });
 
@@ -22,7 +22,7 @@ export default async function Users() {
       </HeaderBox>
       <UsersTable
         initialData={serializedUsers}
-        // count={count}
+        count={count}
       />
     </Card>
   );

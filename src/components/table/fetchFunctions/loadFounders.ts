@@ -18,8 +18,10 @@ export async function getFoundersCount(): Promise<number> {
 }
 
 // TODO: filter by region
-export async function loadFoundersByRegion(region: Region, page: number, limit: number): Promise<Founder[]> {
+export async function loadFoundersByRegion(regionCode: string, page: number, limit: number): Promise<Founder[]> {
   return await foundersRepo.find({
+    limit,
+    page,
     // where: { city: { region } },
     orderBy: { shortName: "asc" },
     load: (f) => [f.city!],
@@ -27,7 +29,7 @@ export async function loadFoundersByRegion(region: Region, page: number, limit: 
 }
 
 // TODO: filter by region
-export async function getFoundersCountByRegion(region: Region): Promise<number> {
+export async function getFoundersCountByRegion(regionCode: string): Promise<number> {
   return await foundersRepo.count({
     // where: { city: { region } },
   });

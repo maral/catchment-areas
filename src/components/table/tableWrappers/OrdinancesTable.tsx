@@ -45,6 +45,7 @@ export default function OrdinancesTable({
           <Link
             className="inline-block"
             href={`/founders/${founderId}/edit-ordinance/${item.id}`}
+            prefetch={false}
           >
             <IconButton
               color={Colors.Primary}
@@ -56,6 +57,7 @@ export default function OrdinancesTable({
           <Link
             className="inline-block"
             href={item.documentUrl}
+            prefetch={false}
             target="_blank"
           >
             <IconButton

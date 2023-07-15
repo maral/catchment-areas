@@ -16,6 +16,7 @@ export default function TableActionButtons({
       <LinkButton
         className="mr-2"
         href={`/founders/${item.id}/map`}
+        prefetch={false}
         buttonProps={{
           icon: MapIcon,
           color: Colors.Primary

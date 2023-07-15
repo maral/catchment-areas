@@ -8,7 +8,7 @@ import { texts } from "@/utils/shared/texts";
 import { Card } from "@tremor/react";
 import { notFound } from "next/navigation";
 import { remult } from "remult";
-import { getOrdinancesCount, loadOrdinances, serializeOrdinances } from "@/components/table/fetchFunctions/loadOrdinances";
+import { loadOrdinances, serializeOrdinances } from "@/components/table/fetchFunctions/loadOrdinances";
 import HeaderBox from "@/components/common/HeaderBox";
 
 export default async function FounderPage({
@@ -20,12 +20,10 @@ export default async function FounderPage({
     await api.withRemult(async () => {
       const founder = remult.repo(Founder).findId(Number(id));
       const ordinances = await loadOrdinances(id);
-      // const count = await getOrdinancesCount(id);
       return {
         serializedOrdinances: serializeOrdinances(ordinances),
         activeOrdinanceId: ordinances.find((o) => o.isActive)?.id,
         founder,
-        // count 
       };
     });
 
@@ -43,7 +41,6 @@ export default async function FounderPage({
           <OrdinancesTable
             founderId={id}
             initialData={serializedOrdinances}
-            // count={count}
           />
         </Card>
         {/* overview box */}

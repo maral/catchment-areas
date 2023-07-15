@@ -10,7 +10,7 @@ export type BreadcrumbItem = {
   title: string;
 };
 
-export type BreadcrumbItemFunction = (id: string) => Promise<BreadcrumbItem>
+export type BreadcrumbItemFunction = (params: any) => Promise<BreadcrumbItem>
 
 const foundersRepo = remult.repo(Founder);
 const regionsRepo = remult.repo(Region);
@@ -54,7 +54,18 @@ export const regionDetailBreadcrumb: BreadcrumbItemFunction = async (regionCode:
   const region = await api.withRemult(() => regionsRepo.findId(regionCode));
   return {
     href: `/regions/${regionCode}`,
-    title: region.name,
+    title: region?.name,
+  }
+}
+
+export const regionFounderDetailBreadcrumb: BreadcrumbItemFunction = async ({
+  regionCode,
+  founderId,
+}) => {
+  const founder = await api.withRemult(() => foundersRepo.findId(Number(founderId)));
+  return {
+    href: `/regions/${regionCode}/${founderId}`,
+    title: founder?.name,
   }
 }
 

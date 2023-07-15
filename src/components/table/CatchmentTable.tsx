@@ -22,7 +22,7 @@ export default function CatchmentTable<T>({
   fetchItems: (page: number, limit: number) => Promise<T[]>;
   columnDefinitions: ColumnDefinition<T>[];
   initialData?: T[];
-  count?: () => Promise<number>;
+  count?: number;
   showPagination?: boolean;
 }) {
   const [items, setItems] = useState<T[]>(initialData ?? []);
@@ -30,7 +30,6 @@ export default function CatchmentTable<T>({
   const [tableState, setTableState] = useState<TableState>({
     page: 1,
     pageSize: 10,
-    total: 0,
   });
 
   const fetchData = useCallback(async () => {
@@ -49,14 +48,6 @@ export default function CatchmentTable<T>({
   useEffect(() => {
     fetchData();
   }, [tableState.page, tableState.pageSize, fetchData]);
-
-  useEffect(() => {
-    if (count) {
-      count().then((totalCounted) => {
-        setTableState({ ...tableState, total: totalCounted });
-      });
-    }
-  }, [count, tableState, setTableState]);
 
   const noData = isLoading === false && items.length === 0;
 
@@ -86,7 +77,11 @@ export default function CatchmentTable<T>({
         </TableBody>
       </Table>
       {showPagination && !noData && (
-        <Pagination tableState={tableState} setTableState={setTableState} />
+        <Pagination
+          tableState={tableState}
+          total={count ?? 0}
+          setTableState={setTableState}
+        />
       )}
     </div>
   );

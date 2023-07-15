@@ -6,14 +6,14 @@ import {
 } from "@/utils/breadcrumbItems";
 
 export default async function EditOrdinanceBreadcrumb({
-  params,
+  params: { id, ordinanceId },
 }: {
   params: { id: string; ordinanceId: string };
 }) {
   const breadcrumbItems = await Promise.all([
     foundersBreadcrumb,
-    founderDetailBreadcrumb(params.id),
-    editOrdinanceBreadcrumb(params.ordinanceId),
+    founderDetailBreadcrumb(id),
+    editOrdinanceBreadcrumb(ordinanceId),
   ]);
 
   return <BreadcrumbNav items={breadcrumbItems} />;

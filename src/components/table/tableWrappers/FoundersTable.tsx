@@ -50,15 +50,15 @@ export default function FoundersTable({
   ];
 
   const fetchItems = async (page: number, limit: number) => {
-    return loadFounders(page, limit);
+    return await loadFounders(page, limit);
   };
 
   return (
     <CatchmentTable
       columnDefinitions={columnDefinitions}
       fetchItems={fetchItems}
-      count={count}
       initialData={deserializeFounders(initialData)}
+      count={count}
     />
   );
 }

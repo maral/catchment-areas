@@ -6,9 +6,11 @@ import HeaderBox from "@/components/common/HeaderBox";
 import { texts } from "@/utils/shared/texts";
 
 export default async function Founders() {
-  const serializedFounders = await api.withRemult(async () => {
-    return serializeFounders(await loadFounders(1, 10))
-      // count: await getFoundersCount()
+  const { serializedFounders, count } = await api.withRemult(async () => {
+    return {
+      serializedFounders: serializeFounders(await loadFounders(1, 10)),
+      count: await getFoundersCount()
+    }
   });
 
   return (
@@ -16,7 +18,7 @@ export default async function Founders() {
       <HeaderBox title={texts.founders} />
       <FoundersTable
         initialData={serializedFounders}
-        // count={count}
+        count={count}
       />
     </Card>
   );

@@ -8,7 +8,7 @@ import { Button, Card, Select, SelectItem, Subtitle, TextInput } from "@tremor/r
 import { useState } from "react";
 
 export default function UserDetail({
-  params,
+  params: { id },
 }: {
   params: { id: string },
 }) {

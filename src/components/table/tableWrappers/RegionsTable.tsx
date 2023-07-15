@@ -37,8 +37,8 @@ export default function RegionsTable({
     <CatchmentTable
       columnDefinitions={columnDefinitions}
       fetchItems={fetchItems}
-      // count={count}
       initialData={deserializeRegions(initialData)}
+      count={count}
     />
   );
 }
