@@ -28,7 +28,6 @@ let remultOptions: RemultServerOptions<any> | null = null;
 export function getRemultOptions(
   isBackendOnly: boolean = false
 ): RemultServerOptions<any> {
-  console.log(`TEXTTOMAP_SQLITE_PATH: '${process.env.TEXTTOMAP_SQLITE_PATH}'`);
   if (remultOptions === null) {
     remultOptions = {
       entities: [
