@@ -40,10 +40,22 @@ export default function OrdinancesTable({
       title: texts.actions,
       cellFactory: (item) => (
         <span className="whitespace-nowrap">
-          <Link className="inline-block" href={`/founders/${founderId}/edit-ordinance/${item.id}`}>
-            <IconButton color={Colors.Primary} icon={PencilSquareIcon} tooltip={texts.edit} size="md" />
+          <Link
+            className="inline-block"
+            href={`/founders/${founderId}/edit-ordinance/${item.id}`}
+          >
+            <IconButton
+              color={Colors.Primary}
+              icon={PencilSquareIcon}
+              tooltip={texts.edit}
+              size="md"
+            />
           </Link>
-          <Link className="inline-block" href={item.documentUrl} target="_blank">
+          <Link
+            className="inline-block"
+            href={item.documentUrl}
+            target="_blank"
+          >
             <IconButton
               icon={ArrowDownTrayIcon}
               tooltip={texts.downloadOrdinanceDocument}

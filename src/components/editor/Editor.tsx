@@ -1,11 +1,11 @@
 "use client";
+
 import { StreetMarkdownController } from "@/controllers/StreetMarkdownController";
 import { Ordinance } from "@/entities/Ordinance";
 import { StreetMarkdown } from "@/entities/StreetMarkdown";
 import { Colors } from "@/styles/Themes";
 import { SuggestionList, TextToMapError } from "@/utils/shared/types";
 import {
-  ArrowDownOnSquareIcon,
   ArrowDownTrayIcon,
   EyeIcon,
   EyeSlashIcon,
@@ -132,22 +132,29 @@ export default function Editor({
     <div className="overflow-hidden">
         <HeaderBox
           title={texts.editOrdinanceText}
-          middleSlot={<div className="text-slate-400 text-sm hidden lg:block">Verze 10</div>}
+          middleSlot={
+            <div>
+              {isSaving && <LoadingIndicator text={texts.saving} />}
+            </div>
+          }
         >
-          <div className="flex items-center ml-2">
+          <div className="flex items-center gap-2">
+            <Button
+              color={Colors.Secondary}
+              onClick={() => setShowOriginal(!showOriginal)}
+              icon={showOriginal ? EyeSlashIcon : EyeIcon}
+            >
+              {texts.originalText}
+            </Button>
             <LinkBtn
               buttonProps={{
                 color: Colors.Primary,
-                variant: "secondary",
                 icon: MapIcon,
               }}
               href={`/founders/${ordinance.founder.id}/map/${ordinance.id}`}
             >
               {texts.map}
             </LinkBtn>
-            {isSaving && <LoadingIndicator text={texts.saving} />}
-          </div>
-          <div className="ml-2">
             <LinkBtn
               buttonProps={{
                 color: Colors.Secondary,
@@ -160,15 +167,6 @@ export default function Editor({
             >
               {texts.ordinanceDocument}
             </LinkBtn>{" "}
-            <Button
-              className="ml-2"
-              color={Colors.Secondary}
-              variant="secondary"
-              onClick={() => setShowOriginal(!showOriginal)}
-              icon={showOriginal ? EyeSlashIcon : EyeIcon}
-            >
-              {texts.originalText}
-            </Button>
           </div>
         </HeaderBox>
 
