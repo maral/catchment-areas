@@ -1,22 +1,5 @@
 "use client";
 
-import { StreetMarkdownController } from "@/controllers/StreetMarkdownController";
-import { Ordinance } from "@/entities/Ordinance";
-import { StreetMarkdown } from "@/entities/StreetMarkdown";
-import { Colors } from "@/styles/Themes";
-import { texts } from "@/utils/shared/texts";
-import { SuggestionList, TextToMapError } from "@/utils/shared/types";
-import {
-  ArrowDownTrayIcon,
-  CheckIcon,
-  EyeIcon,
-  EyeSlashIcon,
-  MapIcon,
-} from "@heroicons/react/24/outline";
-import MonacoEditor, { useMonaco } from "@monaco-editor/react";
-import { Button, Icon } from "@tremor/react";
-import debounce from "lodash/debounce";
-import type { editor } from "monaco-editor";
 import {
   Dispatch,
   SetStateAction,
@@ -25,12 +8,28 @@ import {
   useMemo,
   useState,
 } from "react";
+import {
+  ArrowDownTrayIcon,
+  CheckIcon,
+  EyeIcon,
+  EyeSlashIcon,
+  MapIcon,
+} from "@heroicons/react/24/outline";
+import { StreetMarkdownController } from "@/controllers/StreetMarkdownController";
+import { Ordinance } from "@/entities/Ordinance";
+import { StreetMarkdown } from "@/entities/StreetMarkdown";
+import { Colors } from "@/styles/Themes";
+import { texts } from "@/utils/shared/texts";
+import { SuggestionList, TextToMapError } from "@/utils/shared/types";
+import MonacoEditor, { useMonaco } from "@monaco-editor/react";
+import { Button, Icon } from "@tremor/react";
+import debounce from "lodash/debounce";
+import type { editor } from "monaco-editor";
 import { remult } from "remult";
 import LinkBtn from "../buttons/LinkBtn";
 import Spinner from "../common/Spinner";
 import { Monaco, configureMonaco } from "./configureMonaco";
 import HeaderBox from "../common/HeaderBox";
-import { texts } from "@/utils/shared/texts";
 
 const owner = "street-markdown";
 
