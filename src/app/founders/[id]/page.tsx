@@ -1,23 +1,38 @@
-import OverviewBox from "@/components/founderDetail/OverviewBox";
-import OrdinancesTable from "@/components/table/tableWrappers/OrdinancesTable";
-import { Card, Title } from "@tremor/react";
-import { texts } from "@/utils/shared/texts";
-import EditHistoryTable from "@/components/table/tableWrappers/EditHistoryTable";
-import OrdinanceHeader from "@/components/founderDetail/OrdinanceHeader";
 import { api } from "@/app/api/[...remult]/route";
-import { deserializeOrdinances, loadOrdinances, serializeOrdinances } from "@/components/table/fetchFunctions/loadOrdinances";
+import OrdinanceHeader from "@/components/founderDetail/OrdinanceHeader";
+import OverviewBox from "@/components/founderDetail/OverviewBox";
+import {
+  loadOrdinances,
+  serializeOrdinances,
+} from "@/components/table/fetchFunctions/loadOrdinances";
+import EditHistoryTable from "@/components/table/tableWrappers/EditHistoryTable";
+import OrdinancesTable from "@/components/table/tableWrappers/OrdinancesTable";
+import { Founder } from "@/entities/Founder";
+import { texts } from "@/utils/shared/texts";
+import { Card, Title } from "@tremor/react";
+import { notFound } from "next/navigation";
+import { remult } from "remult";
 
 export default async function FounderPage({
   params: { id },
 }: {
   params: { id: string };
-}) { 
-  const serializedOrdinances = await api.withRemult(async () => {
-    return serializeOrdinances(await loadOrdinances(id));
-  });
-  const activeOrdinanceId = await api.withRemult(async () => {
-    return deserializeOrdinances(serializedOrdinances).find((o) => o.isActive)?.id;
-  })
+}) {
+  const { serializedOrdinances, activeOrdinanceId, founder } =
+    await api.withRemult(async () => {
+      const founder = remult.repo(Founder).findId(Number(id));
+      const ordinances = await loadOrdinances(id);
+      return {
+        serializedOrdinances: serializeOrdinances(ordinances),
+        activeOrdinanceId: ordinances.find((o) => o.isActive)?.id,
+        founder,
+      };
+    });
+
+  if (!founder) {
+    console.log("not found");
+    notFound();
+  }
 
   return (
     <div className="flex flex-col h-full overflow-y-auto">

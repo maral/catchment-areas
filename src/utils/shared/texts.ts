@@ -47,6 +47,7 @@ const texts = {
   regions: "Kraje",
   role: "Role",
   save: "Uložit",
+  saved: "Uloženo",
   schoolEditorLabel: "škola",
   selectDate: "Vyberte datum...",
   streetEditorLabel: "ulice",

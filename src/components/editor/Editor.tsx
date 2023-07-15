@@ -3,16 +3,17 @@ import { StreetMarkdownController } from "@/controllers/StreetMarkdownController
 import { Ordinance } from "@/entities/Ordinance";
 import { StreetMarkdown } from "@/entities/StreetMarkdown";
 import { Colors } from "@/styles/Themes";
+import { texts } from "@/utils/shared/texts";
 import { SuggestionList, TextToMapError } from "@/utils/shared/types";
 import {
-  ArrowDownOnSquareIcon,
   ArrowDownTrayIcon,
+  CheckIcon,
   EyeIcon,
   EyeSlashIcon,
   MapIcon,
 } from "@heroicons/react/24/outline";
 import MonacoEditor, { useMonaco } from "@monaco-editor/react";
-import { Button } from "@tremor/react";
+import { Button, Icon } from "@tremor/react";
 import debounce from "lodash/debounce";
 import type { editor } from "monaco-editor";
 import {
@@ -130,13 +131,6 @@ export default function Editor({
     <div className="overflow-hidden">
       <div className="relative flex justify-center items-center pb-4 mb-4 border-b h-16">
         <div className="absolute left-0 flex items-center gap-2">
-          <Button
-            color="indigo"
-            onClick={() => setShowOriginal(!showOriginal)}
-            icon={ArrowDownOnSquareIcon}
-          >
-            Uložit
-          </Button>
           <LinkBtn
             buttonProps={{
               color: Colors.Primary,
@@ -147,9 +141,10 @@ export default function Editor({
           >
             Mapa
           </LinkBtn>
-          {isSaving && <LoadingIndicator text={"Ukládám..."} />}
         </div>
-        <div className="text-slate-400 text-sm hidden lg:block">Verze 10</div>
+        <div className="text-slate-400 text-sm hidden lg:block">
+          {isSaving ? <LoadingIndicator text={"Ukládám..."} /> : <Saved />}
+        </div>
         <div className="absolute right-0">
           <LinkBtn
             buttonProps={{
@@ -188,7 +183,9 @@ export default function Editor({
           )}
           <MonacoEditor
             theme="smd-theme"
-            beforeMount={(monaco: Monaco) => configureMonaco(monaco, suggestions)}
+            beforeMount={(monaco: Monaco) =>
+              configureMonaco(monaco, suggestions)
+            }
             value={streetMarkdown?.sourceText || ""}
             onChange={() => {
               validate();
@@ -215,6 +212,15 @@ function LoadingIndicator({ text }: { text: string }) {
   return (
     <div className="inline-block px-3 py-1 text-xs font-medium leading-none text-center text-blue-800 bg-blue-200 rounded-full animate-pulse dark:bg-blue-900 dark:text-blue-200">
       {text}
+    </div>
+  );
+}
+
+function Saved() {
+  return (
+    <div className="text-slate-400 text-sm">
+      <Icon icon={CheckIcon} size="sm" className="text-green-500" />
+      {texts.saved}
     </div>
   );
 }
