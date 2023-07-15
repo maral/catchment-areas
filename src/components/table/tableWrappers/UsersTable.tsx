@@ -10,10 +10,15 @@ import LinkButton from "@/components/buttons/LinkButton";
 import { Colors } from "@/styles/Themes";
 import { Button } from "@tremor/react";
 import { PencilSquareIcon, TrashIcon } from "@heroicons/react/24/solid";
+import { deserializeUsers } from "../fetchFunctions/loadUsers";
 
 const usersRepo = remult.repo(User);
 
-export default function UsersTable() {
+export default function UsersTable({
+  initialData,
+}: {
+  initialData: any[];
+}) {
   const renderActionButtons = (item: User) => (
     <div className="flex">
       <LinkButton
@@ -77,6 +82,7 @@ export default function UsersTable() {
       columnDefinitions={columnDefinitions}
       fetchItems={fetchItems}
       count={count}
+      initialData={deserializeUsers(initialData)}
     />
   );
 }

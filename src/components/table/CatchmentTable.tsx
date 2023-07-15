@@ -15,15 +15,17 @@ import Pagination from "./Pagination";
 export default function CatchmentTable<T>({
   fetchItems,
   columnDefinitions,
+  initialData,
   count,
   showPagination = true,
 }: {
   fetchItems: (page: number, limit: number) => Promise<T[]>;
   columnDefinitions: ColumnDefinition<T>[];
+  initialData?: T[];
   count?: () => Promise<number>;
   showPagination?: boolean;
 }) {
-  const [items, setItems] = useState<T[]>([]);
+  const [items, setItems] = useState<T[]>(initialData ?? []);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [tableState, setTableState] = useState<TableState>({
     page: 1,
