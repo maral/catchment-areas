@@ -6,6 +6,7 @@ import EditHistoryTable from "@/components/table/tableWrappers/EditHistoryTable"
 import OrdinanceHeader from "@/components/founderDetail/OrdinanceHeader";
 import { api } from "@/app/api/[...remult]/route";
 import { deserializeOrdinances, loadOrdinances, serializeOrdinances } from "@/components/table/fetchFunctions/loadOrdinances";
+import HeaderBox from "@/components/common/HeaderBox";
 
 export default async function FounderPage({
   params: { id },
@@ -37,7 +38,7 @@ export default async function FounderPage({
       {/* BOTTOM PART OF THE VIEW */}
       <div className="h-1/2 p-1">
         <Card className="h-full">
-          <Title className="px-2 py-3 mb-2">{texts.editHistory}</Title>
+          <HeaderBox title={texts.editHistory} />
           <EditHistoryTable />
         </Card>
       </div>

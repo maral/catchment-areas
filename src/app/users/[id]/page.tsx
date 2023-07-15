@@ -1,5 +1,6 @@
 'use client';
 
+import HeaderBox from "@/components/common/HeaderBox";
 import { Role } from "@/entities/User";
 import { Colors } from "@/styles/Themes";
 import { texts } from "@/utils/shared/texts";
@@ -23,6 +24,7 @@ export default function UserDetail({
 
   return (
     <Card className="flex justify-center h-full">
+      <HeaderBox title={texts.editUser} />
       <div className="w-1/4 mt-20">
         <Subtitle>
           {texts.firstName}

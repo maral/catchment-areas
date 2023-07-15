@@ -3,6 +3,8 @@ import UsersTable from "@/components/table/tableWrappers/UsersTable";
 import { Card } from "@tremor/react";
 import { api } from "../api/[...remult]/route";
 import { loadUsers, serializeUsers } from "@/components/table/fetchFunctions/loadUsers";
+import { texts } from "@/utils/shared/texts";
+import HeaderBox from "@/components/common/HeaderBox";
 
 
 export default async function Users() {
@@ -12,9 +14,9 @@ export default async function Users() {
 
   return (
     <Card>
-      <div className="flex flex-row-reverse mb-4">
+      <HeaderBox title={texts.users}>
         <UsersActions />
-      </div>
+      </HeaderBox>
       <UsersTable initialData={serializedUsers} />
     </Card>
   );

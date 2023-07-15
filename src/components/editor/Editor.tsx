@@ -27,6 +27,8 @@ import { remult } from "remult";
 import LinkBtn from "../buttons/LinkBtn";
 import Spinner from "../common/Spinner";
 import { Monaco, configureMonaco } from "./configureMonaco";
+import HeaderBox from "../common/HeaderBox";
+import { texts } from "@/utils/shared/texts";
 
 const owner = "street-markdown";
 
@@ -128,51 +130,47 @@ export default function Editor({
 
   return (
     <div className="overflow-hidden">
-      <div className="relative flex justify-center items-center pb-4 mb-4 border-b h-16">
-        <div className="absolute left-0 flex items-center gap-2">
-          <Button
-            color="indigo"
-            onClick={() => setShowOriginal(!showOriginal)}
-            icon={ArrowDownOnSquareIcon}
-          >
-            Uložit
-          </Button>
-          <LinkBtn
-            buttonProps={{
-              color: Colors.Primary,
-              variant: "secondary",
-              icon: MapIcon,
-            }}
-            href={`/founders/${ordinance.founder.id}/map/${ordinance.id}`}
-          >
-            Mapa
-          </LinkBtn>
-          {isSaving && <LoadingIndicator text={"Ukládám..."} />}
-        </div>
-        <div className="text-slate-400 text-sm hidden lg:block">Verze 10</div>
-        <div className="absolute right-0">
-          <LinkBtn
-            buttonProps={{
-              color: Colors.Secondary,
-              variant: "secondary",
-              icon: ArrowDownTrayIcon,
-            }}
-            prefetch={false}
-            href={ordinance.documentUrl}
-            target="_blank"
-          >
-            Dokument vyhlášky
-          </LinkBtn>{" "}
-          <Button
-            color={Colors.Secondary}
-            variant="secondary"
-            onClick={() => setShowOriginal(!showOriginal)}
-            icon={showOriginal ? EyeSlashIcon : EyeIcon}
-          >
-            Původní text
-          </Button>
-        </div>
-      </div>
+        <HeaderBox
+          title={texts.editOrdinanceText}
+          middleSlot={<div className="text-slate-400 text-sm hidden lg:block">Verze 10</div>}
+        >
+          <div className="flex items-center ml-2">
+            <LinkBtn
+              buttonProps={{
+                color: Colors.Primary,
+                variant: "secondary",
+                icon: MapIcon,
+              }}
+              href={`/founders/${ordinance.founder.id}/map/${ordinance.id}`}
+            >
+              {texts.map}
+            </LinkBtn>
+            {isSaving && <LoadingIndicator text={texts.saving} />}
+          </div>
+          <div className="ml-2">
+            <LinkBtn
+              buttonProps={{
+                color: Colors.Secondary,
+                variant: "secondary",
+                icon: ArrowDownTrayIcon,
+              }}
+              prefetch={false}
+              href={ordinance.documentUrl}
+              target="_blank"
+            >
+              {texts.ordinanceDocument}
+            </LinkBtn>{" "}
+            <Button
+              className="ml-2"
+              color={Colors.Secondary}
+              variant="secondary"
+              onClick={() => setShowOriginal(!showOriginal)}
+              icon={showOriginal ? EyeSlashIcon : EyeIcon}
+            >
+              {texts.originalText}
+            </Button>
+          </div>
+        </HeaderBox>
 
       <div
         className={`h-[calc(100vh-12rem)] grid ${

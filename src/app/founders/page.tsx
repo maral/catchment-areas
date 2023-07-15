@@ -2,6 +2,8 @@ import FoundersTable from "@/components/table/tableWrappers/FoundersTable";
 import { Card } from "@tremor/react";
 import { api } from "../api/[...remult]/route";
 import { loadFounders, serializeFounders } from "@/components/table/fetchFunctions/loadFounders";
+import HeaderBox from "@/components/common/HeaderBox";
+import { texts } from "@/utils/shared/texts";
 
 export default async function Founders() {
   const serializedFounders = await api.withRemult(async () => {
@@ -10,6 +12,7 @@ export default async function Founders() {
 
   return (
     <Card>
+      <HeaderBox title={texts.founders} />
       <FoundersTable initialData={serializedFounders} />
     </Card>
   );
