@@ -1,5 +1,3 @@
-import { getRemultAPI } from "./config";
-
-export const api = getRemultAPI();
+import { api } from "./api";
 
 export const { GET, POST, PUT, DELETE } = api;

@@ -8,6 +8,7 @@ import type { ColumnDefinition } from "@/types/tableTypes";
 import { texts } from "@/utils/shared/texts";
 import {
   ArrowDownTrayIcon,
+  MapIcon,
   PencilSquareIcon,
 } from "@heroicons/react/24/outline";
 import Link from "next/link";
@@ -63,6 +64,18 @@ export default function OrdinancesTable({
             <IconButton
               icon={ArrowDownTrayIcon}
               tooltip={texts.downloadOrdinanceDocument}
+              size="md"
+            />
+          </Link>
+          <Link
+            className="inline-block"
+            href={`/founders/${founderId}/map/${item.id}`}
+            target="_blank"
+          >
+            <IconButton
+              icon={MapIcon}
+              color={Colors.Primary}
+              tooltip={texts.viewOnMap}
               size="md"
             />
           </Link>

@@ -1,4 +1,4 @@
-import { api } from "@/app/api/[...remult]/route";
+import { api } from "@/app/api/[...remult]/api";
 import Editor from "@/components/editor/Editor";
 import { StreetController } from "@/controllers/StreetController";
 import { StreetMarkdownController } from "@/controllers/StreetMarkdownController";
@@ -8,6 +8,8 @@ import { StreetMarkdown } from "@/entities/StreetMarkdown";
 import { isPrefetch } from "@/utils/server/headers";
 import { notFound } from "next/navigation";
 import { remult } from "remult";
+
+export const dynamic = 'force-dynamic';
 
 export default async function EditorPage({
   params: { id, ordinanceId },
@@ -38,7 +40,10 @@ export default async function EditorPage({
           ordinance,
           streetMarkdowns[0].sourceText
         );
-        streetMarkdownJson = smd ? streetMarkdownRepo.toJson(smd) : null;
+        if (smd === null) {
+          notFound();
+        }
+        streetMarkdownJson = streetMarkdownRepo.toJson(smd);
       }
 
       return {

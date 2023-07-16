@@ -85,6 +85,7 @@ export const configureMonaco = (
     },
   });
 
+  console.log("SETTING UP COMPLETION PROVIDER");
   monaco.languages.registerCompletionItemProvider("street-markdown", {
     provideCompletionItems: (model, position) => {
       const range: IRange = {

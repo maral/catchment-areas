@@ -1,6 +1,8 @@
-import { api } from "@/app/api/[...remult]/route";
+import { api } from "@/app/api/[...remult]/api";
+import HeaderBox from "@/components/common/HeaderBox";
 import OrdinanceHeader from "@/components/founderDetail/OrdinanceHeader";
 import OverviewBox from "@/components/founderDetail/OverviewBox";
+import { loadOrdinances, serializeOrdinances } from "@/components/table/fetchFunctions/loadOrdinances";
 import EditHistoryTable from "@/components/table/tableWrappers/EditHistoryTable";
 import OrdinancesTable from "@/components/table/tableWrappers/OrdinancesTable";
 import { Founder } from "@/entities/Founder";
@@ -8,8 +10,6 @@ import { texts } from "@/utils/shared/texts";
 import { Card } from "@tremor/react";
 import { notFound } from "next/navigation";
 import { remult } from "remult";
-import { loadOrdinances, serializeOrdinances } from "@/components/table/fetchFunctions/loadOrdinances";
-import HeaderBox from "@/components/common/HeaderBox";
 
 export default async function FounderPage({
   params: { id },
@@ -18,7 +18,7 @@ export default async function FounderPage({
 }) {
   const { serializedOrdinances, activeOrdinanceId, founder } =
     await api.withRemult(async () => {
-      const founder = remult.repo(Founder).findId(Number(id));
+      const founder = await remult.repo(Founder).findId(Number(id));
       const ordinances = await loadOrdinances(id);
       return {
         serializedOrdinances: serializeOrdinances(ordinances),
@@ -28,7 +28,6 @@ export default async function FounderPage({
     });
 
   if (!founder) {
-    console.log("not found");
     notFound();
   }
 

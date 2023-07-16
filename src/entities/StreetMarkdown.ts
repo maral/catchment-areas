@@ -28,9 +28,6 @@ export class StreetMarkdown extends EntityBase {
   @Fields.string({ dbName: "source_text" })
   sourceText: string = "";
 
-  @Fields.json({ dbName: "json_data", allowNull: true })
-  jsonData: string = "";
-
   static getAutosaveComment() {
     return `Automatická záloha ${new Date().toLocaleString()}`;
   }

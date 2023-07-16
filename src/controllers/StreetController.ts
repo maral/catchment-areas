@@ -11,9 +11,13 @@ export class StreetController {
   static async getAutocompleteSuggestions(
     founderId: number
   ): Promise<SuggestionList[]> {
-    const founder = await remult.repo(Founder).findId(founderId, {
+    const founders = await remult.repo(Founder).find({
+      where: { id: founderId},
       load: (f) => [f.city!],
     });
+    
+    const founder = founders[0];
+
     const streets = await remult.repo(Street).find({
       where: { city: founder.city },
     });

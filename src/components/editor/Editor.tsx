@@ -1,5 +1,22 @@
 "use client";
 
+import { StreetMarkdownController } from "@/controllers/StreetMarkdownController";
+import { Ordinance } from "@/entities/Ordinance";
+import { StreetMarkdown } from "@/entities/StreetMarkdown";
+import { Colors } from "@/styles/Themes";
+import { texts } from "@/utils/shared/texts";
+import { SuggestionList, TextToMapError } from "@/utils/shared/types";
+import {
+  ArrowDownTrayIcon,
+  CloudArrowDownIcon,
+  EyeIcon,
+  EyeSlashIcon,
+  MapIcon
+} from "@heroicons/react/24/outline";
+import MonacoEditor, { useMonaco } from "@monaco-editor/react";
+import { Button, Icon } from "@tremor/react";
+import debounce from "lodash/debounce";
+import type { editor } from "monaco-editor";
 import {
   Dispatch,
   SetStateAction,
@@ -8,27 +25,10 @@ import {
   useMemo,
   useState,
 } from "react";
-import {
-  ArrowDownTrayIcon,
-  CheckIcon,
-  EyeIcon,
-  EyeSlashIcon,
-  MapIcon,
-} from "@heroicons/react/24/outline";
-import { StreetMarkdownController } from "@/controllers/StreetMarkdownController";
-import { Ordinance } from "@/entities/Ordinance";
-import { StreetMarkdown } from "@/entities/StreetMarkdown";
-import { Colors } from "@/styles/Themes";
-import { texts } from "@/utils/shared/texts";
-import { SuggestionList, TextToMapError } from "@/utils/shared/types";
-import MonacoEditor, { useMonaco } from "@monaco-editor/react";
-import { Button, Icon } from "@tremor/react";
-import debounce from "lodash/debounce";
-import type { editor } from "monaco-editor";
 import { remult } from "remult";
+import HeaderBox from "../common/HeaderBox";
 import Spinner from "../common/Spinner";
 import { Monaco, configureMonaco } from "./configureMonaco";
-import HeaderBox from "../common/HeaderBox";
 import LinkButton from "../buttons/LinkButton";
 
 const owner = "street-markdown";
@@ -131,45 +131,45 @@ export default function Editor({
 
   return (
     <div className="overflow-hidden">
-        <HeaderBox
-          title={texts.editOrdinanceText}
-          middleSlot={
-            <div>
-              {isSaving && <LoadingIndicator text={texts.saving} />}
-            </div>
-          }
-        >
-          <div className="flex items-center gap-2">
-            <Button
-              color={Colors.Secondary}
-              onClick={() => setShowOriginal(!showOriginal)}
-              icon={showOriginal ? EyeSlashIcon : EyeIcon}
-            >
-              {texts.originalText}
-            </Button>
-            <LinkButton
-              buttonProps={{
-                color: Colors.Primary,
-                icon: MapIcon,
-              }}
-              href={`/founders/${ordinance.founder.id}/map/${ordinance.id}`}
-            >
-              {texts.map}
-            </LinkButton>
-            <LinkButton
-              buttonProps={{
-                color: Colors.Secondary,
-                variant: "secondary",
-                icon: ArrowDownTrayIcon,
-              }}
-              prefetch={false}
-              href={ordinance.documentUrl}
-              target="_blank"
-            >
-              {texts.ordinanceDocument}
-            </LinkButton>{" "}
+      <HeaderBox
+        title={texts.editOrdinanceText}
+        middleSlot={
+          <div>
+            {isSaving ? <LoadingIndicator text={texts.saving} /> : <Saved />}
           </div>
-        </HeaderBox>
+        }
+      >
+        <div className="flex items-center gap-2">
+          <Button
+            color={Colors.Secondary}
+            onClick={() => setShowOriginal(!showOriginal)}
+            icon={showOriginal ? EyeSlashIcon : EyeIcon}
+          >
+            {texts.originalText}
+          </Button>
+          <LinkButton
+            buttonProps={{
+              color: Colors.Primary,
+              icon: MapIcon,
+            }}
+            href={`/founders/${ordinance.founder.id}/map/${ordinance.id}`}
+          >
+            {texts.map}
+          </LinkButton>
+          <LinkButton
+            buttonProps={{
+              color: Colors.Secondary,
+              variant: "secondary",
+              icon: ArrowDownTrayIcon,
+            }}
+            prefetch={false}
+            href={ordinance.documentUrl}
+            target="_blank"
+          >
+            {texts.ordinanceDocument}
+          </LinkButton>{" "}
+        </div>
+      </HeaderBox>
 
       <div
         className={`h-[calc(100vh-12rem)] grid ${
@@ -185,9 +185,10 @@ export default function Editor({
           )}
           <MonacoEditor
             theme="smd-theme"
-            beforeMount={(monaco: Monaco) =>
-              configureMonaco(monaco, suggestions)
-            }
+            beforeMount={(monaco: Monaco) => {
+              console.log("configureMonaco");
+              configureMonaco(monaco, suggestions);
+            }}
             value={streetMarkdown?.sourceText || ""}
             onChange={() => {
               validate();
@@ -212,7 +213,7 @@ export default function Editor({
 
 function LoadingIndicator({ text }: { text: string }) {
   return (
-    <div className="inline-block px-3 py-1 text-xs font-medium leading-none text-center text-blue-800 bg-blue-200 rounded-full animate-pulse dark:bg-blue-900 dark:text-blue-200">
+    <div className="inline-block px-3 py-1 text-xs font-medium leading-none text-center text-blue-800 bg-blue-200 rounded-full animate-pulse">
       {text}
     </div>
   );
@@ -220,8 +221,12 @@ function LoadingIndicator({ text }: { text: string }) {
 
 function Saved() {
   return (
-    <div className="text-slate-400 text-sm">
-      <Icon icon={CheckIcon} size="sm" className="text-green-500" />
+    <div className="inline-block px-3 py-1 text-xs font-medium leading-none text-center text-slate-600 bg-slate-200 rounded-full">
+      <Icon
+        icon={CloudArrowDownIcon}
+        size="xs"
+        className="text-green-500 px-0 py-0 mr-1 relative top-[2px]"
+      />
       {texts.saved}
     </div>
   );

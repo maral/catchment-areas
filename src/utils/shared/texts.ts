@@ -29,6 +29,7 @@ const texts = {
   fillOutName: "Vyplňte název...",
   fillOutPassword: "Vyplňte heslo...",
   firstName: "Jméno",
+  founderNotFound: "Zřizovatel nenalezen.",
   founders: "Zřizovatelé",
   fullName: "Jméno a příjmení",
   ico: "IČO",

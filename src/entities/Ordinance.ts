@@ -1,6 +1,7 @@
 import { Allow, Entity, EntityBase, Field, Fields } from "remult";
 import { Founder } from "./Founder";
 import { OrdinanceMetadata } from "./OrdinanceMetadata";
+import { Municipality } from "text-to-map";
 
 @Entity("ordinances", {
   allowApiCrud: Allow.authenticated,
@@ -33,4 +34,7 @@ export class Ordinance extends EntityBase {
 
   @Fields.string({ dbName: "original_text" })
   originalText: string = "";
+
+  @Fields.json({ dbName: "json_data", allowNull: true })
+  jsonData!: Municipality[];
 }

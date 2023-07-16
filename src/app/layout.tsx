@@ -3,6 +3,8 @@ import { Inter } from "next/font/google";
 import AppMenu from "@/components/layout/AppMenu";
 import Providers from "@/providers/Providers";
 
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   title: "Spádové oblasti",
   description: "Aplikace pro automatizaci převodu spádových oblastí z vyhlášek do mapy.",

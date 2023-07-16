@@ -1,12 +1,12 @@
 "use client";
 
+import { Colors } from "@/styles/Themes";
 import { texts } from "@/utils/shared/texts";
+import { ArrowDownTrayIcon } from "@heroicons/react/24/outline";
 import {
-  ArrowDownIcon,
   MapPinIcon,
-  PencilSquareIcon,
+  PencilSquareIcon
 } from "@heroicons/react/24/solid";
-import { Button } from "@tremor/react";
 import LinkButton from "../buttons/LinkButton";
 
 export default function OverviewBoxButtons({
@@ -22,23 +22,34 @@ export default function OverviewBoxButtons({
         href={`/founders/${founderId}/edit-ordinance/${ordinanceId}`}
         buttonProps={{
           icon: PencilSquareIcon,
-          color: "slate",
+          color: Colors.Secondary,
           className: "my-2 w-full",
         }}
       >
         {texts.editOrdinanceText}
       </LinkButton>
-      <Button className="my-2 w-full" icon={MapPinIcon} color="emerald">
+      <LinkButton
+        href={`/founders/${founderId}/map/${ordinanceId}`}
+        buttonProps={{
+          icon: MapPinIcon,
+          color: Colors.Primary,
+          className: "my-2 w-full",
+        }}
+      >
         {texts.viewOnMap}
-      </Button>
-      <Button
-        className="my-2 w-full"
-        variant="secondary"
-        icon={ArrowDownIcon}
-        color="slate"
+      </LinkButton>
+      <LinkButton
+        href={`/founders/${founderId}/download/${ordinanceId}`}
+        buttonProps={{
+          icon: ArrowDownTrayIcon,
+          variant: "secondary",
+          color: Colors.Secondary,
+          className: "my-2 w-full",
+        }}
+        target="_blank"
       >
         {texts.downloadJson}
-      </Button>
+      </LinkButton>
     </>
   );
 }

@@ -1,11 +1,11 @@
+import { api } from "@/app/api/[...remult]/api";
+import { Founder } from "@/entities/Founder";
 import { Ordinance } from "@/entities/Ordinance";
-import { getOrdinanceDocumentDownloadLink } from "@/utils/shared/ordinanceMetadata";
+import { OrdinanceMetadata } from "@/entities/OrdinanceMetadata";
 import { extractText } from "@/utils/server/textExtraction";
+import { getOrdinanceDocumentDownloadLink } from "@/utils/shared/ordinanceMetadata";
 import { NextRequest, NextResponse } from "next/server";
 import { remult } from "remult";
-import { api } from "../../[...remult]/route";
-import { OrdinanceMetadata } from "@/entities/OrdinanceMetadata";
-import { Founder } from "@/entities/Founder";
 
 export async function POST(request: NextRequest) {
   const ordinanceRepo = remult.repo(Ordinance);

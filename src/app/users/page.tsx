@@ -1,10 +1,10 @@
+import { api } from "@/app/api/[...remult]/api";
 import UsersActions from "@/components/UsersActions";
 import UsersTable from "@/components/table/tableWrappers/UsersTable";
-import { Card } from "@tremor/react";
-import { api } from "../api/[...remult]/route";
-import { loadUsers, serializeUsers, getUsersCount } from "@/components/table/fetchFunctions/loadUsers";
-import { texts } from "@/utils/shared/texts";
 import HeaderBox from "@/components/common/HeaderBox";
+import { getUsersCount, loadUsers, serializeUsers } from "@/components/table/fetchFunctions/loadUsers";
+import { texts } from "@/utils/shared/texts";
+import { Card } from "@tremor/react";
 
 
 export default async function Users() {

@@ -4,7 +4,7 @@ import { User } from "@/entities/User";
 import { NextRequest, NextResponse } from "next/server";
 import { ChatCompletionRequestMessage, Configuration, OpenAIApi } from "openai";
 import { remult } from "remult";
-import { api } from "../../[...remult]/route";
+import { api } from "@/app/api/[...remult]/api";
 import { getServerSessionWithOptions } from "../../auth/[...nextauth]/config";
 
 interface SchoolResult {

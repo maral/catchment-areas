@@ -54,10 +54,10 @@ export function getNextAuthOptions(): NextAuthOptions {
   return authOptions;
 }
 
-let auth: NextAuthOptions | null = null;
+let auth: Function;
 
-export function getNextAuth() {
-  if (auth === null) {
+export function getNextAuth(): Function {
+  if (!auth) {
     auth = NextAuth(getNextAuthOptions());
   }
   return auth;
