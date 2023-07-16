@@ -38,7 +38,10 @@ export default async function FounderPage({
       <div className="h-1/2 pb-5 flex">
         <Card className="grow m-1 mr-4">
           <OrdinanceHeader founderId={id} />
-          <OrdinancesTable founderId={id} initialData={serializedOrdinances} />
+          <OrdinancesTable
+            founderId={id}
+            initialData={serializedOrdinances}
+          />
         </Card>
         {/* overview box */}
         <OverviewBox

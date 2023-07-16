@@ -3,14 +3,14 @@ import { addOrdinanceBreadcrumb, founderDetailBreadcrumb, foundersBreadcrumb } f
 
 
 export default async function AddOrdinanceBreadcrumb({
-  params
+  params: { id }
 } : {
   params: { id: string },
 }) {
   const breadcrumbItems = await Promise.all([
     foundersBreadcrumb,
-    founderDetailBreadcrumb(params.id),
-    addOrdinanceBreadcrumb(params.id),
+    founderDetailBreadcrumb(id),
+    addOrdinanceBreadcrumb(id),
   ]);
 
   return (

@@ -26,10 +26,10 @@ import { Button, Icon } from "@tremor/react";
 import debounce from "lodash/debounce";
 import type { editor } from "monaco-editor";
 import { remult } from "remult";
-import LinkBtn from "../buttons/LinkBtn";
 import Spinner from "../common/Spinner";
 import { Monaco, configureMonaco } from "./configureMonaco";
 import HeaderBox from "../common/HeaderBox";
+import LinkButton from "../buttons/LinkButton";
 
 const owner = "street-markdown";
 
@@ -147,7 +147,7 @@ export default function Editor({
             >
               {texts.originalText}
             </Button>
-            <LinkBtn
+            <LinkButton
               buttonProps={{
                 color: Colors.Primary,
                 icon: MapIcon,
@@ -155,8 +155,8 @@ export default function Editor({
               href={`/founders/${ordinance.founder.id}/map/${ordinance.id}`}
             >
               {texts.map}
-            </LinkBtn>
-            <LinkBtn
+            </LinkButton>
+            <LinkButton
               buttonProps={{
                 color: Colors.Secondary,
                 variant: "secondary",
@@ -167,7 +167,7 @@ export default function Editor({
               target="_blank"
             >
               {texts.ordinanceDocument}
-            </LinkBtn>{" "}
+            </LinkButton>{" "}
           </div>
         </HeaderBox>
 

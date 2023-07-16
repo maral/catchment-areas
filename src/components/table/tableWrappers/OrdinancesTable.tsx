@@ -19,9 +19,11 @@ const ordinancesRepo = remult.repo(Ordinance);
 export default function OrdinancesTable({
   founderId,
   initialData,
+  count,
 }: {
   founderId: string;
   initialData: any[];
+  count?: number;
 }) {
   const columnDefinitions: ColumnDefinition<Ordinance>[] = [
     {
@@ -43,6 +45,7 @@ export default function OrdinancesTable({
           <Link
             className="inline-block"
             href={`/founders/${founderId}/edit-ordinance/${item.id}`}
+            prefetch={false}
           >
             <IconButton
               color={Colors.Primary}
@@ -54,6 +57,7 @@ export default function OrdinancesTable({
           <Link
             className="inline-block"
             href={item.documentUrl}
+            prefetch={false}
             target="_blank"
           >
             <IconButton
@@ -66,8 +70,6 @@ export default function OrdinancesTable({
       ),
     },
   ];
-
-  const count = async () => ordinancesRepo.count();
 
   const fetchItems = async (page: number, limit: number) => {
     return ordinancesRepo.find({

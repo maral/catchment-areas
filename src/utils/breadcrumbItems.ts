@@ -3,15 +3,17 @@ import { Founder } from "@/entities/Founder";
 import { User } from "@/entities/User";
 import { texts } from "@/utils/shared/texts";
 import { api } from "@/app/api/[...remult]/route";
+import { Region } from "@/entities/Region";
 
 export type BreadcrumbItem = {
   href: string;
   title: string;
 };
 
-export type BreadcrumbItemFunction = (id: string) => Promise<BreadcrumbItem>
+export type BreadcrumbItemFunction = (params: any) => Promise<BreadcrumbItem>
 
 const foundersRepo = remult.repo(Founder);
+const regionsRepo = remult.repo(Region);
 const usersRepo = remult.repo(User);
 
 // FOUNDERS
@@ -39,6 +41,31 @@ export const editOrdinanceBreadcrumb: BreadcrumbItemFunction = async (founderId:
   return {
     href: `/founders/${founderId}/edit-ordinance`,
     title: texts.editOrdinance,
+  }
+}
+
+// REGIONS
+export const regionsBreadcrumb: BreadcrumbItem = {
+  href: "/regions",
+  title: texts.regions,
+}
+
+export const regionDetailBreadcrumb: BreadcrumbItemFunction = async (regionCode: string) => {
+  const region = await api.withRemult(() => regionsRepo.findId(regionCode));
+  return {
+    href: `/regions/${regionCode}`,
+    title: region?.name,
+  }
+}
+
+export const regionFounderDetailBreadcrumb: BreadcrumbItemFunction = async ({
+  regionCode,
+  founderId,
+}) => {
+  const founder = await api.withRemult(() => foundersRepo.findId(Number(founderId)));
+  return {
+    href: `/regions/${regionCode}/${founderId}`,
+    title: founder?.name,
   }
 }
 

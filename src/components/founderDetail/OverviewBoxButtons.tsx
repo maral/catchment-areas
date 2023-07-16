@@ -7,7 +7,7 @@ import {
   PencilSquareIcon,
 } from "@heroicons/react/24/solid";
 import { Button } from "@tremor/react";
-import LinkBtn from "../buttons/LinkBtn";
+import LinkButton from "../buttons/LinkButton";
 
 export default function OverviewBoxButtons({
   founderId,
@@ -18,7 +18,7 @@ export default function OverviewBoxButtons({
 }) {
   return (
     <>
-      <LinkBtn
+      <LinkButton
         href={`/founders/${founderId}/edit-ordinance/${ordinanceId}`}
         buttonProps={{
           icon: PencilSquareIcon,
@@ -27,7 +27,7 @@ export default function OverviewBoxButtons({
         }}
       >
         {texts.editOrdinanceText}
-      </LinkBtn>
+      </LinkButton>
       <Button className="my-2 w-full" icon={MapPinIcon} color="emerald">
         {texts.viewOnMap}
       </Button>

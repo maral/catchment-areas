@@ -10,7 +10,7 @@ export default function CatchmentLink({
   className?: string;
 }) {
   return (
-    <Link href={href} className={className ?? ''}>
+    <Link href={href} className={className ?? ""} prefetch={false}>
       <span className="text-emerald-500 hover:text-emerald-600 font-bold">
         {children}
       </span>

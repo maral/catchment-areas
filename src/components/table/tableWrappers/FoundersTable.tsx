@@ -1,51 +1,23 @@
 "use client";
 
-import LinkButton from "@/components/buttons/LinkButton";
 import CatchmentLink from "@/components/common/CatchmentLink";
 import CatchmentTable from "@/components/table/CatchmentTable";
 import { Founder } from "@/entities/Founder";
-import { Colors } from "@/styles/Themes";
 import type { ColumnDefinition } from "@/types/tableTypes";
 import { texts } from "@/utils/shared/texts";
-import { MapIcon, PencilSquareIcon } from "@heroicons/react/24/solid";
-import { Button } from "@tremor/react";
 import {
   deserializeFounders,
   loadFounders,
 } from "@/components/table/fetchFunctions/loadFounders";
-import { remult } from "remult";
-
-const foundersRepo = remult.repo(Founder);
+import TableActionButtons from "../TableActionButtons";
 
 export default function FoundersTable({
-  initialData
+  initialData,
+  count,
 }: {
-  initialData: any[]
+  initialData: any[],
+  count?: number
 }) {
-  const renderActionButtons = (item: Founder) => (
-    <div className="flex">
-      <LinkButton
-        className="mr-2"
-        href={`/founders/${item.id}/map`}
-        buttonProps={{
-          icon: MapIcon,
-          color: Colors.Primary
-        }}
-      >
-        {texts.map}
-      </LinkButton>
-      <Button
-        color={Colors.Secondary}
-        icon={PencilSquareIcon}
-        onClick={() => {
-          console.log("redirect to this url:", `/founders/${item.id}/fetchCurrentOrdinanceId`);
-        }}
-      >
-        {texts.editOrdinance}
-      </Button>
-    </div>
-  );
-
   const columnDefinitions: ColumnDefinition<Founder>[] = [
     {
       title: texts.name,
@@ -54,10 +26,6 @@ export default function FoundersTable({
           {item.shortName}
         </CatchmentLink>
       ),
-    },
-    {
-      title: texts.ico,
-      cellFactory: (item) => item.ico,
     },
     {
       title: texts.region,
@@ -77,22 +45,20 @@ export default function FoundersTable({
     },
     {
       title: "",
-      cellFactory: (item) => renderActionButtons(item),
+      cellFactory: (item) => <TableActionButtons item={item} />,
     },
   ];
 
-  const count = async () => foundersRepo.count();
-
   const fetchItems = async (page: number, limit: number) => {
-    return loadFounders(page, limit);
+    return await loadFounders(page, limit);
   };
 
   return (
     <CatchmentTable
       columnDefinitions={columnDefinitions}
       fetchItems={fetchItems}
-      count={count}
       initialData={deserializeFounders(initialData)}
+      count={count}
     />
   );
 }

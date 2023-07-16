@@ -16,6 +16,12 @@ export default function Navbar({
           </ListItem>
         </Link>
 
+        <Link href="/regions">
+          <ListItem className="cursor-pointer hover:bg-slate-50 rounded-md px-2">
+            { texts.regions }
+          </ListItem>
+        </Link>
+
         <Link href="/users">
           <ListItem className="cursor-pointer hover:bg-slate-50 rounded-md px-2">
             { texts.users }

@@ -10,28 +10,28 @@ import { cs } from "date-fns/locale";
 import { useRouter } from "next/navigation";
 
 export default function AddOrdinance({
-  params
+  params: { id },
 } : {
   params: { id: string },
 }) {
   const router = useRouter();
 
-  const addOrdinanceFromCollection = async (id: string) => {
+  const addOrdinanceFromCollection = async (ordinanceMetadataId: string) => {
     const response = await fetch('/api/ordinance/add-from-collection', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        founderId: params.id,
-        ordinanceMetadataId: id
+        founderId: id,
+        ordinanceMetadataId
       })
     });
 
     if (response.ok) {
       const result = await response.json();
       if (result.success) {
-        router.push(`/founders/${params.id}/edit-ordinance/${result.ordinanceId}`);
+        router.push(`/founders/${id}/edit-ordinance/${result.ordinanceId}`);
         return;
       }
     }
@@ -44,7 +44,7 @@ export default function AddOrdinance({
       <div className="h-1/2 pb-5 flex">
         <Card className="grow m-1">
         <HeaderBox title={texts.addOrdinanceFromCollection} />
-        <OrdinanceMetadataTable founderId={params.id} addOrdinance={addOrdinanceFromCollection} />
+        <OrdinanceMetadataTable founderId={id} addOrdinance={addOrdinanceFromCollection} />
         </Card>
       </div>
       {/* BOTTOM PART OF THE VIEW */}

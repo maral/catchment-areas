@@ -12,9 +12,11 @@ const pageSizes = [10, 25, 50, 100];
 export default function Pagination({
   tableState,
   setTableState,
+  total,
 }: {
   tableState: TableState;
   setTableState: Dispatch<SetStateAction<TableState>>;
+  total: number;
 }) {
   const [newPage, setNewPage] = useState<number>(tableState.page);
 
@@ -59,7 +61,7 @@ export default function Pagination({
   };
 
   const paginate = (page: number): void => {
-    if (page < 1 || page > Math.ceil(tableState.total / tableState.pageSize)) {
+    if (page < 1 || page > Math.ceil(total / tableState.pageSize)) {
       return;
     }
     setTableState({ ...tableState, page });
@@ -68,8 +70,8 @@ export default function Pagination({
   const jumpToPage = (page: number): void => {
     if (page < 1) {
       page = 1;
-    } else if (page > Math.ceil(tableState.total / tableState.pageSize)) {
-      page = Math.ceil(tableState.total / tableState.pageSize);
+    } else if (page > Math.ceil(total / tableState.pageSize)) {
+      page = Math.ceil(total / tableState.pageSize);
     }
     if (page !== tableState.page) {
       paginate(page);
@@ -103,7 +105,7 @@ export default function Pagination({
           }}
           onInput={(e) => protectNumberInput(e)}
         />
-        <span>/ {Math.ceil(tableState.total / tableState.pageSize)}</span>
+        <span>/ {Math.ceil(total / tableState.pageSize)}</span>
       </span>
       <IconButton
         className="mx-2"
