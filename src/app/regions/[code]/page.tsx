@@ -1,4 +1,4 @@
-import { api } from "@/app/api/[...remult]/route";
+import { api } from "@/app/api/[...remult]/api";
 import HeaderBox from "@/components/common/HeaderBox";
 import {
   loadFoundersByRegion,

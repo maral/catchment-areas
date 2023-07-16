@@ -9,7 +9,9 @@ export default async function MapPage({
 }) {
   const municipalities = await getOrCreateMunicipalities(
     Number(id),
-    optionalOrdinanceId.length > 0 ? Number(optionalOrdinanceId[0]) : undefined
+    optionalOrdinanceId && optionalOrdinanceId.length > 0
+      ? Number(optionalOrdinanceId[0])
+      : undefined
   );
 
   if (municipalities === null) {

@@ -11,7 +11,7 @@ export type BreadcrumbItem = {
 };
 
 export type BreadcrumbItemFunction = (
-  ...args: string[]
+  ...args: any[]
 ) => Promise<BreadcrumbItem>;
 
 const foundersRepo = remult.repo(Founder);
@@ -54,6 +54,16 @@ export const editOrdinanceBreadcrumb: BreadcrumbItemFunction = async (
   };
 };
 
+export const mapBreadcrumb: BreadcrumbItemFunction = async (
+  founderId: string,
+  ordinanceId?: string
+) => {
+  return {
+    href: `/founders/${founderId}/map${ordinanceId ? `/${ordinanceId}` : ""}`,
+    title: texts.map,
+  };
+};
+
 // USERS
 export const usersBreadcrumb: BreadcrumbItem = {
   href: "/users",
@@ -69,6 +79,31 @@ export const userDetailBreadcrumb: BreadcrumbItemFunction = async (
     title: user?.name || user?.email,
   };
 };
+
+// REGIONS
+export const regionsBreadcrumb: BreadcrumbItem = {
+  href: "/regions",
+  title: texts.regions,
+}
+
+export const regionDetailBreadcrumb: BreadcrumbItemFunction = async (regionCode: string) => {
+  const region = await api.withRemult(() => regionsRepo.findId(regionCode));
+  return {
+    href: `/regions/${regionCode}`,
+    title: region?.name,
+  }
+}
+
+export const regionFounderDetailBreadcrumb: BreadcrumbItemFunction = async ({
+  regionCode,
+  founderId,
+}) => {
+  const founder = await api.withRemult(() => foundersRepo.findId(Number(founderId)));
+  return {
+    href: `/regions/${regionCode}/${founderId}`,
+    title: founder?.name,
+  }
+}
 
 export const addUserBreadcrumb: BreadcrumbItem = {
   href: `/users/new`,

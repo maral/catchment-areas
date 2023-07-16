@@ -1,9 +1,9 @@
-import { getRegionsCount, loadRegions, serializeRegions } from "@/components/table/fetchFunctions/loadRegions";
-import { api } from "../api/[...remult]/route";
-import { Card } from "@tremor/react";
-import { texts } from "@/utils/shared/texts";
 import HeaderBox from "@/components/common/HeaderBox";
+import { getRegionsCount, loadRegions, serializeRegions } from "@/components/table/fetchFunctions/loadRegions";
 import RegionsTable from "@/components/table/tableWrappers/RegionsTable";
+import { texts } from "@/utils/shared/texts";
+import { Card } from "@tremor/react";
+import { api } from "../api/[...remult]/api";
 
 export default async function Regions() {
   const { serializedFounders, count } = await api.withRemult(async () => {
