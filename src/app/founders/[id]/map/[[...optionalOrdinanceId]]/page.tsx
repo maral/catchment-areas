@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 export default async function MapPage({
   params: { id, optionalOrdinanceId },
 }: {
-  params: { id: string; optionalOrdinanceId: string[] };
+  params: { id: string; optionalOrdinanceId?: string[] };
 }) {
   const municipalities = await getOrCreateMunicipalities(
     Number(id),
