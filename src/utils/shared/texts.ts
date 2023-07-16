@@ -9,6 +9,7 @@ const texts = {
   addOrdinanceFromCollection: "Přidat vyhlášku ze sbírky právních předpisů",
   approvedAt: "Datum schválení",
   author: "Autor",
+  catchmentAreas: "Spádové oblasti",
   city: "Město",
   comment: "Komentář",
   county: "Okres",

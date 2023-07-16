@@ -5,7 +5,7 @@ import HeaderBox from "@/components/common/HeaderBox";
 import OrdinanceMetadataTable from "@/components/table/tableWrappers/OrdinanceMetadataTable";
 import { Colors } from "@/styles/Themes";
 import { texts } from "@/utils/shared/texts";
-import { Button, Card, DatePicker, Subtitle, TextInput, Title } from "@tremor/react";
+import { Button, Card, DatePicker, Subtitle, TextInput } from "@tremor/react";
 import { cs } from "date-fns/locale";
 import { useRouter } from "next/navigation";
 

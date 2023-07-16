@@ -1,14 +1,14 @@
 import BreadcrumbNav from "@/components/BreadcrumbNav";
-import { regionDetailBreadcrumb, regionsBreadcrumb } from "@/utils/breadcrumbItems";
+import { orpDetailBreadcrumb, orpsBreadcrumb } from "@/utils/breadcrumbItems";
 
-export default async function RegionDetailBreadcrumb({
+export default async function OrpDetailBreadcrumb({
   params: { code },
 }: {
   params: { code: string };
 }) {
   const breadcrumbItems = await Promise.all([
-    regionsBreadcrumb,
-    regionDetailBreadcrumb(code),
+    orpsBreadcrumb,
+    orpDetailBreadcrumb(code),
   ]);
 
   return (

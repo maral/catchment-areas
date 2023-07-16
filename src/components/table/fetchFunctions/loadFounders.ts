@@ -35,6 +35,24 @@ export async function getFoundersCountByRegion(regionCode: string): Promise<numb
   });
 }
 
+// TODO: filter by orp
+export async function loadFoundersByOrp(orpCode: string, page: number, limit: number): Promise<Founder[]> {
+  return await foundersRepo.find({
+    limit,
+    page,
+    // where: { city: { orp } },
+    orderBy: { shortName: "asc" },
+    load: (f) => [f.city!],
+  });
+}
+
+// TODO: filter by orp
+export async function getFoundersCountByOrp(orpCode: string): Promise<number> {
+  return await foundersRepo.count({
+    // where: { city: { orp } },
+  });
+}
+
 export function serializeFounders(founders: Founder[]): any[] {
   return foundersRepo.toJson(founders);
 }

@@ -7,15 +7,20 @@ import HeaderBox from "../common/HeaderBox";
 
 export default function OrdinanceHeader({
   founderId,
+  urlFrom,
 }: {
   founderId: string;
+  urlFrom?: string[];
 }) {
   return (
     <div className="flex justify-between mb-2">
       <HeaderBox title={texts.ordinances} />
       <LinkButton
         className="m-2"
-        href={`/founders/${founderId}/add-ordinance`}
+        href={(urlFrom && urlFrom.length >= 2)
+          ? `/founders/${founderId}/add-ordinance/${urlFrom[0]}/${urlFrom[1]}`
+          : `/founders/${founderId}/add-ordinance`
+        }
         buttonProps={{ color: "emerald", icon: PlusIcon}}
       >
         {texts.addOrdinance}

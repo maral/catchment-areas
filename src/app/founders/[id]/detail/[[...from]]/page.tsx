@@ -12,9 +12,9 @@ import { notFound } from "next/navigation";
 import { remult } from "remult";
 
 export default async function FounderPage({
-  params: { id },
+  params: { id, from },
 }: {
-  params: { id: string };
+  params: { id: string, from?: string[] };
 }) {
   const { serializedOrdinances, activeOrdinanceId, founder } =
     await api.withRemult(async () => {
@@ -36,7 +36,10 @@ export default async function FounderPage({
       {/* TOP PART OF THE VIEW */}
       <div className="h-1/2 pb-5 flex">
         <Card className="grow m-1 mr-4">
-          <OrdinanceHeader founderId={id} />
+          <OrdinanceHeader
+            founderId={id}
+            urlFrom={from}
+          />
           <OrdinancesTable
             founderId={id}
             initialData={serializedOrdinances}
@@ -46,6 +49,7 @@ export default async function FounderPage({
         <OverviewBox
           ordinanceId={activeOrdinanceId}
           founderId={id}
+          urlFrom={from}
           className="flex-1 m-1 ml-2"
         />
       </div>
