@@ -1,3 +1,4 @@
+import { TextExtractionResult } from "@/utils/shared/types";
 import { fileTypeFromFile } from "file-type";
 import {
   createWriteStream,
@@ -12,15 +13,17 @@ import { tmpdir } from "os";
 import { join } from "path";
 import { convert } from "pdf-img-convert";
 import pdf from "pdf-parse";
-import Tesseract from "tesseract.js";
+import { createWorker } from "tesseract.js";
 import WordExtractor from "word-extractor";
-import { TextExtractionResult } from "@/utils/shared/types";
+import * as pdfjs from "pdfjs-dist/legacy/build/pdf";
 
 function getFilePath(fileName: string) {
   return join(tmpdir(), fileName);
 }
 
 async function extractImagesFromPdf(pdfPath: string) {
+  pdfjs.GlobalWorkerOptions.workerSrc = "pdfjs-dist/legacy/build/pdf.worker.js";
+
   const outputImages = await convert(pdfPath);
   return outputImages.map((image, i) => {
     const path = "output" + i + ".png";
@@ -70,8 +73,17 @@ async function readDoc(path: string): Promise<string> {
 }
 
 async function recognizeImage(imagePath: string): Promise<string> {
-  const result = await Tesseract.recognize(imagePath, "ces");
-  return result.data.text;
+  const worker = await createWorker({
+    workerPath: "./node_modules/tesseract.js/src/worker-script/node/index.js",
+  });
+  await worker.loadLanguage("ces");
+  await worker.initialize("ces");
+  const {
+    data: { text },
+  } = await worker.recognize(imagePath);
+  console.log(text);
+  await worker.terminate();
+  return text;
 }
 
 export async function extractText(url: string): Promise<TextExtractionResult> {
