@@ -1,8 +1,18 @@
-import { Allow, Entity, EntityBase, Field, Fields, remult } from "remult";
+import {
+  Allow,
+  Entity,
+  EntityBase,
+  Field,
+  Fields,
+  Filter,
+  remult,
+} from "remult";
 import { City } from "./City";
 import { CityDistrict } from "./CityDistrict";
-import { SchoolFounder } from "./SchoolFounder";
+import { Orp } from "./Orp";
+import { Region } from "./Region";
 import { School } from "./School";
+import { SchoolFounder } from "./SchoolFounder";
 
 @Entity("founders", {
   dbName: "founder",
@@ -48,6 +58,26 @@ export class Founder extends EntityBase {
 
   @Fields.integer({ dbName: "school_count" })
   schoolCount = 0;
+
+  static filterByRegion = Filter.createCustom<Founder, { regionCode: string }>(
+    async ({ regionCode }) => {
+      const region = await remult
+        .repo(Region)
+        .findFirst({ code: Number(regionCode) });
+      return {
+        city: { $in: await remult.repo(City).find({ where: { region } }) },
+      };
+    }
+  );
+
+  static filterByOrp = Filter.createCustom<Founder, { orpCode: string }>(
+    async ({ orpCode }) => {
+      const orp = await remult.repo(Orp).findFirst({ code: Number(orpCode) });
+      return {
+        city: { $in: await remult.repo(City).find({ where: { orp } }) },
+      };
+    }
+  );
 }
 
 export enum FounderType {
