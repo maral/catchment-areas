@@ -1,7 +1,7 @@
-import { Icon, List, ListItem, Title } from "@tremor/react";
+import { Icon, List, ListItem } from "@tremor/react";
 import Link from "next/link";
 import { texts } from '@/utils/shared/texts';
-import { GlobeAltIcon, MapPinIcon, ShieldCheckIcon, UserIcon } from "@heroicons/react/24/solid";
+import { BuildingOffice2Icon, BuildingOfficeIcon, GlobeAltIcon, MapPinIcon, ShieldCheckIcon, UserIcon } from "@heroicons/react/24/solid";
 
 export default function Navbar({
   className,
@@ -16,7 +16,7 @@ export default function Navbar({
       <List className="p-4">
         <Link href="/founders">
           <ListItem className="cursor-pointer hover:bg-slate-50 rounded-md px-2 justify-start">
-            <Icon icon={GlobeAltIcon} color="slate"></Icon>
+            <Icon icon={ShieldCheckIcon} color="slate"></Icon>
             <span className="ml-2 text-lg">
               { texts.founders }
             </span>
@@ -25,9 +25,18 @@ export default function Navbar({
 
         <Link href="/regions">
           <ListItem className="cursor-pointer hover:bg-slate-50 rounded-md px-2 justify-start">
-            <Icon icon={ShieldCheckIcon} color="slate"></Icon>
+            <Icon icon={BuildingOffice2Icon} color="slate"></Icon>
             <span className="ml-2 text-lg">
               { texts.regions }
+            </span>
+          </ListItem>
+        </Link>
+
+        <Link href="/counties">
+          <ListItem className="cursor-pointer hover:bg-slate-50 rounded-md px-2 justify-start">
+            <Icon icon={BuildingOfficeIcon} color="slate"></Icon>
+            <span className="ml-2 text-lg">
+              { texts.counties }
             </span>
           </ListItem>
         </Link>

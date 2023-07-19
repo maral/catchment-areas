@@ -5,11 +5,11 @@ import {
   getFoundersCountByRegion,
   serializeFounders,
 } from "@/components/table/fetchFunctions/loadFounders";
-import RegionFoundersTable from "@/components/table/tableWrappers/RegionFoundersTable";
+import RegionFoundersTable from "@/components/table/tableWrappers/foundersTableWrappers/RegionFoundersTable";
 import { Region } from "@/entities/Region";
 import { remult } from "remult";
 
-export default async function RegionPage({
+export default async function RegionDetailPage({
   params: { code },
 }: {
   params: { code: string };

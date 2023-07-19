@@ -1,7 +1,7 @@
 import { api } from "@/app/api/[...remult]/api";
 import HeaderBox from "@/components/common/HeaderBox";
 import { getFoundersCount, loadFounders, serializeFounders } from "@/components/table/fetchFunctions/loadFounders";
-import FoundersTable from "@/components/table/tableWrappers/FoundersTable";
+import FoundersTable from "@/components/table/tableWrappers/foundersTableWrappers/FoundersTable";
 import { texts } from "@/utils/shared/texts";
 import { Card } from "@tremor/react";
 

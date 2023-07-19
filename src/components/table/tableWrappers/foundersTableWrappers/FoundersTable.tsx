@@ -9,7 +9,7 @@ import {
   deserializeFounders,
   loadFounders,
 } from "@/components/table/fetchFunctions/loadFounders";
-import TableActionButtons from "../TableActionButtons";
+import TableActionButtons from "../../TableActionButtons";
 
 export default function FoundersTable({
   initialData,

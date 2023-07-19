@@ -12,6 +12,7 @@ const texts = {
   catchmentAreas: "Spádové oblasti",
   city: "Město",
   comment: "Komentář",
+  counties: "Okresy",
   county: "Okres",
   delete: "Smazat",
   downloadJson: "Stáhnout JSON",

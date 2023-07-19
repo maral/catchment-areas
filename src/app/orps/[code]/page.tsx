@@ -5,7 +5,7 @@ import {
   loadFoundersByOrp,
   serializeFounders,
 } from "@/components/table/fetchFunctions/loadFounders";
-import OrpFoundersTable from "@/components/table/tableWrappers/OrpFounders.table";
+import OrpFoundersTable from "@/components/table/tableWrappers/foundersTableWrappers/OrpFoundersTable";
 import { Orp } from "@/entities/Orp";
 import { remult } from "remult";
 

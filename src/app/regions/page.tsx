@@ -1,5 +1,9 @@
 import HeaderBox from "@/components/common/HeaderBox";
-import { getRegionsCount, loadRegions, serializeRegions } from "@/components/table/fetchFunctions/loadRegions";
+import {
+  getRegionsCount,
+  loadRegions,
+  serializeRegions
+} from "@/components/table/fetchFunctions/loadRegions";
 import RegionsTable from "@/components/table/tableWrappers/RegionsTable";
 import { texts } from "@/utils/shared/texts";
 import { Card } from "@tremor/react";

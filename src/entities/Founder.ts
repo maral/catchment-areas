@@ -13,6 +13,7 @@ import { Orp } from "./Orp";
 import { Region } from "./Region";
 import { School } from "./School";
 import { SchoolFounder } from "./SchoolFounder";
+import { County } from "./County";
 
 @Entity("founders", {
   dbName: "founder",
@@ -66,6 +67,17 @@ export class Founder extends EntityBase {
         .findFirst({ code: Number(regionCode) });
       return {
         city: { $in: await remult.repo(City).find({ where: { region } }) },
+      };
+    }
+  );
+
+  static filterByCounty = Filter.createCustom<Founder, { countyCode: string }>(
+    async ({ countyCode }) => {
+      const county = await remult
+        .repo(County)
+        .findFirst({ code: Number(countyCode) });
+      return {
+        city: { $in: await remult.repo(City).find({ where: { county } }) },
       };
     }
   );

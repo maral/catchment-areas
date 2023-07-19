@@ -1,4 +1,5 @@
 import { api } from "@/app/api/[...remult]/api";
+import { County } from "@/entities/County";
 import { Founder } from "@/entities/Founder";
 import { Orp } from "@/entities/Orp";
 import { Region } from "@/entities/Region";
@@ -17,6 +18,7 @@ export type BreadcrumbItemFunction = (
 
 const foundersRepo = remult.repo(Founder);
 const regionsRepo = remult.repo(Region);
+const countiesRepo = remult.repo(County);
 const orpsRepo = remult.repo(Orp);
 const usersRepo = remult.repo(User);
 
@@ -86,14 +88,17 @@ export const regionDetailBreadcrumb: BreadcrumbItemFunction = async (regionCode:
   }
 }
 
-export const regionFounderDetailBreadcrumb: BreadcrumbItemFunction = async ({
-  regionCode,
-  founderId,
-}) => {
-  const founder = await api.withRemult(() => foundersRepo.findId(Number(founderId)));
+// COUNTIES
+export const countiesBreadcrumb: BreadcrumbItem = {
+  href: "/counties",
+  title: texts.counties,
+}
+
+export const countyDetailBreadcrumb: BreadcrumbItemFunction = async (countyCode: string) => {
+  const county = await api.withRemult(() => countiesRepo.findId(countyCode));
   return {
-    href: `/regions/${regionCode}/${founderId}`,
-    title: founder?.name,
+    href: `/counties/${countyCode}`,
+    title: county?.name,
   }
 }
 
@@ -146,6 +151,12 @@ export const founderFromBreadcrumb: (
         regionDetailBreadcrumb(from[1]),
       ]);
       breadcrumbItems.push(...regionsBreadcrumbs)
+    } else if (from[0] === 'counties') {
+      const countiesBreadcrumbs = await Promise.all([
+        countiesBreadcrumb,
+        countyDetailBreadcrumb(from[1]),
+      ]);
+      breadcrumbItems.push(...countiesBreadcrumbs)
     } else if (from[0] === 'orps') {
       const orpsBreadcrumbs = await Promise.all([
         orpsBreadcrumb,

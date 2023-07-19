@@ -4,19 +4,19 @@ import CatchmentLink from "@/components/common/CatchmentLink";
 import { ColumnDefinition } from "@/types/tableTypes";
 import { texts } from "@/utils/shared/texts";
 import { Founder } from "@/entities/Founder";
-import TableActionButtons from "../TableActionButtons";
-import CatchmentTable from "../CatchmentTable";
+import TableActionButtons from "../../TableActionButtons";
+import CatchmentTable from "../../CatchmentTable";
 import {
   deserializeFounders,
-  loadFoundersByRegion,
-} from "../fetchFunctions/loadFounders";
+  loadFoundersByCounty,
+} from "../../fetchFunctions/loadFounders";
 
-export default function RegionFoundersTable({
-  regionCode,
+export default function CountyFoundersTable({
+  countyCode,
   initialData,
   count,
 }: {
-  regionCode: string;
+  countyCode: string;
   initialData: any[];
   count?: number;
 }) {
@@ -26,7 +26,7 @@ export default function RegionFoundersTable({
       cellFactory: (item) => {
         return (
           <CatchmentLink
-            href={`/founders/${item.id}/detail/regions/${regionCode}`}
+            href={`/founders/${item.id}/detail/counties/${countyCode}`}
           >
             {item.shortName}
           </CatchmentLink>
@@ -56,7 +56,7 @@ export default function RegionFoundersTable({
   ];
 
   const fetchItems = async (page: number, limit: number) => {
-    return await loadFoundersByRegion(regionCode, page, limit);
+    return await loadFoundersByCounty(countyCode, page, limit);
   };
 
   return (

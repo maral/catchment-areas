@@ -21,10 +21,12 @@ export default function OrdinancesTable({
   founderId,
   initialData,
   count,
+  urlFrom,
 }: {
   founderId: string;
   initialData: any[];
   count?: number;
+  urlFrom?: string[];
 }) {
   const columnDefinitions: ColumnDefinition<Ordinance>[] = [
     {
@@ -45,7 +47,10 @@ export default function OrdinancesTable({
         <span className="whitespace-nowrap">
           <Link
             className="inline-block"
-            href={`/founders/${founderId}/edit-ordinance/${item.id}`}
+            href={(urlFrom && urlFrom.length >= 2)
+              ? `/founders/${founderId}/edit-ordinance/${urlFrom[0]}/${urlFrom[1]}/${item.id}`
+              : `/founders/${founderId}/edit-ordinance/${item.id}`
+            }
             prefetch={false}
           >
             <IconButton
