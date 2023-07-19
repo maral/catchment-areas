@@ -43,6 +43,7 @@ export default async function FounderPage({
           <OrdinancesTable
             founderId={id}
             initialData={serializedOrdinances}
+            urlFrom={from}
           />
         </Card>
         {/* overview box */}
