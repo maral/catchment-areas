@@ -1,15 +1,19 @@
+import { City } from "@/entities/City";
 import { Founder } from "@/entities/Founder";
 import { Region } from "@/entities/Region";
 import { remult } from "remult";
 
 const foundersRepo = remult.repo(Founder);
 
-export async function loadFounders(page: number, limit: number): Promise<Founder[]> {
+export async function loadFounders(
+  page: number,
+  limit: number
+): Promise<Founder[]> {
   return await foundersRepo.find({
     limit,
     page,
     orderBy: { shortName: "asc" },
-    load: (f) => [f.city!]
+    load: (f) => [f.city!],
   });
 }
 
@@ -17,22 +21,45 @@ export async function getFoundersCount(): Promise<number> {
   return await foundersRepo.count();
 }
 
-// TODO: filter by region
-export async function loadFoundersByRegion(regionCode: string, page: number, limit: number): Promise<Founder[]> {
+export async function loadFoundersByRegion(
+  regionCode: string,
+  page: number,
+  limit: number
+): Promise<Founder[]> {
   return await foundersRepo.find({
     limit,
     page,
-    // where: { city: { region } },
+    where: Founder.filterByRegion({ regionCode }),
     orderBy: { shortName: "asc" },
     load: (f) => [f.city!],
   });
 }
 
 // TODO: filter by region
-export async function getFoundersCountByRegion(regionCode: string): Promise<number> {
-  return await foundersRepo.count({
-    // where: { city: { region } },
+export async function getFoundersCountByRegion(
+  regionCode: string
+): Promise<number> {
+  return await foundersRepo.count(Founder.filterByRegion({ regionCode }));
+}
+
+// TODO: filter by orp
+export async function loadFoundersByOrp(
+  orpCode: string,
+  page: number,
+  limit: number
+): Promise<Founder[]> {
+  return await foundersRepo.find({
+    limit,
+    page,
+    where: Founder.filterByOrp({ orpCode }),
+    orderBy: { shortName: "asc" },
+    load: (f) => [f.city!],
   });
+}
+
+// TODO: filter by orp
+export async function getFoundersCountByOrp(orpCode: string): Promise<number> {
+  return await foundersRepo.count(Founder.filterByOrp({ orpCode }));
 }
 
 export function serializeFounders(founders: Founder[]): any[] {

@@ -12,14 +12,19 @@ import LinkButton from "../buttons/LinkButton";
 export default function OverviewBoxButtons({
   founderId,
   ordinanceId,
+  urlFrom,
 }: {
   founderId: string;
   ordinanceId: number;
+  urlFrom?: string[];
 }) {
   return (
     <>
       <LinkButton
-        href={`/founders/${founderId}/edit-ordinance/${ordinanceId}`}
+        href={(urlFrom && urlFrom.length >= 2)
+          ? `/founders/${founderId}/edit-ordinance/${urlFrom[0]}/${urlFrom[1]}/${ordinanceId}`
+          : `/founders/${founderId}/edit-ordinance/${ordinanceId}`
+        }
         buttonProps={{
           icon: PencilSquareIcon,
           color: Colors.Secondary,
@@ -29,7 +34,9 @@ export default function OverviewBoxButtons({
         {texts.editOrdinanceText}
       </LinkButton>
       <LinkButton
-        href={`/founders/${founderId}/map/${ordinanceId}`}
+        href={(urlFrom && urlFrom.length >= 2)
+          ? `/founders/${founderId}/map/${urlFrom[0]}/${urlFrom[1]}/${ordinanceId}`
+          : `/founders/${founderId}/map/${ordinanceId}`}
         buttonProps={{
           icon: MapPinIcon,
           color: Colors.Primary,

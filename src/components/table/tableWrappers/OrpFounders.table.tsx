@@ -1,22 +1,19 @@
-"use client";
+'use client';
 
 import CatchmentLink from "@/components/common/CatchmentLink";
+import CatchmentTable from "@/components/table/CatchmentTable";
+import TableActionButtons from "@/components/table/TableActionButtons";
+import { deserializeFounders, loadFoundersByOrp } from "@/components/table/fetchFunctions/loadFounders";
+import { Founder } from "@/entities/Founder";
 import { ColumnDefinition } from "@/types/tableTypes";
 import { texts } from "@/utils/shared/texts";
-import { Founder } from "@/entities/Founder";
-import TableActionButtons from "../TableActionButtons";
-import CatchmentTable from "../CatchmentTable";
-import {
-  deserializeFounders,
-  loadFoundersByRegion,
-} from "../fetchFunctions/loadFounders";
 
-export default function RegionFoundersTable({
-  regionCode,
+export default function OrpFoundersTable({
+  orpCode,
   initialData,
   count,
 }: {
-  regionCode: string;
+  orpCode: string;
   initialData: any[];
   count?: number;
 }) {
@@ -26,7 +23,7 @@ export default function RegionFoundersTable({
       cellFactory: (item) => {
         return (
           <CatchmentLink
-            href={`/founders/${item.id}/detail/regions/${regionCode}`}
+            href={`/founders/${item.id}/detail/orps/${orpCode}`}
           >
             {item.shortName}
           </CatchmentLink>
@@ -56,7 +53,7 @@ export default function RegionFoundersTable({
   ];
 
   const fetchItems = async (page: number, limit: number) => {
-    return await loadFoundersByRegion(regionCode, page, limit);
+    return await loadFoundersByOrp(orpCode, page, limit);
   };
 
   return (

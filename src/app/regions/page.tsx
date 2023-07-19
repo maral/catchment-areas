@@ -6,9 +6,9 @@ import { Card } from "@tremor/react";
 import { api } from "../api/[...remult]/api";
 
 export default async function Regions() {
-  const { serializedFounders, count } = await api.withRemult(async () => {
+  const { serializedRegions, count } = await api.withRemult(async () => {
     return {
-      serializedFounders: serializeRegions(await loadRegions(1, 10)),
+      serializedRegions: serializeRegions(await loadRegions(1, 10)),
       count: await getRegionsCount()
     }
   });
@@ -17,7 +17,7 @@ export default async function Regions() {
     <Card>
       <HeaderBox title={texts.regions} />
       <RegionsTable
-        initialData={serializedFounders}
+        initialData={serializedRegions}
         count={count}
       />
     </Card>

@@ -4,10 +4,12 @@ import OverviewBoxButtons from "@/components/founderDetail/OverviewBoxButtons";
 export default function OverviewBox({
   founderId,
   ordinanceId,
+  urlFrom,
   className,
 }: {
   founderId: string;
   ordinanceId?: number;
+  urlFrom?: string[];
   className?: string;
 }) {
   return (
@@ -23,7 +25,11 @@ export default function OverviewBox({
         </div>
       </div>
       {ordinanceId && (
-        <OverviewBoxButtons ordinanceId={ordinanceId} founderId={founderId} />
+        <OverviewBoxButtons
+          ordinanceId={ordinanceId}
+          founderId={founderId}
+          urlFrom={urlFrom}
+        />
       )}
     </Card>
   );

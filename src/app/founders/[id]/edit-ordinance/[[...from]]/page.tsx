@@ -5,6 +5,7 @@ import { StreetMarkdownController } from "@/controllers/StreetMarkdownController
 import { Founder } from "@/entities/Founder";
 import { Ordinance } from "@/entities/Ordinance";
 import { StreetMarkdown } from "@/entities/StreetMarkdown";
+import { getOrdinanceIdFromFrom } from "@/utils/breadcrumbItems";
 import { isPrefetch } from "@/utils/server/headers";
 import { notFound } from "next/navigation";
 import { remult } from "remult";
@@ -12,10 +13,12 @@ import { remult } from "remult";
 export const dynamic = 'force-dynamic';
 
 export default async function EditorPage({
-  params: { id, ordinanceId },
+  params: { id, from },
 }: {
-  params: { id: string; ordinanceId: string };
+  params: { id: string; from?: string[] };
 }) {
+  const ordinanceId = getOrdinanceIdFromFrom(from);
+
   const { ordinanceJson, streetMarkdownJson, suggestions } =
     await api.withRemult(async () => {
       const ordinanceRepo = remult.repo(Ordinance);

@@ -22,7 +22,7 @@ export default function FoundersTable({
     {
       title: texts.name,
       cellFactory: (item) => (
-        <CatchmentLink href={`/founders/${item.id}`}>
+        <CatchmentLink href={`/founders/${item.id}/detail`}>
           {item.shortName}
         </CatchmentLink>
       ),
