@@ -35,7 +35,7 @@ export default function OrdinanceVersionsTable() {
   ];
 
   // const count = async () => ordinanceVersionRepo.count();
-  const count = async () => 0;
+  const count = 0; //async () => 0;
 
   const fetchItems = async (page: number, limit: number) => {
     // return ordinanceVersionRepo.find({

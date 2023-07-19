@@ -1,6 +1,6 @@
 "use client";
 
-import Aavatar from "@/components/Avatar";
+import Avatar from "@/components/Avatar";
 import IconButton from "@/components/buttons/IconButton";
 import { texts } from "@/utils/shared/texts";
 import { ArrowRightOnRectangleIcon } from "@heroicons/react/24/solid";
@@ -13,7 +13,7 @@ export default function UserMenu() {
   if (session && session.status === "authenticated") {
     return (
       <div className="flex items-center h-full mx-2">
-        <Aavatar
+        <Avatar
           className=""
           image={session.data?.user?.image ?? ""}
           size="md"
