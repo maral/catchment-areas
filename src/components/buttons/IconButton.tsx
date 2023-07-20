@@ -25,24 +25,24 @@ export default function IconButton({
       case "sm":
         return "h-8 w-8";
       case "md":
-        return "h-10 w-10";
+        return "h-9 w-9";
       case "lg":
-        return "h-12 w-12";
+        return "h-11 w-11";
       default:
-        return "h-10 w-10";
+        return "h-9 w-9";
     }
   };
 
   const sizeToIconSize = (size?: "sm" | "md" | "lg") => {
     switch (size) {
       case "sm":
-        return "xs";
+        return "sm";
       case "md":
-        return "sm";
-      case "lg":
         return "md";
+      case "lg":
+        return "lg";
       default:
-        return "sm";
+        return "md";
     }
   };
 
@@ -56,12 +56,10 @@ export default function IconButton({
         cursor-pointer
         rounded-md
         hover:bg-slate-100
-        m-1
         ${sizeToHeight(size)}
       `}
     >
       <Icon
-        className="m-1"
         icon={icon}
         variant="simple"
         color={color}

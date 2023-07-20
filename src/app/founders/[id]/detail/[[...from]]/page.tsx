@@ -48,8 +48,8 @@ export default async function FounderPage({
         </Card>
         {/* overview box */}
         <OverviewBox
-          ordinanceId={activeOrdinanceId}
-          founderId={id}
+          activeOrdinanceId={activeOrdinanceId}
+          founder={founder}
           urlFrom={from}
           className="flex-1 m-1 ml-2"
         />

@@ -1,4 +1,5 @@
 import CatchmentLink from "@/components/common/CatchmentLink";
+import { routes } from "@/utils/shared/constants";
 import Link from "next/link";
 
 export default function NotFoundPage() {
@@ -10,7 +11,7 @@ export default function NotFoundPage() {
           Tato stránka si s námi hraje na schovávanou. A vyhrává.
         </p>
         <div className="mt-12 mb-40 text-center">
-          <CatchmentLink href="/founders">
+          <CatchmentLink href={routes.founders}>
             Zpět na seznam zřizovatelů
           </CatchmentLink>
         </div>

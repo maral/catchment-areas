@@ -6,6 +6,7 @@ import CatchmentLink from "@/components/common/CatchmentLink";
 import { ColumnDefinition } from "@/types/tableTypes";
 import { Region } from "@/entities/Region";
 import { deserializeRegions, loadRegions } from "../fetchFunctions/loadRegions";
+import { routes } from "@/utils/shared/constants";
 
 export default function RegionsTable({
   initialData,
@@ -18,7 +19,7 @@ export default function RegionsTable({
     {
       title: texts.name,
       cellFactory: (item) => (
-        <CatchmentLink href={`/regions/${item.code}`}>
+        <CatchmentLink href={`${routes.regions}/${item.code}`}>
           {item.name}
         </CatchmentLink>
       ),

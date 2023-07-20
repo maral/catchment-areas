@@ -30,6 +30,7 @@ import HeaderBox from "../common/HeaderBox";
 import Spinner from "../common/Spinner";
 import { Monaco, configureMonaco } from "./configureMonaco";
 import LinkButton from "../buttons/LinkButton";
+import { routes } from "@/utils/shared/constants";
 
 const owner = "street-markdown";
 
@@ -152,7 +153,7 @@ export default function Editor({
               color: Colors.Primary,
               icon: MapIcon,
             }}
-            href={`/founders/${ordinance.founder.id}/map/${ordinance.id}`}
+            href={`${routes.founders}/${ordinance.founder.id}${routes.map}/${ordinance.id}`}
           >
             {texts.map}
           </LinkButton>
