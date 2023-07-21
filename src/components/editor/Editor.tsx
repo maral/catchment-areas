@@ -194,7 +194,7 @@ export default function Editor({
               validate();
               autoSave();
             }}
-            options={{ automaticLayout: true }}
+            options={{ automaticLayout: true, wordWrap: "on" }}
             language="street-markdown"
           />
         </div>
@@ -203,7 +203,7 @@ export default function Editor({
           <MonacoEditor
             theme="smd-theme"
             value={ordinance.originalText}
-            options={{ readOnly: true, automaticLayout: true }}
+            options={{ readOnly: true, automaticLayout: true, wordWrap: "on" }}
           />
         </div>
       </div>

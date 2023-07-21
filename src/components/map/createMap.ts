@@ -147,17 +147,17 @@ const prepareMap = (
     renderer: L.canvas({ padding: 0.5 }),
     zoomControl: showControls,
   });
-  // L.tileLayer("http://{s}.tile.osm.org/{z}/{x}/{y}.png", {
-  //   attribution:
-  //     '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors',
-  // }).addTo(map);
-  L.tileLayer(
-    "https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png",
-    {
-      attribution:
-        '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors',
-    }
-  ).addTo(map);
+  L.tileLayer("http://{s}.tile.osm.org/{z}/{x}/{y}.png", {
+    attribution:
+      '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors',
+  }).addTo(map);
+  // L.tileLayer(
+  //   "https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png",
+  //   {
+  //     attribution:
+  //       '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors',
+  //   }
+  // ).addTo(map);
 
   return map;
 };
