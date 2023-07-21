@@ -6,6 +6,7 @@ import { ColumnDefinition } from "@/types/tableTypes";
 import { loadCounties } from "../fetchFunctions/loadCounties";
 import CatchmentTable from "../CatchmentTable";
 import { texts } from "@/utils/shared/texts";
+import { routes } from "@/utils/shared/constants";
 
 export default function CountiesTable({
   initialData,
@@ -18,7 +19,7 @@ export default function CountiesTable({
     {
       title: texts.name,
       cellFactory: (item) => (
-        <CatchmentLink href={`/counties/${item.code}`}>
+        <CatchmentLink href={`${routes.counties}/${item.code}`}>
           {item.name}
         </CatchmentLink>
       )

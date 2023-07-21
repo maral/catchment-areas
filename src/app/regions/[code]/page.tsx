@@ -7,6 +7,7 @@ import {
 } from "@/components/table/fetchFunctions/loadFounders";
 import RegionFoundersTable from "@/components/table/tableWrappers/foundersTableWrappers/RegionFoundersTable";
 import { Region } from "@/entities/Region";
+import { Card } from "@tremor/react";
 import { remult } from "remult";
 
 export default async function RegionDetailPage({
@@ -28,13 +29,13 @@ export default async function RegionDetailPage({
   );
 
   return (
-    <div>
-      <HeaderBox title={region.name} />
+    <Card>
+      <HeaderBox title={region?.name} />
       <RegionFoundersTable
         regionCode={code}
         initialData={serializedFounders}
         count={count}
       />
-    </div>
+    </Card>
   );
 }

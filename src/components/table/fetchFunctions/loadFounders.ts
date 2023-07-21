@@ -12,7 +12,11 @@ export async function loadFounders(
     limit,
     page,
     orderBy: { shortName: "asc" },
-    load: (f) => [f.city!],
+    load: (f) => [
+      f.city!,
+      f.schools!,
+      f.activeOrdinance!,
+    ],
   });
 }
 
@@ -31,7 +35,10 @@ export async function loadFoundersByRegion(
     page,
     where: Founder.filterByRegion({ regionCode }),
     orderBy: { shortName: "asc" },
-    load: (f) => [f.city!],
+    load: (f) => [
+      f.city!,
+      f.activeOrdinance!,
+    ],
   });
 }
 
@@ -52,7 +59,10 @@ export async function loadFoundersByCounty(
     page,
     where: Founder.filterByCounty({ countyCode }),
     orderBy: { shortName: "asc" },
-    load: (f) => [f.city!],
+    load: (f) => [
+      f.city!,
+      f.activeOrdinance!,
+    ],
   });
 }
 
@@ -71,7 +81,10 @@ export async function loadFoundersByOrp(
     page,
     where: Founder.filterByOrp({ orpCode }),
     orderBy: { shortName: "asc" },
-    load: (f) => [f.city!],
+    load: (f) => [
+      f.city!,
+      f.activeOrdinance!,
+    ],
   });
 }
 

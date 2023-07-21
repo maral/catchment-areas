@@ -10,10 +10,11 @@ import {
   ArrowDownTrayIcon,
   MapIcon,
   PencilSquareIcon,
-} from "@heroicons/react/24/outline";
+} from "@heroicons/react/24/solid";
 import Link from "next/link";
 import { remult } from "remult";
 import { deserializeOrdinances } from "../fetchFunctions/loadOrdinances";
+import { routes } from "@/utils/shared/constants";
 
 const ordinancesRepo = remult.repo(Ordinance);
 
@@ -44,20 +45,20 @@ export default function OrdinancesTable({
     {
       title: texts.actions,
       cellFactory: (item) => (
-        <span className="whitespace-nowrap">
+        <span className="whitespace-nowrap flex gap-2">
           <Link
             className="inline-block"
             href={(urlFrom && urlFrom.length >= 2)
-              ? `/founders/${founderId}/edit-ordinance/${urlFrom[0]}/${urlFrom[1]}/${item.id}`
-              : `/founders/${founderId}/edit-ordinance/${item.id}`
+              ? `${routes.founders}/${founderId}${routes.editOrdinance}/${urlFrom[0]}/${urlFrom[1]}/${item.id}`
+              : `${routes.founders}/${founderId}${routes.editOrdinance}/${item.id}`
             }
             prefetch={false}
           >
             <IconButton
-              color={Colors.Primary}
+              color={Colors.Secondary}
               icon={PencilSquareIcon}
               tooltip={texts.edit}
-              size="md"
+              size="sm"
             />
           </Link>
           <Link
@@ -69,19 +70,19 @@ export default function OrdinancesTable({
             <IconButton
               icon={ArrowDownTrayIcon}
               tooltip={texts.downloadOrdinanceDocument}
-              size="md"
+              size="sm"
             />
           </Link>
           <Link
             className="inline-block"
-            href={`/founders/${founderId}/map/${item.id}`}
+            href={`${routes.founders}/${founderId}${routes.map}/${item.id}`}
             target="_blank"
           >
             <IconButton
               icon={MapIcon}
               color={Colors.Primary}
               tooltip={texts.viewOnMap}
-              size="md"
+              size="sm"
             />
           </Link>
         </span>

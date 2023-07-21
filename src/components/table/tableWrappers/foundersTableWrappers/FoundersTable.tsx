@@ -10,6 +10,7 @@ import {
   loadFounders,
 } from "@/components/table/fetchFunctions/loadFounders";
 import TableActionButtons from "../../TableActionButtons";
+import { routes } from "@/utils/shared/constants";
 
 export default function FoundersTable({
   initialData,
@@ -22,7 +23,7 @@ export default function FoundersTable({
     {
       title: texts.name,
       cellFactory: (item) => (
-        <CatchmentLink href={`/founders/${item.id}/detail`}>
+        <CatchmentLink href={`${routes.founders}/${item.id}${routes.detail}`}>
           {item.shortName}
         </CatchmentLink>
       ),
@@ -44,8 +45,16 @@ export default function FoundersTable({
       cellFactory: (item) => item.schoolCount,
     },
     {
+      title: texts.city,
+      cellFactory: (item) => item.city?.name,
+    },
+    {
       title: "",
-      cellFactory: (item) => <TableActionButtons item={item} />,
+      cellFactory: (item) =>
+        <TableActionButtons
+          item={item}
+          activeOrdinanceId={item.activeOrdinance?.id}
+        />
     },
   ];
 

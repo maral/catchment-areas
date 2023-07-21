@@ -6,6 +6,7 @@ import { Region } from "@/entities/Region";
 import { User } from "@/entities/User";
 import { texts } from "@/utils/shared/texts";
 import { remult } from "remult";
+import { modules, routes } from "./shared/constants";
 
 export type BreadcrumbItem = {
   href: string;
@@ -24,7 +25,7 @@ const usersRepo = remult.repo(User);
 
 // FOUNDERS
 export const foundersBreadcrumb: BreadcrumbItem = {
-  href: "/founders",
+  href: routes.founders,
   title: texts.founders,
 };
 
@@ -37,8 +38,8 @@ export const founderDetailBreadcrumb: BreadcrumbItemFunction = async (
   );
   return {
     href: (from && from.length >= 2)
-      ? `/founders/${founderId}/detail/${from[0]}/${from[1]}`
-      : `/founders/${founderId}/detail`,
+      ? `${routes.founders}/${founderId}${routes.detail}/${from[0]}/${from[1]}`
+      : `${routes.founders}/${founderId}${routes.detail}`,
     title: founder?.name,
   };
 };
@@ -49,8 +50,8 @@ export const addOrdinanceBreadcrumb: BreadcrumbItemFunction = async (
 ) => {
   return {
     href: (from && from.length >= 2)
-      ? `/founders/${founderId}/add-ordinance/${from[0]}/${from[1]}`
-      : `/founders/${founderId}/add-ordinance`,
+      ? `${routes.founders}/${founderId}${routes.addOrdinance}/${from[0]}/${from[1]}`
+      : `${routes.founders}/${founderId}${routes.addOrdinance}`,
     title: texts.addOrdinance,
   };
 };
@@ -59,7 +60,7 @@ export const editOrdinanceBreadcrumb: BreadcrumbItemFunction = async (
   founderId: string
 ) => {
   return {
-    href: `/founders/${founderId}/edit-ordinance`,
+    href: `${routes.founders}/${founderId}${routes.editOrdinance}`,
     title: texts.editOrdinance,
   };
 };
@@ -69,56 +70,56 @@ export const mapBreadcrumb: BreadcrumbItemFunction = async (
   ordinanceId?: string
 ) => {
   return {
-    href: `/founders/${founderId}/map${ordinanceId ? `/${ordinanceId}` : ""}`,
+    href: `${routes.founders}/${founderId}${routes.map}${ordinanceId ? `/${ordinanceId}` : ""}`,
     title: texts.map,
   };
 };
 
 // REGIONS
 export const regionsBreadcrumb: BreadcrumbItem = {
-  href: "/regions",
+  href: routes.regions,
   title: texts.regions,
 }
 
 export const regionDetailBreadcrumb: BreadcrumbItemFunction = async (regionCode: string) => {
   const region = await api.withRemult(() => regionsRepo.findId(regionCode));
   return {
-    href: `/regions/${regionCode}`,
+    href: `${routes.regions}/${regionCode}`,
     title: region?.name,
   }
 }
 
 // COUNTIES
 export const countiesBreadcrumb: BreadcrumbItem = {
-  href: "/counties",
+  href: routes.counties,
   title: texts.counties,
 }
 
 export const countyDetailBreadcrumb: BreadcrumbItemFunction = async (countyCode: string) => {
   const county = await api.withRemult(() => countiesRepo.findId(countyCode));
   return {
-    href: `/counties/${countyCode}`,
+    href: `${routes.counties}/${countyCode}`,
     title: county?.name,
   }
 }
 
 // ORPS
 export const orpsBreadcrumb: BreadcrumbItem = {
-  href: "/orps",
+  href: routes.orps,
   title: texts.orp,
 }
 
 export const orpDetailBreadcrumb: BreadcrumbItemFunction = async (orpCode: string) => {
   const orp = await api.withRemult(() => orpsRepo.findId(orpCode));
   return {
-    href: `/orps/${orpCode}`,
+    href: `${routes.orps}/${orpCode}`,
     title: orp?.name,
   }
 }
 
 // USERS
 export const usersBreadcrumb: BreadcrumbItem = {
-  href: "/users",
+  href: routes.users,
   title: texts.users,
 };
 
@@ -127,13 +128,13 @@ export const userDetailBreadcrumb: BreadcrumbItemFunction = async (
 ) => {
   const user = await api.withRemult(() => usersRepo.findId(userId));
   return {
-    href: `/users/${userId}`,
+    href: `${routes.users}/${userId}`,
     title: user?.name || user?.email,
   };
 };
 
 export const addUserBreadcrumb: BreadcrumbItem = {
-  href: `/users/new`,
+  href: `${routes.users}${routes.new}}`,
   title: texts.addUser,
 };
 
@@ -145,19 +146,19 @@ export const founderFromBreadcrumb: (
 ) => {
   const breadcrumbItems: BreadcrumbItem[] = [];
   if (from && from.length >= 2) {
-    if (from[0] === 'regions') {
+    if (from[0] === modules.regions) {
       const regionsBreadcrumbs = await Promise.all([
         regionsBreadcrumb,
         regionDetailBreadcrumb(from[1]),
       ]);
       breadcrumbItems.push(...regionsBreadcrumbs)
-    } else if (from[0] === 'counties') {
+    } else if (from[0] === modules.counties) {
       const countiesBreadcrumbs = await Promise.all([
         countiesBreadcrumb,
         countyDetailBreadcrumb(from[1]),
       ]);
       breadcrumbItems.push(...countiesBreadcrumbs)
-    } else if (from[0] === 'orps') {
+    } else if (from[0] === modules.orps) {
       const orpsBreadcrumbs = await Promise.all([
         orpsBreadcrumb,
         orpDetailBreadcrumb(from[1]),

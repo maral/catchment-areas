@@ -3,6 +3,7 @@ import HeaderBox from "@/components/common/HeaderBox";
 import { getFoundersCountByCounty, loadFoundersByCounty, serializeFounders } from "@/components/table/fetchFunctions/loadFounders";
 import CountyFoundersTable from "@/components/table/tableWrappers/foundersTableWrappers/CountyFoundersTable";
 import { County } from "@/entities/County";
+import { Card } from "@tremor/react";
 import { remult } from "remult";
 
 export default async function CountyDetailPage({
@@ -24,13 +25,13 @@ export default async function CountyDetailPage({
   );
 
   return (
-    <div>
-      <HeaderBox title={county.name} />
+    <Card>
+      <HeaderBox title={county?.name} />
       <CountyFoundersTable
         countyCode={code}
         initialData={serializedFounders}
         count={count}
       />
-    </div>
+    </Card>
   );
 }

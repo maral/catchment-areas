@@ -1,38 +1,50 @@
 import { Founder } from "@/entities/Founder";
-import LinkButton from "../buttons/LinkButton";
 import { texts } from "@/utils/shared/texts";
 import { MapIcon, PencilSquareIcon } from "@heroicons/react/24/solid";
 import { Colors } from "@/styles/Themes";
-import { Button } from "@tremor/react";
-
+import IconButton from "../buttons/IconButton";
+import Link from "next/link";
+import { routes } from "@/utils/shared/constants";
 
 export default function TableActionButtons({
   item,
+  activeOrdinanceId,
+  urlFrom,
 }: {
   item: Founder;
+  activeOrdinanceId?: number;
+  urlFrom?: string[];
 }) {
   return (
-    <div className="flex">
-      <LinkButton
-        className="mr-2"
-        href={`/founders/${item.id}/map`}
-        prefetch={false}
-        buttonProps={{
-          icon: MapIcon,
-          color: Colors.Primary
-        }}
+    <span className="whitespace-nowrap flex gap-2">
+      <Link
+        className="inline-block"
+        href={(urlFrom && urlFrom.length >= 2)
+          ? `${routes.founders}/${item.id}${routes.editOrdinance}/${urlFrom[0]}/${urlFrom[1]}/${activeOrdinanceId}`
+          : `${routes.founders}/${item.id}${routes.editOrdinance}/${activeOrdinanceId}`
+        }
       >
-        {texts.map}
-      </LinkButton>
-      <Button
-        color={Colors.Secondary}
-        icon={PencilSquareIcon}
-        onClick={() => {
-          console.log("redirect to this url:", `/founders/${item.id}/fetchCurrentOrdinanceId`);
-        }}
+        <IconButton
+          icon={PencilSquareIcon}
+          color={Colors.Secondary}
+          tooltip={texts.editOrdinance}
+          size="sm"
+        />
+      </Link>
+      <Link
+        className="inline-block"
+        href={(urlFrom && urlFrom.length >= 2)
+          ? `${routes.founders}/${item.id}${routes.map}/${urlFrom[0]}/${urlFrom[1]}/${activeOrdinanceId}`
+          : `${routes.founders}/${item.id}${routes.map}/${activeOrdinanceId}`
+        }
       >
-        {texts.editOrdinance}
-      </Button>
-    </div>
+        <IconButton
+          icon={MapIcon}
+          color={Colors.Primary}
+          tooltip={texts.viewOnMap}
+          size="sm"
+        />
+      </Link>
+    </span>
   );
 }

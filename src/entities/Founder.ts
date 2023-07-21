@@ -14,6 +14,7 @@ import { Region } from "./Region";
 import { School } from "./School";
 import { SchoolFounder } from "./SchoolFounder";
 import { County } from "./County";
+import { Ordinance } from "./Ordinance";
 
 @Entity("founders", {
   dbName: "founder",
@@ -46,6 +47,18 @@ export class Founder extends EntityBase {
     lazy: true,
   })
   cityDistrict?: CityDistrict;
+
+  @Field(() => Ordinance, {
+    lazy: true,
+    serverExpression: (founder: Founder) =>
+      remult
+        .repo(Ordinance)
+        .findFirst({
+          founder: founder,
+          isActive: true
+        })
+  })
+  activeOrdinance?: Ordinance;
 
   @Field(() => School, {
     lazy: true,
