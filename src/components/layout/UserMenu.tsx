@@ -30,7 +30,7 @@ export default function UserMenu() {
     return (
       <div className="flex">
         <Button className="ml-2">
-          <a href="/auth/signin">Přihlásit se</a>
+          <a href="/auth/signin">{texts.login}</a>
         </Button>
       </div>
     );

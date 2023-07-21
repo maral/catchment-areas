@@ -36,6 +36,7 @@ const texts = {
   fullName: "Jméno a příjmení",
   ico: "IČO",
   lastName: "Příjmení",
+  login: "Přihlásit se",
   logout: "Odhlásit se",
   map: "Mapa",
   name: "Název",

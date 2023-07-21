@@ -20,6 +20,7 @@ import { RemultServerOptions } from "remult/server";
 import { Remult } from "remult";
 import { getServerSessionWithOptions } from "../auth/[...nextauth]/config";
 import { StreetController } from "@/controllers/StreetController";
+import { UserSettings } from "@/entities/UserSettings";
 
 configDotenv({ path: ".env.local" });
 
@@ -44,6 +45,7 @@ export function getRemultOptions(
         SchoolFounder,
         StreetMarkdown,
         User,
+        UserSettings,
       ],
       controllers: [
         FounderController,
