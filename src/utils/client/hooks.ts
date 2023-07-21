@@ -1,8 +1,7 @@
-import { useEffect, useState } from "react";
-import { api } from "@/app/api/[...remult]/api";
-import { remult } from "remult";
 import { UserSettings } from "@/entities/UserSettings";
 import { useSession } from "next-auth/react";
+import { useEffect, useState } from "react";
+import { remult } from "remult";
 
 export const useLocalStorage = (key: string, initialValue: any) => {
   const [value, setValue] = useState(initialValue);
@@ -11,7 +10,7 @@ export const useLocalStorage = (key: string, initialValue: any) => {
     const value = window.localStorage.getItem(key);
     if (value !== null) {
       setValue(JSON.parse(value));
-    } 
+    }
   }, [key]);
 
   useEffect(() => {
@@ -25,37 +24,39 @@ export const useUserSettings = (key: keyof UserSettings, initialValue: any) => {
   const [value, setValue] = useState(initialValue);
   const userSettingsRepo = remult.repo(UserSettings);
   const session = useSession();
-  const userId = session.data?.user.id ?? '';
+  const userId = session.data?.user.id ?? "";
 
   useEffect(() => {
-    api.withRemult(async () => {
+    const set = async () => {
       const userSettings = await userSettingsRepo.findFirst({
-        user: { $id: userId }
-      })
+        user: { $id: userId },
+      });
 
       if (userSettings && userSettings[key]) {
         setValue(userSettings[key]);
       }
-    });
+    };
+    set();
   }, [userId, key, userSettingsRepo]);
 
   useEffect(() => {
-    api.withRemult(async () => {
+    const save = async () => {
       const userSettings = await userSettingsRepo.findFirst({
-        user: { $id: userId }
+        user: { $id: userId },
       });
 
       if (userSettings) {
         await userSettingsRepo.save({
           ...userSettings,
-          [key]: value
+          [key]: value,
         });
       } else {
         await userSettingsRepo.save({
-          [key]: value
+          [key]: value,
         });
       }
-    });
+    };
+    save();
   }, [userId, key, value, userSettingsRepo]);
 
   return [value, setValue];
