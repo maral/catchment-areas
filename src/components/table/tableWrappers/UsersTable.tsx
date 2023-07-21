@@ -11,6 +11,7 @@ import { Colors } from "@/styles/Themes";
 import { Button } from "@tremor/react";
 import { PencilSquareIcon, TrashIcon } from "@heroicons/react/24/solid";
 import { deserializeUsers } from "../fetchFunctions/loadUsers";
+import { routes } from "@/utils/shared/constants";
 
 const usersRepo = remult.repo(User);
 
@@ -25,7 +26,7 @@ export default function UsersTable({
     <div className="flex">
       <LinkButton
         className="mr-2"
-        href={`/users/${item.id}`}
+        href={`${routes.users}/${item.id}`}
         buttonProps={{
           icon: PencilSquareIcon,
           color: Colors.Secondary

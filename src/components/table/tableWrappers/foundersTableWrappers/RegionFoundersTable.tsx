@@ -10,6 +10,7 @@ import {
   deserializeFounders,
   loadFoundersByRegion,
 } from "../../fetchFunctions/loadFounders";
+import { modules, routes } from "@/utils/shared/constants";
 
 export default function RegionFoundersTable({
   regionCode,
@@ -26,7 +27,7 @@ export default function RegionFoundersTable({
       cellFactory: (item) => {
         return (
           <CatchmentLink
-            href={`/founders/${item.id}/detail/regions/${regionCode}`}
+            href={`${routes.founders}/${item.id}${routes.detail}${routes.regions}/${regionCode}`}
           >
             {item.shortName}
           </CatchmentLink>
@@ -51,7 +52,12 @@ export default function RegionFoundersTable({
     },
     {
       title: "",
-      cellFactory: (item) => <TableActionButtons item={item} />,
+      cellFactory: (item) =>
+        <TableActionButtons
+          item={item}
+          activeOrdinanceId={item.activeOrdinance?.id}
+          urlFrom={[modules.regions, regionCode]}
+        />,
     },
   ];
 

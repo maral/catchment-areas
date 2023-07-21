@@ -4,6 +4,7 @@ import Header from "@/components/common/Header";
 import HeaderBox from "@/components/common/HeaderBox";
 import OrdinanceMetadataTable from "@/components/table/tableWrappers/OrdinanceMetadataTable";
 import { Colors } from "@/styles/Themes";
+import { routes } from "@/utils/shared/constants";
 import { texts } from "@/utils/shared/texts";
 import { Button, Card, DatePicker, Subtitle, TextInput } from "@tremor/react";
 import { cs } from "date-fns/locale";
@@ -31,7 +32,7 @@ export default function AddOrdinance({
     if (response.ok) {
       const result = await response.json();
       if (result.success) {
-        router.push(`/founders/${id}/edit-ordinance/${result.ordinanceId}`);
+        router.push(`${routes.founders}/${id}${routes.editOrdinance}/${result.ordinanceId}`);
         return;
       }
     }

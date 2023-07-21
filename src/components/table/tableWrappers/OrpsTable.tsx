@@ -6,6 +6,7 @@ import { ColumnDefinition } from "@/types/tableTypes";
 import { texts } from "@/utils/shared/texts";
 import CatchmentLink from "@/components/common/CatchmentLink";
 import { deserializeOrps, loadOrps } from "../fetchFunctions/loadOrps";
+import { routes } from "@/utils/shared/constants";
 
 export default function OrpsTable({
   initialData,
@@ -18,7 +19,7 @@ export default function OrpsTable({
     {
       title: texts.name,
       cellFactory: (item) => (
-        <CatchmentLink href={`/orps/${item.code}`}>
+        <CatchmentLink href={`${routes.orps}/${item.code}`}>
           {item.name}
         </CatchmentLink>
       ),

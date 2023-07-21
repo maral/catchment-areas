@@ -10,6 +10,7 @@ import {
   deserializeFounders,
   loadFoundersByCounty,
 } from "../../fetchFunctions/loadFounders";
+import { modules, routes } from "@/utils/shared/constants";
 
 export default function CountyFoundersTable({
   countyCode,
@@ -26,7 +27,7 @@ export default function CountyFoundersTable({
       cellFactory: (item) => {
         return (
           <CatchmentLink
-            href={`/founders/${item.id}/detail/counties/${countyCode}`}
+            href={`${routes.founders}/${item.id}${routes.detail}${routes.counties}/${countyCode}`}
           >
             {item.shortName}
           </CatchmentLink>
@@ -51,7 +52,12 @@ export default function CountyFoundersTable({
     },
     {
       title: "",
-      cellFactory: (item) => <TableActionButtons item={item} />,
+      cellFactory: (item) =>
+        <TableActionButtons
+          item={item}
+          activeOrdinanceId={item.activeOrdinance?.id}
+          urlFrom={[modules.counties, countyCode]}
+        />,
     },
   ];
 

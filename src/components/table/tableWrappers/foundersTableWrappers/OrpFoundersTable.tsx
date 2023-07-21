@@ -6,6 +6,7 @@ import TableActionButtons from "@/components/table/TableActionButtons";
 import { deserializeFounders, loadFoundersByOrp } from "@/components/table/fetchFunctions/loadFounders";
 import { Founder } from "@/entities/Founder";
 import { ColumnDefinition } from "@/types/tableTypes";
+import { modules, routes } from "@/utils/shared/constants";
 import { texts } from "@/utils/shared/texts";
 
 export default function OrpFoundersTable({
@@ -23,7 +24,7 @@ export default function OrpFoundersTable({
       cellFactory: (item) => {
         return (
           <CatchmentLink
-            href={`/founders/${item.id}/detail/orps/${orpCode}`}
+            href={`${routes.founders}/${item.id}${routes.detail}${routes.orps}/${orpCode}`}
           >
             {item.shortName}
           </CatchmentLink>
@@ -48,7 +49,12 @@ export default function OrpFoundersTable({
     },
     {
       title: "",
-      cellFactory: (item) => <TableActionButtons item={item} />,
+      cellFactory: (item) =>
+        <TableActionButtons
+          item={item}
+          activeOrdinanceId={item.activeOrdinance?.id}
+          urlFrom={[modules.orps, orpCode]}
+        />
     },
   ];
 

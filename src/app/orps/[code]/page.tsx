@@ -7,6 +7,7 @@ import {
 } from "@/components/table/fetchFunctions/loadFounders";
 import OrpFoundersTable from "@/components/table/tableWrappers/foundersTableWrappers/OrpFoundersTable";
 import { Orp } from "@/entities/Orp";
+import { Card } from "@tremor/react";
 import { remult } from "remult";
 
 export default async function OrpPage({
@@ -28,13 +29,13 @@ export default async function OrpPage({
   );
 
   return (
-    <div>
-      <HeaderBox title={orp.name} />
+    <Card>
+      <HeaderBox title={orp?.name} />
       <OrpFoundersTable
         orpCode={code}
         initialData={serializedFounders}
         count={count}
       />
-    </div>
+    </Card>
   );
 }

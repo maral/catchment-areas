@@ -4,6 +4,8 @@ import { texts } from "@/utils/shared/texts";
 import { PlusIcon } from "@heroicons/react/24/solid";
 import LinkButton from "@/components/buttons/LinkButton";
 import HeaderBox from "../common/HeaderBox";
+import { routes } from "@/utils/shared/constants";
+import { Colors } from "@/styles/Themes";
 
 export default function OrdinanceHeader({
   founderId,
@@ -18,10 +20,10 @@ export default function OrdinanceHeader({
       <LinkButton
         className="m-2"
         href={(urlFrom && urlFrom.length >= 2)
-          ? `/founders/${founderId}/add-ordinance/${urlFrom[0]}/${urlFrom[1]}`
-          : `/founders/${founderId}/add-ordinance`
+          ? `${routes.founders}/${founderId}${routes.addOrdinance}/${urlFrom[0]}/${urlFrom[1]}`
+          : `${routes.founders}/${founderId}${routes.addOrdinance}`
         }
-        buttonProps={{ color: "emerald", icon: PlusIcon}}
+        buttonProps={{ color: Colors.Primary, icon: PlusIcon}}
       >
         {texts.addOrdinance}
       </LinkButton>

@@ -9,6 +9,28 @@ const constants = {
   },
 };
 
+export const routes = {
+  founders: '/founders',
+  regions: '/regions',
+  counties: '/counties',
+  orps: '/orps',
+  users: '/users',
+  detail: '/detail',
+  addOrdinance: '/add-ordinance',
+  editOrdinance: '/edit-ordinance',
+  map: '/map',
+  download: '/download',
+  new: '/new',
+};
+
+export const modules = {
+  founders: 'founders',
+  regions: 'regions',
+  counties: 'counties',
+  orps: 'orps',
+  users: 'users',
+};
+
 export const textToMapOptions: OpenDataSyncOptionsPartial = {
   dataDir: "./data",
 };
