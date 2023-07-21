@@ -48,17 +48,17 @@ export class Founder extends EntityBase {
   })
   cityDistrict?: CityDistrict;
 
-  @Field(() => Ordinance, {
-    lazy: true,
-    serverExpression: (founder: Founder) =>
-      remult
-        .repo(Ordinance)
-        .findFirst({
-          founder: founder,
-          isActive: true
-        })
-  })
-  activeOrdinance?: Ordinance;
+  // @Field(() => Ordinance, {
+  //   lazy: true,
+  //   serverExpression: (founder: Founder) =>
+  //     remult
+  //       .repo(Ordinance)
+  //       .findFirst({
+  //         founder: founder,
+  //         isActive: true
+  //       })
+  // })
+  // activeOrdinance?: Ordinance;
 
   @Field(() => School, {
     lazy: true,
