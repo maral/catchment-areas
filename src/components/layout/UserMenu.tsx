@@ -6,6 +6,8 @@ import { texts } from "@/utils/shared/texts";
 import { ArrowRightOnRectangleIcon } from "@heroicons/react/24/solid";
 import { Button, Title } from "@tremor/react";
 import { signOut, useSession } from "next-auth/react";
+import LinkButton from "../buttons/LinkButton";
+import { Colors } from "@/styles/Themes";
 
 export default function UserMenu() {
   const session = useSession();
@@ -29,9 +31,16 @@ export default function UserMenu() {
   } else {
     return (
       <div className="flex">
-        <Button className="ml-2">
-          <a href="/auth/signin">{texts.login}</a>
-        </Button>
+        <LinkButton
+          href="/auth/signin"
+          className="mx-4 my-2"
+          buttonProps={{
+            color: Colors.Primary,
+            icon: ArrowRightOnRectangleIcon,
+          }}
+        >
+          {texts.login}
+        </LinkButton>
       </div>
     );
   }

@@ -7,6 +7,9 @@ const constants = {
   localStorageKey: {
     isNavbarOpen: "isNavbarOpen",
   },
+  userSettings: {
+    isNavbarOpen: 'isNavbarOpen',
+  }
 };
 
 export const routes = {
