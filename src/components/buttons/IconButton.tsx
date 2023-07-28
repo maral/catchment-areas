@@ -6,6 +6,7 @@ export default function IconButton({
   size,
   tooltip,
   color = "slate",
+  disabled,
   className,
 }: {
   icon: React.ForwardRefExoticComponent<
@@ -18,6 +19,7 @@ export default function IconButton({
   size?: "sm" | "md" | "lg";
   color?: Color;
   tooltip?: string;
+  disabled?: boolean;
   className?: string;
 }) {
   const sizeToHeight = (size?: "sm" | "md" | "lg") => {
@@ -50,23 +52,23 @@ export default function IconButton({
     <div
       className={`
         ${className ?? ""}
-        bg-slate-50
         border
-        border-slate-200
-        cursor-pointer
         rounded-md
-        hover:bg-slate-100
+        ${!disabled ? 'cursor-pointer' : ''}
+        ${!disabled ? 'bg-slate-50' : 'bg-slate-50'}
+        ${!disabled ? 'border-slate-200' : 'border-slate-100'}
+        ${!disabled ? 'hover:bg-slate-100' : ''}
         ${sizeToHeight(size)}
       `}
     >
-      <Icon
+      {!disabled && <Icon
         icon={icon}
         variant="simple"
         color={color}
         tooltip={tooltip}
         size={sizeToIconSize(size)}
-        onClick={onClick}
-      />
+        onClick={!disabled ? onClick : undefined}
+      />}
     </div>
   );
 }

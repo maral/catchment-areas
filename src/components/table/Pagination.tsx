@@ -6,6 +6,7 @@ import { TextInput } from "@tremor/react";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import IconButton from "../buttons/IconButton";
 import Select from "../common/Select";
+import _ from "lodash";
 
 const pageSizes = [10, 25, 50, 100];
 
@@ -88,6 +89,7 @@ export default function Pagination({
       <div className="px-3">
         <IconButton
           className="mx-2"
+          disabled={tableState.page === 1}
           icon={ChevronLeftIcon}
           onClick={goToPrevPage}
         />
@@ -109,6 +111,7 @@ export default function Pagination({
       </span>
       <IconButton
         className="mx-2"
+        disabled={tableState.page === Math.ceil(total / tableState.pageSize)}
         icon={ChevronRightIcon}
         onClick={goToNextPage}
       />

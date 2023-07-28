@@ -1,6 +1,14 @@
+import { Icon } from "@tremor/react";
 import Image from "next/image";
+import { UserIcon } from "@heroicons/react/24/solid";
+import { Colors } from "@/styles/Themes";
 
 type AvatarSize = 'sm' | 'md' | 'lg';
+
+type Icon = React.ForwardRefExoticComponent<Omit<React.SVGProps<SVGSVGElement>, "ref"> & {
+  title?: string | undefined;
+  titleId?: string | undefined;
+} & React.RefAttributes<SVGSVGElement>>
 
 export default function Avatar({
   className,
@@ -8,7 +16,7 @@ export default function Avatar({
   size
 }: {
   className: string;
-  image: string;
+  image?: string | null;
   size?: AvatarSize;
 }) {
   const sizeInPixels = (size?: AvatarSize) => {
@@ -26,13 +34,21 @@ export default function Avatar({
 
   return (
     <>
-      <Image
-        className={`rounded-full p-1 ${className ?? ""}`}
-        width={sizeInPixels(size)}
-        height={sizeInPixels(size)}
-        src={image}
-        alt="Fotka uživatele"
-      />
+      {
+        image ?
+          <Image
+            className={`rounded-full p-1 ${className ?? ""}`}
+            width={sizeInPixels(size)}
+            height={sizeInPixels(size)}
+            src={image}
+            alt="Fotka uživatele"
+          /> :
+          <Icon
+            icon={UserIcon}
+            color={Colors.Secondary}
+            className={`rounded-full border border-slate-400 ${className ?? ""}`}
+          />
+      }
     </>
   )
 }
