@@ -29,6 +29,11 @@ export function getRemultOptions(
   isBackendOnly: boolean = false
 ): RemultServerOptions<any> {
   if (remultOptions === null) {
+    if (!process.env.TEXTTOMAP_MYSQL_CONNECTION_DATA) {
+      throw new Error("Missing TEXTTOMAP_MYSQL_CONNECTION_DATA env variable!");
+    }
+    const [host, port, user, password, database] =
+      process.env.TEXTTOMAP_MYSQL_CONNECTION_DATA.split(":");
     remultOptions = {
       entities: [
         Account,
@@ -51,10 +56,18 @@ export function getRemultOptions(
         StreetController,
       ],
       dataProvider: createKnexDataProvider({
-        client: "better-sqlite3",
+        client: "mysql",
         connection: {
-          filename: "./" + process.env.TEXTTOMAP_SQLITE_PATH ?? "",
+          host,
+          port: Number(port),
+          user,
+          password,
+          database,
         },
+        // client: "better-sqlite3",
+        // connection: {
+        //   filename: "./" + process.env.TEXTTOMAP_SQLITE_PATH ?? "",
+        // },
         useNullAsDefault: true,
         // debug: true,
       }),
