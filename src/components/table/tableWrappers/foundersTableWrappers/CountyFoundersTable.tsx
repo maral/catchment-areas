@@ -55,7 +55,7 @@ export default function CountyFoundersTable({
       cellFactory: (item) =>
         <TableActionButtons
           item={item}
-          activeOrdinanceId={item.activeOrdinance?.id}
+          activeOrdinanceId={undefined} //item.activeOrdinance?.id}
           urlFrom={[modules.counties, countyCode]}
         />,
     },

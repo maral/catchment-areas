@@ -131,7 +131,7 @@ export async function syncOrdinancesToDb() {
       await ordinanceMetadataRepo.insert(
         chunk.map((o) => ({
           id: o.id,
-          name: o.name,
+          name: o.name.substring(0, 100),
           number: o.number,
           city: o.city,
           region: o.region,

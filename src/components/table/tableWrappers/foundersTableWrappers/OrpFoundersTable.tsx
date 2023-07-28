@@ -52,7 +52,7 @@ export default function OrpFoundersTable({
       cellFactory: (item) =>
         <TableActionButtons
           item={item}
-          activeOrdinanceId={item.activeOrdinance?.id}
+          activeOrdinanceId={undefined}//item.activeOrdinance?.id}
           urlFrom={[modules.orps, orpCode]}
         />
     },

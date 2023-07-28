@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import { NextRequest, NextResponse } from "next/server";
 
 // Define Multer settings
 const storage = multer.diskStorage({
@@ -40,27 +41,21 @@ const upload = multer({
   },
 });
 
-const uploadMiddleware = (req: any, res: any, next: any) => {
-  upload.single("file")(req, res, (err: any) => {
-    if (err) {
-      return res.status(500).json({ error: err.message });
-    }
-    next();
-  });
+const uploadMiddleware = (req: any, next: any) => {
+  // upload.single("file")(req, (err: any) => {
+  //   if (err) {
+  //     return res.status(500).json({ error: err.message });
+  //   }
+  //   next();
+  // });
 };
 
-export default function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method === "POST") {
-    uploadMiddleware(req, res, () => {
-      const { name, validFrom, validTo, serialNumber } = req.body;
+export function POST(req: NextRequest) {
+  uploadMiddleware(req, async () => {
+    const { name, validFrom, validTo, serialNumber } = await req.json();
 
-      // Now you can use name, validFrom, validTo, serialNumber, and req.file for further processing...
+    // Now you can use name, validFrom, validTo, serialNumber, and req.file for further processing...
 
-      res.status(200).json({ message: "Upload successful" });
-    });
-  } else {
-    res
-      .status(405)
-      .json({ error: "Method not allowed. Please send a POST request." });
-  }
+    NextResponse.json({ message: "Upload successful" });
+  });
 }
