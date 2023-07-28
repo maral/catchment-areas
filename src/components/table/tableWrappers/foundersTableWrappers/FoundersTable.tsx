@@ -48,14 +48,14 @@ export default function FoundersTable({
       title: texts.city,
       cellFactory: (item) => item.city?.name,
     },
-    {
-      title: "",
-      cellFactory: (item) =>
-        <TableActionButtons
-          item={item}
-          activeOrdinanceId={item.activeOrdinance?.id}
-        />
-    },
+    // {
+    //   title: "",
+    //   cellFactory: (item) =>
+    //     <TableActionButtons
+    //       item={item}
+    //       activeOrdinanceId={item.activeOrdinance?.id}
+    //     />
+    // },
   ];
 
   const fetchItems = async (page: number, limit: number) => {

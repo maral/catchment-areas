@@ -43,6 +43,7 @@ const texts = {
   noOrdinance: "Chybí vyhláška",
   numberOfSchools: "Počet škol",
   ordinanceDocument: "Dokument vyhlášky",
+  ordinanceFile: "Soubor vyhlášky",
   ordinanceName: "Název vyhlášky",
   ordinanceNumber: "Číslo vyhlášky",
   ordinances: "Vyhlášky",

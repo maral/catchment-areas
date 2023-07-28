@@ -15,7 +15,7 @@ export async function loadFounders(
     load: (f) => [
       f.city!,
       f.schools!,
-      f.activeOrdinance!,
+      // f.activeOrdinance!,
     ],
   });
 }
@@ -37,7 +37,7 @@ export async function loadFoundersByRegion(
     orderBy: { shortName: "asc" },
     load: (f) => [
       f.city!,
-      f.activeOrdinance!,
+      // f.activeOrdinance!,
     ],
   });
 }
@@ -61,7 +61,7 @@ export async function loadFoundersByCounty(
     orderBy: { shortName: "asc" },
     load: (f) => [
       f.city!,
-      f.activeOrdinance!,
+      // f.activeOrdinance!,
     ],
   });
 }
@@ -83,7 +83,7 @@ export async function loadFoundersByOrp(
     orderBy: { shortName: "asc" },
     load: (f) => [
       f.city!,
-      f.activeOrdinance!,
+      // f.activeOrdinance!,
     ],
   });
 }
