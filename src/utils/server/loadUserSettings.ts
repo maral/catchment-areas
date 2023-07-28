@@ -4,9 +4,8 @@ import { UserSettings } from "@/entities/UserSettings";
 import { remult } from "remult";
 
 export const getUserSettings = async (key: keyof UserSettings) => {
-  // const userId = (await getServerSessionWithOptions())?.user.id ?? '';
-  const userId = '1';
-    
+  const userId = (await getServerSessionWithOptions())?.user.id ?? 'missing_id';
+
   const userSettings = await api.withRemult(async () => {
     return await remult.repo(UserSettings).findFirst({
       user: { $id: userId }

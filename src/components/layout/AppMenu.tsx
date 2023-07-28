@@ -20,7 +20,7 @@ export default function AppMenu({
 }) {
   const [isNavbarOpen, setIsNavbarOpen] = useUserSettings(
     constants.userSettings.isNavbarOpen as keyof UserSettings,
-    false
+    initialNavbarOpen
   );
 
   const pathname = usePathname();
@@ -37,8 +37,7 @@ export default function AppMenu({
         <>
           <Navbar
             className={`${
-              // isNavbarOpen ? "w-64" : "w-0"
-              isNavbarOpen !== null ? (isNavbarOpen ? "w-64" : "w-0") : initialNavbarOpen ? "w-64" : "w-0"
+              isNavbarOpen !== null ? (isNavbarOpen ? "w-64" : "w-0") : "w-64"
             } ease-in-out duration-150 h-screen`}
           ></Navbar>
           <div className="grow flex flex-col">
