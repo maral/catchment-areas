@@ -14,8 +14,8 @@ export default function UserMenu() {
     return (
       <div className="flex items-center h-full mx-2">
         <Avatar
-          className=""
-          image={session.data?.user?.image ?? ""}
+          className="mr-1"
+          image={session.data?.user?.image}
           size="md"
         />
         <Title className="p-1 mr-2">{session.data?.user?.name}</Title>
