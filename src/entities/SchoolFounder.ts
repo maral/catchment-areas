@@ -1,4 +1,4 @@
-import { Entity, Field, Fields, remult } from "remult";
+import { Entity, Field, Fields } from "remult";
 import { School } from "./School";
 
 @Entity("school-founders", { allowApiCrud: false, allowApiRead: true, dbName: "school_founder" })
