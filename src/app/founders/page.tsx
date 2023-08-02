@@ -15,7 +15,7 @@ export default async function Founders() {
 
   return (
     <Card>
-      <HeaderBox title={texts.founders +  " WEBHOOK TEST"} />
+      <HeaderBox title={texts.founders} />
       <FoundersTable
         initialData={serializedFounders}
         count={count}
