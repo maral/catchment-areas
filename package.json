@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "next start -p 3003",
     "lint": "next lint",
     "school-counts": "tsx src/bin/school-counts.ts",
     "sync-ordinances": "tsx src/bin/sync-ordinances.ts",
