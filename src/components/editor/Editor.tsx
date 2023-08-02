@@ -87,6 +87,7 @@ export default function Editor({
           await streetMarkdownRepo.update(streetMarkdown.id, {
             ...streetMarkdown,
           });
+          await ordinanceRepo.update(ordinance.id, { ...ordinance, jsonData: undefined });
           setIsSaving(false);
         };
         saveToSmd();

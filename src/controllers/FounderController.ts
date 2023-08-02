@@ -1,6 +1,6 @@
-import { Founder } from "@/entities/Founder";
+import { Founder, FounderStatus } from "@/entities/Founder";
 import { SchoolFounder } from "@/entities/SchoolFounder";
-import { BackendMethod, dbNamesOf } from "remult";
+import { BackendMethod, dbNamesOf, remult } from "remult";
 import { KnexDataProvider } from "remult/remult-knex";
 
 export class FounderController {
@@ -15,7 +15,8 @@ export class FounderController {
           SELECT COUNT(*)
           FROM ${schoolFounders}
           WHERE ${schoolFounders}.${schoolFounders.founderId} = ${founders}.${founders.id}
-        )`
+        ),
+        ${founders.status} = ${FounderStatus.NoOrdinance}`
     );
     if (destroyKnex) {
       await knex.destroy();

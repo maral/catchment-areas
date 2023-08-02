@@ -26,7 +26,7 @@ export default async function FounderPage({
       return {
         serializedOrdinances: serializeOrdinances(ordinances),
         activeOrdinanceId: ordinances.find((o) => o.isActive)?.id,
-        founder,
+        founder: founder,
       };
     });
 
@@ -55,7 +55,7 @@ export default async function FounderPage({
         {/* overview box */}
         <OverviewBox
           activeOrdinanceId={activeOrdinanceId}
-          founder={founder}
+          founderProp={founder}
           urlFrom={from}
           className="flex-1 m-1 ml-2"
         />
