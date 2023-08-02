@@ -39,10 +39,6 @@ export default function CountyFoundersTable({
       cellFactory: (item) => item.city?.region?.name,
     },
     {
-      title: texts.county,
-      cellFactory: (item) => item.city?.county?.name,
-    },
-    {
       title: texts.orp,
       cellFactory: (item) => item.city?.orp?.name,
     },

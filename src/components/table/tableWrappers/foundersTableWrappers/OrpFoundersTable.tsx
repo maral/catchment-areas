@@ -40,10 +40,6 @@ export default function OrpFoundersTable({
       cellFactory: (item) => item.city?.county?.name,
     },
     {
-      title: texts.orp,
-      cellFactory: (item) => item.city?.orp?.name,
-    },
-    {
       title: texts.numberOfSchools,
       cellFactory: (item) => item.schoolCount,
     },

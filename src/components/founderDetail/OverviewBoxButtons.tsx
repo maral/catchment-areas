@@ -105,7 +105,7 @@ export default function OverviewBoxButtons({
           className: "my-2 w-full",
           disabled: !activeOrdinanceId,
         }}
-        target="_blank"
+        target={!activeOrdinanceId ? '_self' : '_blank'}
       >
         {texts.downloadJson}
       </LinkButton>

@@ -37,16 +37,8 @@ export default function FoundersTable({
       cellFactory: (item) => item.city?.county?.name,
     },
     {
-      title: texts.orp,
-      cellFactory: (item) => item.city?.orp?.name,
-    },
-    {
       title: texts.numberOfSchools,
       cellFactory: (item) => item.schoolCount,
-    },
-    {
-      title: texts.city,
-      cellFactory: (item) => item.city?.name,
     },
     // {
     //   title: "",

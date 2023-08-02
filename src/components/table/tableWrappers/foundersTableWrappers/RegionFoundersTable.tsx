@@ -35,10 +35,6 @@ export default function RegionFoundersTable({
       },
     },
     {
-      title: texts.region,
-      cellFactory: (item) => item.city?.region?.name,
-    },
-    {
       title: texts.county,
       cellFactory: (item) => item.city?.county?.name,
     },
