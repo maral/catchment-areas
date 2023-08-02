@@ -11,6 +11,7 @@ import {
   loadFoundersByRegion,
 } from "../../fetchFunctions/loadFounders";
 import { modules, routes } from "@/utils/shared/constants";
+import FounderStatusChip from "@/components/FounderStatusChip";
 
 export default function RegionFoundersTable({
   regionCode,
@@ -45,6 +46,10 @@ export default function RegionFoundersTable({
     {
       title: texts.numberOfSchools,
       cellFactory: (item) => item.schoolCount,
+    },
+    {
+      title: texts.status,
+      cellFactory: (item) => <FounderStatusChip founderStatus={item.status} />
     },
     {
       title: "",

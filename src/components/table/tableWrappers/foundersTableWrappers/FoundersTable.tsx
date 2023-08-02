@@ -11,6 +11,7 @@ import {
 } from "@/components/table/fetchFunctions/loadFounders";
 import TableActionButtons from "../../TableActionButtons";
 import { routes } from "@/utils/shared/constants";
+import FounderStatusChip from "@/components/FounderStatusChip";
 
 export default function FoundersTable({
   initialData,
@@ -40,6 +41,10 @@ export default function FoundersTable({
       title: texts.numberOfSchools,
       cellFactory: (item) => item.schoolCount,
     },
+    {
+      title: texts.status,
+      cellFactory: (item) => <FounderStatusChip founderStatus={item.status} />
+    }
     // {
     //   title: "",
     //   cellFactory: (item) =>

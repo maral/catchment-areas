@@ -117,5 +117,5 @@ export enum FounderStatus {
   NoOrdinance,
   NoActiveOrdinance,
   InProgress,
-  Completed,
+  Published,
 }

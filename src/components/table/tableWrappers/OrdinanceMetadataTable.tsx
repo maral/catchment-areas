@@ -33,7 +33,6 @@ export default function OrdinanceMetadataTable({
   const router = useRouter();
 
   const addOrdinanceFromCollection = async (ordinanceMetadataId: string) => {
-    console.log('addOrdinanceFromCollection', ordinanceMetadataId);
     const response = await fetch("/api/ordinance/add-from-collection", {
       method: "POST",
       headers: {
@@ -71,7 +70,7 @@ export default function OrdinanceMetadataTable({
       const activeOrdinances = foundersOrdinances.filter((ordinance) => ordinance.isActive);
       if (activeOrdinances.length) {
         activeOrdinances.forEach(async (ordinance) => {
-          console.warn(await ordinanceRepo.save({ ...ordinance, isActive: false}));
+          await ordinanceRepo.save({ ...ordinance, isActive: false});
         });
       }
       // find valid ordinances

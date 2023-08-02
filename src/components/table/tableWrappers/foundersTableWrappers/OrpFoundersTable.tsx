@@ -1,5 +1,6 @@
 'use client';
 
+import FounderStatusChip from "@/components/FounderStatusChip";
 import CatchmentLink from "@/components/common/CatchmentLink";
 import CatchmentTable from "@/components/table/CatchmentTable";
 import TableActionButtons from "@/components/table/TableActionButtons";
@@ -42,6 +43,10 @@ export default function OrpFoundersTable({
     {
       title: texts.numberOfSchools,
       cellFactory: (item) => item.schoolCount,
+    },
+    {
+      title: texts.status,
+      cellFactory: (item) => <FounderStatusChip founderStatus={item.status} />
     },
     {
       title: "",

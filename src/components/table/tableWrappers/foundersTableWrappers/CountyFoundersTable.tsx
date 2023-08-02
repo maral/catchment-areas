@@ -11,6 +11,7 @@ import {
   loadFoundersByCounty,
 } from "../../fetchFunctions/loadFounders";
 import { modules, routes } from "@/utils/shared/constants";
+import FounderStatusChip from "@/components/FounderStatusChip";
 
 export default function CountyFoundersTable({
   countyCode,
@@ -45,6 +46,10 @@ export default function CountyFoundersTable({
     {
       title: texts.numberOfSchools,
       cellFactory: (item) => item.schoolCount,
+    },
+    {
+      title: texts.status,
+      cellFactory: (item) => <FounderStatusChip founderStatus={item.status} />
     },
     {
       title: "",

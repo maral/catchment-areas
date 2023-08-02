@@ -27,16 +27,14 @@ export default function OverviewBoxButtons({
 }) {
   const [loading, setLoading] = useState<boolean>(false);
 
-  const setAsCompleted = async () => {
-    console.log('setAsCompleted');
+  const setAsPublished = async () => {
     setLoading(true);
-    await remult.repo(Founder).save({ ...founder, status: FounderStatus.Completed });
+    await remult.repo(Founder).save({ ...founder, status: FounderStatus.Published });
     await fetchFounder();
     setLoading(false);
   }
 
   const setAsInProgress = async () => {
-    console.log('setAsInProgress');
     setLoading(true);
     await remult.repo(Founder).save({ ...founder, status: FounderStatus.InProgress });
     await fetchFounder();
@@ -45,11 +43,11 @@ export default function OverviewBoxButtons({
 
   return (
     <>
-      {founder.status == FounderStatus.Completed
+      {founder.status == FounderStatus.Published
         ? (
           <Button
             className="my-2 w-full"
-            color={Colors.Primary}
+            color={Colors.Secondary}
             variant="secondary"
             loading={loading}
             onClick={async () => await setAsInProgress()}
@@ -63,7 +61,7 @@ export default function OverviewBoxButtons({
             variant="secondary"
             loading={loading}
             disabled={founder.status != FounderStatus.InProgress}
-            onClick={async () => await setAsCompleted()}
+            onClick={async () => await setAsPublished()}
           >
             {texts.setAsPublished}
           </Button>
