@@ -26,9 +26,6 @@ export class Ordinance extends EntityBase {
   @Field(() => Founder, { dbName: "founder_id" })
   founder!: Founder;
 
-  @Field(() => OrdinanceMetadata, { dbName: "ordinance_metadata_id", allowNull: true })
-  ordinanceMetadata!: OrdinanceMetadata;
-
   @Fields.string({ dbName: "document_url" })
   documentUrl: string = "";
 

@@ -23,7 +23,8 @@ export async function POST(request: NextRequest) {
       const ordinanceMetadata = await ordinanceMetadataRepo.findId(
         ordinanceMetadataId
       );
-      const isActive = !ordinanceMetadata.validTo || ordinanceMetadata.validTo > new Date();
+      const isActive =
+        !ordinanceMetadata.validTo || ordinanceMetadata.validTo > new Date();
       const founder = await founderRepo.findId(founderId);
       return ordinanceRepo.insert({
         documentUrl,
@@ -32,7 +33,6 @@ export async function POST(request: NextRequest) {
         validFrom: ordinanceMetadata.validFrom,
         validTo: ordinanceMetadata.validTo,
         isActive,
-        ordinanceMetadata,
         founder,
       });
     });

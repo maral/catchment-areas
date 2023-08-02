@@ -6,6 +6,7 @@ import { OrdinanceMetadata } from "@/entities/OrdinanceMetadata";
 import { Colors } from "@/styles/Themes";
 import type { ColumnDefinition } from "@/types/tableTypes";
 import { routes } from "@/utils/shared/constants";
+import { formatStringOrDate } from "@/utils/shared/date";
 import { getOrdinanceDocumentDownloadLink } from "@/utils/shared/ordinanceMetadata";
 import { texts } from "@/utils/shared/texts";
 import { Button } from "@tremor/react";
@@ -75,12 +76,11 @@ export default function OrdinanceMetadataTable({
     },
     {
       title: texts.validFrom,
-      cellFactory: (item) => item.validFrom // item.validFrom.toLocaleDateString(), - string now
+      cellFactory: (item) => formatStringOrDate(item.validFrom),
     },
     {
       title: texts.validTo,
-      cellFactory: (item) =>
-        item.validTo ? item.validTo.toLocaleDateString() : "-",
+      cellFactory: (item) => formatStringOrDate(item.validTo),
     },
     {
       title: texts.active,
