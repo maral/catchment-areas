@@ -43,6 +43,10 @@ export default function OrdinancesTable({
       cellFactory: (item) => item.validTo?.toLocaleDateString() ?? "",
     },
     {
+      title: texts.active,
+      cellFactory: (item) => (item.isActive ? texts.yes : texts.no),
+    },
+    {
       title: texts.actions,
       cellFactory: (item) => (
         <span className="whitespace-nowrap flex gap-2">

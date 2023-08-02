@@ -19,7 +19,7 @@ export default function LinkButton({
   return (
     <div className={className ?? ''}>
       <Link
-        href={href}
+        href={buttonProps?.disabled ? {} : href}
         prefetch={false}
         {...props}
       >
