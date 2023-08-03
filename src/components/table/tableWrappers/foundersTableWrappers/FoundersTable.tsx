@@ -1,17 +1,16 @@
 "use client";
 
+import FounderStatusChip from "@/components/FounderStatusChip";
 import CatchmentLink from "@/components/common/CatchmentLink";
 import CatchmentTable from "@/components/table/CatchmentTable";
-import { Founder } from "@/entities/Founder";
-import type { ColumnDefinition } from "@/types/tableTypes";
-import { texts } from "@/utils/shared/texts";
 import {
   deserializeFounders,
   loadFounders,
 } from "@/components/table/fetchFunctions/loadFounders";
-import TableActionButtons from "../../TableActionButtons";
+import { Founder } from "@/entities/Founder";
+import type { ColumnDefinition } from "@/types/tableTypes";
 import { routes } from "@/utils/shared/constants";
-import FounderStatusChip from "@/components/FounderStatusChip";
+import { texts } from "@/utils/shared/texts";
 
 export default function FoundersTable({
   initialData,

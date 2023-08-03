@@ -19,20 +19,24 @@ export default async function FounderPage({
 }: {
   params: { id: string; from?: string[] };
 }) {
-  const { serializedOrdinances, activeOrdinanceId, founder } =
+  const { serializedOrdinances, activeOrdinanceId, founderJson } =
     await api.withRemult(async () => {
-      const founder = await remult.repo(Founder).findId(Number(id));
+      const founder = await remult.repo(Founder).findId(Number(id), {
+        load: (f) => [f.city!],
+      });
+
+      if (!founder) {
+        notFound();
+      }
+
+      const founderJson = remult.repo(Founder).toJson(founder);
       const ordinances = await loadOrdinances(id);
       return {
         serializedOrdinances: serializeOrdinances(ordinances),
         activeOrdinanceId: ordinances.find((o) => o.isActive)?.id,
-        founder: founder,
+        founderJson,
       };
     });
-
-  if (!founder) {
-    notFound();
-  }
 
   if (serializedOrdinances.length === 0) {
     redirect(
@@ -55,7 +59,7 @@ export default async function FounderPage({
         {/* overview box */}
         <OverviewBox
           activeOrdinanceId={activeOrdinanceId}
-          founderProp={founder}
+          founderProp={founderJson}
           urlFrom={from}
           className="flex-1 m-1 ml-2"
         />

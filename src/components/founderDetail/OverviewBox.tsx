@@ -7,6 +7,7 @@ import { Founder,  } from "@/entities/Founder";
 import { useState } from "react";
 import { remult } from "remult";
 import FounderStatusChip from "../FounderStatusChip";
+import { useRouter } from "next/navigation";
 
 export default function OverviewBox({
   founderProp,
@@ -23,8 +24,11 @@ export default function OverviewBox({
     remult.repo(Founder).fromJson(founderProp)
   );
 
+  const router = useRouter();
+
   const fetchFounder = async () => {
     setFounder(await remult.repo(Founder).findId(founder.id, { useCache: false }));
+    router.refresh();
   };
 
   return (

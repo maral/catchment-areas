@@ -36,11 +36,11 @@ export default function OrdinancesTable({
     },
     {
       title: texts.validFrom,
-      cellFactory: (item) => item.validFrom.toLocaleDateString(),
+      cellFactory: (item) => item.validFrom.toLocaleDateString("cs"),
     },
     {
       title: texts.validTo,
-      cellFactory: (item) => item.validTo?.toLocaleDateString() ?? "",
+      cellFactory: (item) => item.validTo?.toLocaleDateString("cs") ?? "",
     },
     {
       title: texts.active,
@@ -52,9 +52,10 @@ export default function OrdinancesTable({
         <span className="whitespace-nowrap flex gap-2">
           <Link
             className="inline-block"
-            href={(urlFrom && urlFrom.length >= 2)
-              ? `${routes.founders}/${founderId}${routes.editOrdinance}/${urlFrom[0]}/${urlFrom[1]}/${item.id}`
-              : `${routes.founders}/${founderId}${routes.editOrdinance}/${item.id}`
+            href={
+              urlFrom && urlFrom.length >= 2
+                ? `${routes.founders}/${founderId}${routes.editOrdinance}/${urlFrom[0]}/${urlFrom[1]}/${item.id}`
+                : `${routes.founders}/${founderId}${routes.editOrdinance}/${item.id}`
             }
             prefetch={false}
           >
