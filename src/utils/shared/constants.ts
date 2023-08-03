@@ -1,6 +1,5 @@
 import {
-  OpenDataSyncOptions,
-  OpenDataSyncOptionsPartial,
+  OpenDataSyncOptionsPartial
 } from "text-to-map/dist/utils/helpers";
 
 const constants = {
@@ -18,7 +17,8 @@ export const routes = {
   detail: '/detail',
   addOrdinance: '/add-ordinance',
   editOrdinance: '/edit-ordinance',
-  map: '/',
+  map: '/map',
+  publicMap: '/',
   download: '/download',
   new: '/new',
 };
