@@ -1,44 +1,38 @@
-import { Badge, BadgeProps, Card, Subtitle, Title } from "@tremor/react";
+'use client';
+
+import { Card, Subtitle, Title } from "@tremor/react";
 import OverviewBoxButtons from "@/components/founderDetail/OverviewBoxButtons";
 import { texts } from "@/utils/shared/texts";
-import { Founder } from "@/entities/Founder";
-import { Colors } from "@/styles/Themes";
+import { Founder,  } from "@/entities/Founder";
+import { useState } from "react";
+import { remult } from "remult";
+import FounderStatusChip from "../FounderStatusChip";
 
 export default function OverviewBox({
-  founder,
+  founderProp,
   activeOrdinanceId,
   urlFrom,
   className,
 }: {
-  founder: Founder;
+  founderProp: any;
   activeOrdinanceId?: number;
   urlFrom?: string[];
   className?: string;
 }) {
-  const getStatus = (): {
-    text: string;
-    color: BadgeProps["color"];
-  } => {
-    if (!activeOrdinanceId) {
-      return {
-        text: texts.noOrdinance,
-        color: Colors.Error
-      }
-    } else {
-      return {
-        text: texts.ordinanceUploaded,
-        color: Colors.Primary
-      }
-    }
-  }
+  const [founder, setFounder] = useState<Founder>(
+    remult.repo(Founder).fromJson(founderProp)
+  );
+
+  const fetchFounder = async () => {
+    setFounder(await remult.repo(Founder).findId(founder.id, { useCache: false }));
+  };
+
   return (
     <Card className={`${className ?? ""}`}>
       <div className="mb-4">
         <div className="flex justify-between w-60 my-1">
           <Subtitle className="text-tremor-content">{texts.status}:</Subtitle>
-          <Badge color={getStatus().color}>
-            {getStatus().text}
-          </Badge>
+          <FounderStatusChip founderStatus={founder.status} />
         </div>
         <div className="flex justify-between w-60 my-1">
           <Subtitle className="text-tremor-content">{texts.numberOfSchools}:</Subtitle>
@@ -46,8 +40,9 @@ export default function OverviewBox({
         </div>
       </div>
       <OverviewBoxButtons
+        founder={founder}
+        fetchFounder={fetchFounder}
         activeOrdinanceId={activeOrdinanceId}
-        founderId={String(founder.id)}
         urlFrom={urlFrom}
       />
     </Card>

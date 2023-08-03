@@ -18,7 +18,7 @@ import { Ordinance } from "./Ordinance";
 
 @Entity("founders", {
   dbName: "founder",
-  allowApiCrud: false,
+  allowApiCrud: true,
   allowApiRead: Allow.authenticated,
   backendPrefilter: () => ({ schoolCount: { $gt: 1 } }),
 })
@@ -59,6 +59,9 @@ export class Founder extends EntityBase {
   //       })
   // })
   // activeOrdinance?: Ordinance;
+  
+  @Fields.integer()
+  status = 0;
 
   @Field(() => School, {
     lazy: true,
@@ -108,4 +111,11 @@ export class Founder extends EntityBase {
 export enum FounderType {
   City = 261,
   District = 263,
+}
+
+export enum FounderStatus {
+  NoOrdinance,
+  NoActiveOrdinance,
+  InProgress,
+  Published,
 }

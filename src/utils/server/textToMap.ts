@@ -131,12 +131,13 @@ export async function getOrCreateMunicipalities(
   return await api.withRemult(async () => {
     let ordinance: Ordinance;
 
+    // get latest ordinance or specified ordinance
     if (ordinanceId) {
       ordinance = await remult.repo(Ordinance).findId(ordinanceId);
     } else {
       ordinance = await remult
         .repo(Ordinance)
-        .findFirst({ founder }, { orderBy: { validFrom: "desc", id: "desc" } });
+        .findFirst({ founder }, { where: { isActive: true } });
     }
     if (!ordinance) {
       return null;
