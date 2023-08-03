@@ -19,7 +19,7 @@ const InnerMap = memo(
 
     return (
       <>
-        <div ref={mapRef} className="h-screen" />
+        <div ref={mapRef} className="h-screen w-screen" />
       </>
     );
   },
