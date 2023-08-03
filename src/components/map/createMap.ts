@@ -51,7 +51,6 @@ export const createMap = (
       );
       colorIndex++;
     });
-    municipalities;
   });
 
   setupPopups(map);

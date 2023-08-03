@@ -3,7 +3,9 @@ import { Founder } from "@/entities/Founder";
 import { Ordinance } from "@/entities/Ordinance";
 import { OrdinanceMetadata } from "@/entities/OrdinanceMetadata";
 import { extractText } from "@/utils/server/textExtraction";
+import { routes } from "@/utils/shared/constants";
 import { getOrdinanceDocumentDownloadLink } from "@/utils/shared/ordinanceMetadata";
+import { revalidatePath } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 import { remult } from "remult";
 
@@ -43,6 +45,9 @@ export async function POST(request: NextRequest) {
         fileType: result.fileType,
       });
     }
+
+    console.log(`${routes.founders}/[id]${routes.detail}/[[...from]]`);
+    revalidatePath(`${routes.founders}/[id]${routes.detail}/[[...from]]`);
 
     return NextResponse.json({
       success: true,

@@ -17,18 +17,26 @@ export const isPopupWithMarker = (popup: Popup): popup is PopupWithMarker => {
   return popup.hasOwnProperty("marker");
 };
 
-export type MarkerMap = { [key: string]: CircleMarkerWithSchool };
+export type MarkerMap = { [name: string]: CircleMarkerWithSchool };
 export type AddressLayerGroup = LayerGroup<CircleMarkerWithSchool>;
 export type SchoolLayerGroup = LayerGroup<CircleMarker>;
 
 export interface CityOnMap {
   code: number;
   name: string;
-  hasPublicOrdinance: boolean;
+  isPublished: boolean;
   lat: number;
   lng: number;
 }
 
 export interface MunicipalitiesByCityCodes {
-  [key: number]: Municipality[];
+  [code: number]: Municipality[];
+}
+
+export interface LoadedCitiesData {
+  [code: number]: {
+    city: CityOnMap;
+    addressesLayerGroup: AddressLayerGroup;
+    schoolsLayerGroup: SchoolLayerGroup;
+  };
 }

@@ -5,10 +5,10 @@ import {
   MunicipalitiesByCityCodes,
   PopupWithMarker,
   SchoolLayerGroup,
-  isPopupWithMarker
+  isPopupWithMarker,
 } from "@/types/mapTypes";
 import L, { LatLngBounds, Map, Polyline, PopupEvent } from "leaflet";
-import { School } from "text-to-map";
+import { Municipality, School } from "text-to-map";
 
 export const colors = [
   "c686d0",
@@ -79,8 +79,8 @@ export const createSchoolMarkers = (
   color: string,
   schoolLayerGroup: SchoolLayerGroup,
   addressLayerGroup: AddressLayerGroup,
-  markers: MarkerMap,
-  bounds: LatLngBounds
+  markers?: MarkerMap,
+  bounds?: LatLngBounds
 ): void => {
   const schoolMarker = L.circle(
     [
@@ -99,8 +99,13 @@ export const createSchoolMarkers = (
     .bindPopup(school.name)
     .addTo(schoolLayerGroup);
 
-  markers[school.name] = schoolMarker;
-  bounds.extend(schoolMarker.getLatLng());
+  if (markers) {
+    markers[school.name] = schoolMarker;
+  }
+
+  if (bounds) {
+    bounds.extend(schoolMarker.getLatLng());
+  }
 
   school.addresses.forEach((point) => {
     if (!point.lat || !point.lng) {
@@ -128,8 +133,14 @@ export const createSchoolMarkers = (
     marker.bindPopup(popup);
     marker.school = schoolMarker;
     addressLayerGroup.addLayer(marker);
-    bounds.extend(marker.getLatLng());
-    markers[point.address] = marker;
+
+    if (markers) {
+      markers[point.address] = marker;
+    }
+
+    if (bounds) {
+      bounds.extend(marker.getLatLng());
+    }
   });
 };
 
@@ -240,4 +251,38 @@ export const loadMunicipalitiesByCityCodes = async (
     console.error("Error while loading municipalities");
     return null;
   }
+};
+
+const markers: MarkerMap = {};
+
+export const createCityLayers = (
+  municipalities: Municipality[]
+): {
+  addressesLayerGroup: AddressLayerGroup;
+  schoolsLayerGroup: SchoolLayerGroup;
+} => {
+  const addressesLayerGroup = L.layerGroup();
+  const schoolsLayerGroup: SchoolLayerGroup = L.layerGroup();
+
+  let colorIndex = 0;
+  municipalities.forEach((municipality) => {
+    let layerGroup: AddressLayerGroup = L.layerGroup();
+    addressesLayerGroup.addLayer(layerGroup);
+    municipality.schools.forEach((school) => {
+      createSchoolMarkers(
+        school,
+        `#${colors[colorIndex % colors.length]}`,
+        schoolsLayerGroup,
+        layerGroup,
+        markers
+      );
+      colorIndex++;
+    });
+    municipalities;
+  });
+
+  return {
+    addressesLayerGroup,
+    schoolsLayerGroup,
+  };
 };

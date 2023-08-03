@@ -1,5 +1,5 @@
 import { api } from "@/app/api/[...remult]/api";
-import { Founder } from "@/entities/Founder";
+import { Founder, FounderStatus } from "@/entities/Founder";
 import { CityOnMap } from "@/types/mapTypes";
 import { remult } from "remult";
 
@@ -16,7 +16,9 @@ export async function getCitiesForMap(): Promise<CityOnMap[] | null> {
         acc[city.code] = {
           code: city.code,
           name: city.name,
-          hasPublicOrdinance: Math.random() > 0.85,
+          isPublished:
+            founder.status === FounderStatus.Published ||
+            (acc[city.code] && acc[city.code].isPublished),
           lat: city.latitude,
           lng: city.longitude,
         };
