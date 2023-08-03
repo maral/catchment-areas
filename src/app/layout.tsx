@@ -4,7 +4,7 @@ import "./globals.css";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Spádové oblasti",
+  title: "Spádové oblasti – NPI ČR",
   description: "Spádové oblasti základních škol na mapě.",
 };
 
