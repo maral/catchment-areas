@@ -1,6 +1,9 @@
 import { api } from "@/app/api/[...remult]/api";
 import { Founder } from "@/entities/Founder";
-import { getOrCreateMunicipalities } from "@/utils/server/textToMap";
+import {
+  getOrCreateMunicipalitiesByFounderId,
+  getOrCreateMunicipalities,
+} from "@/utils/server/textToMap";
 import { NextRequest, NextResponse } from "next/server";
 import { remult } from "remult";
 import slugify from "slugify";
@@ -11,13 +14,13 @@ export async function GET(
     params: { id, optionalOrdinanceId },
   }: { params: { id: string; optionalOrdinanceId: string[] } }
 ) {
-  const municipalities = await getOrCreateMunicipalities(
-    Number(id),
-    optionalOrdinanceId.length > 0 ? Number(optionalOrdinanceId[0]) : undefined
-  );
-
   const founder = await api.withRemult(async () =>
     remult.repo(Founder).findId(Number(id))
+  );
+
+  const municipalities = await getOrCreateMunicipalities(
+    founder,
+    optionalOrdinanceId.length > 0 ? Number(optionalOrdinanceId[0]) : undefined
   );
 
   if (municipalities === null) {

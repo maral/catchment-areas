@@ -10,6 +10,8 @@ import {
   parseOrdinanceToAddressPoints,
 } from "text-to-map";
 import { TextToMapError } from "../shared/types";
+import { City } from "@/entities/City";
+import { MunicipalitiesByCityCodes } from "@/types/mapTypes";
 
 export async function validateStreetMarkdown(
   lines: string[],
@@ -70,16 +72,63 @@ export async function parseStreetMarkdown(
   });
 }
 
-export async function getOrCreateMunicipalities(
+export async function getOrCreateMunicipalitiesByFounderId(
   founderId: number,
   ordinanceId?: number
 ): Promise<Municipality[] | null> {
-  return await api.withRemult(async () => {
-    const founder = await remult.repo(Founder).findId(founderId);
-    if (!founder) {
-      return null;
-    }
+  const founder = await api.withRemult(async () => {
+    return await remult.repo(Founder).findId(founderId);
+  });
 
+  if (!founder) {
+    return null;
+  }
+
+  return await getOrCreateMunicipalities(founder, ordinanceId);
+}
+
+export async function getOrCreateMunicipalitiesByCityCodes(
+  cityCodes: number[],
+  ordinanceId?: number
+): Promise<MunicipalitiesByCityCodes | null> {
+  const founders = await api.withRemult(async () => {
+    const cities = await remult.repo(City).find({
+      where: { code: { $in: cityCodes.map((code) => Number(code)) } },
+    });
+    return await remult.repo(Founder).find({
+      where: { city: { $in: cities } },
+      load: (f) => [f.city!],
+    });
+  });
+
+  if (!founders || founders.length === 0) {
+    return {};
+  }
+
+  const municipalitiesByCityCodes: MunicipalitiesByCityCodes = {};
+
+  for (const founder of founders) {
+    const municipalities = await getOrCreateMunicipalities(
+      founder,
+      ordinanceId
+    );
+    if (municipalities) {
+      if (founder.city.code in municipalitiesByCityCodes) {
+        municipalitiesByCityCodes[founder.city.code].push(...municipalities);
+      } else {
+        municipalitiesByCityCodes[founder.city.code] = municipalities;
+      }
+    }
+  }
+
+  return municipalitiesByCityCodes;
+}
+
+export async function getOrCreateMunicipalities(
+  founder: Founder,
+  ordinanceId?: number
+): Promise<Municipality[] | null> {
+  return await api.withRemult(async () => {
     let ordinance: Ordinance;
 
     if (ordinanceId) {

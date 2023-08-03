@@ -19,4 +19,10 @@ export class City {
 
   @Field(() => Orp, { dbName: "orp_code" })
   orp!: Orp;
+
+  @Fields.number({ dbName: "wgs84_latitude" })
+  latitude = 0.0;
+
+  @Fields.number({ dbName: "wgs84_longitude" })
+  longitude = 0.0;
 }

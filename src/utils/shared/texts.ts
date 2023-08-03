@@ -59,6 +59,7 @@ const texts = {
   saved: "Uloženo",
   saving: "Ukládání...",
   schoolEditorLabel: "škola",
+  schools: "Školy",
   selectDate: "Vyberte datum...",
   shortName: "Zkratka",
   streetEditorLabel: "ulice",
