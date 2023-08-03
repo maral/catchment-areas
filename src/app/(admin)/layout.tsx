@@ -1,4 +1,4 @@
-import "./globals.css";
+import "@/app/globals.css";
 import { Inter } from "next/font/google";
 import AppMenu from "@/components/layout/AppMenu";
 import Providers from "@/providers/Providers";

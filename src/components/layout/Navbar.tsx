@@ -4,6 +4,7 @@ import { texts } from '@/utils/shared/texts';
 import {
   BuildingOffice2Icon,
   BuildingOfficeIcon,
+  MapIcon,
   MapPinIcon,
   ShieldCheckIcon,
   UserIcon
@@ -66,6 +67,17 @@ export default function Navbar({
             <Icon icon={UserIcon} color={Colors.Secondary}></Icon>
             <span className={spanClass}>
               { texts.users }
+            </span>
+          </ListItem>
+        </Link>
+
+        <hr className="my-4" />
+
+        <Link href={routes.map}>
+          <ListItem className={listItemClass}>
+            <Icon icon={MapIcon} color={Colors.Primary}></Icon>
+            <span className={spanClass}>
+              { texts.mapForPublic }
             </span>
           </ListItem>
         </Link>

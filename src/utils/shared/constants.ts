@@ -18,7 +18,7 @@ export const routes = {
   detail: '/detail',
   addOrdinance: '/add-ordinance',
   editOrdinance: '/edit-ordinance',
-  map: '/map',
+  map: '/',
   download: '/download',
   new: '/new',
 };

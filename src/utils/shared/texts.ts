@@ -38,6 +38,7 @@ const texts = {
   lastName: "Příjmení",
   logout: "Odhlásit se",
   map: "Mapa",
+  mapForPublic: "Mapa pro veřejnost",
   name: "Název",
   no: "Ne",
   numberOfSchools: "Počet škol",

@@ -1,6 +1,13 @@
-import { routes } from '@/utils/shared/constants';
-import { redirect } from 'next/navigation';
+import PublicMap from "@/components/publicMap/PublicMap";
+import { getCitiesForMap } from "@/utils/server/map";
+import { notFound } from "next/navigation";
 
-export default async function Home() {
-  redirect(routes.founders);
+export default async function MapPage() {
+  const cities = await getCitiesForMap();
+
+  if (cities === null) {
+    notFound();
+  }
+
+  return <PublicMap cities={cities} />;
 }
