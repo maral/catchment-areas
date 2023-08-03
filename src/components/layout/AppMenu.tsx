@@ -33,7 +33,7 @@ export default function AppMenu({
         <>
           <Navbar
             className={`${
-              isNavbarOpen ? "w-64" : "w-0"
+              isNavbarOpen ? "w-72" : "w-0"
             } ease-in-out duration-150 h-screen`}
           ></Navbar>
           <div className="grow flex flex-col">
