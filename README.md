@@ -1,8 +1,7 @@
 # Catchment areas
 Transforming catchment area definitions of Czech cities from PDFs into geo data.
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
-## Getting Started
+## Running the app
 
 First, run the development server:
 
@@ -12,15 +11,24 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Overview
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+The core idea of the project is automatically transforming Czech `ordinances` that specify `catchment areas` of schools into machine-readable geo data that could be shown on a map. This app is helping to transform ordinances of all Czech cities (with 2+ schools). There are two parts:
+1. public map of catchment areas
+2. administration of all founders and their ordinances
 
-## Learn More
+## Terminology
 
-To learn more about Next.js, take a look at the following resources:
+- **catchment area** (spádová oblast) - area defined currently by a set of address points and a primary school - whoever lives on the address has to be accepted for first grade of the primary school
+- **ordinance** (vyhláška) - the legal document that a founder (city or a city district) has to publish in order to specify the catchment areas of its schools
+- **street-markdown** - the intermediate format in natural language with given set of rules that is transformable into geodata
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Tech stack
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+This project follows up on the work on [text-to-map](https://github.com/maral/text-to-map) library. The library is used in this app, while staying separate - it's imported as an [NPM package](https://www.npmjs.com/package/text-to-map).
+
+### text-to-map library
+
+The library is written in TypeScript. It has the following components:
+- **open-data sync** - downloads necessary data like address points, cities, regions, streets, schools and school founders and stores it all in a database
+- **street-markdown parser** - the parser was created using [chevrotain](https://chevrotain.io/docs/) lexer/parser library
