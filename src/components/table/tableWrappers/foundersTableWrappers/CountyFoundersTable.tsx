@@ -51,15 +51,16 @@ export default function CountyFoundersTable({
       title: texts.status,
       cellFactory: (item) => <FounderStatusChip founderStatus={item.status} />
     },
-    {
-      title: "",
-      cellFactory: (item) =>
-        <TableActionButtons
-          item={item}
-          activeOrdinanceId={undefined} //item.activeOrdinance?.id}
-          urlFrom={[modules.counties, countyCode]}
-        />,
-    },
+    // TODO: add activeOrdinanceId to Founder
+    // {
+    //   title: "",
+    //   cellFactory: (item) =>
+    //     <TableActionButtons
+    //       item={item}
+    //       activeOrdinanceId={undefined} //item.activeOrdinance?.id}
+    //       urlFrom={[modules.counties, countyCode]}
+    //     />,
+    // },
   ];
 
   const fetchItems = async (page: number, limit: number) => {

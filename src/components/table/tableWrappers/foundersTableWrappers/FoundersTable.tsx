@@ -44,6 +44,7 @@ export default function FoundersTable({
       title: texts.status,
       cellFactory: (item) => <FounderStatusChip founderStatus={item.status} />
     }
+    // TODO: add activeOrdinanceId to Founder
     // {
     //   title: "",
     //   cellFactory: (item) =>

@@ -51,15 +51,16 @@ export default function RegionFoundersTable({
       title: texts.status,
       cellFactory: (item) => <FounderStatusChip founderStatus={item.status} />
     },
-    {
-      title: "",
-      cellFactory: (item) =>
-        <TableActionButtons
-          item={item}
-          activeOrdinanceId={undefined}//item.activeOrdinance?.id}
-          urlFrom={[modules.regions, regionCode]}
-        />,
-    },
+    // TODO: add activeOrdinanceId to Founder
+    // {
+    //   title: "",
+    //   cellFactory: (item) =>
+    //     <TableActionButtons
+    //       item={item}
+    //       activeOrdinanceId={undefined}//item.activeOrdinance?.id}
+    //       urlFrom={[modules.regions, regionCode]}
+    //     />,
+    // },
   ];
 
   const fetchItems = async (page: number, limit: number) => {
