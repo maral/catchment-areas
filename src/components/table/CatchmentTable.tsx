@@ -11,6 +11,7 @@ import {
 } from "@tremor/react";
 import { useCallback, useEffect, useState } from "react";
 import Pagination from "./Pagination";
+import { texts } from "@/utils/shared/texts";
 
 export default function CatchmentTable<T>({
   fetchItems,
@@ -18,12 +19,14 @@ export default function CatchmentTable<T>({
   initialData,
   count,
   showPagination = true,
+  noDataText = texts.noData,
 }: {
   fetchItems: (page: number, limit: number) => Promise<T[]>;
   columnDefinitions: ColumnDefinition<T>[];
   initialData?: T[];
   count?: number;
   showPagination?: boolean;
+  noDataText?: string;
 }) {
   const [items, setItems] = useState<T[]>(initialData ?? []);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -65,6 +68,11 @@ export default function CatchmentTable<T>({
         </TableHead>
 
         <TableBody className={`${isLoading ? "text-slate-500" : ""}`}>
+          {items.length === 0 && (<TableRow>
+            <TableCell colSpan={columnDefinitions.length} className="p-2 italic">
+              {isLoading ? "" : noDataText}
+            </TableCell>
+          </TableRow>)}
           {items.map((item, i) => (
             <TableRow key={i}>
               {columnDefinitions.map((column, index) => (

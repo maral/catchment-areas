@@ -1,4 +1,4 @@
-const texts = {
+export const texts = {
   actions: "Akce",
   active: "Aktivní",
   add: "Přidat",
@@ -41,6 +41,8 @@ const texts = {
   mapForPublic: "Mapa pro veřejnost",
   name: "Název",
   no: "Ne",
+  noData: "Nebyla nalezena žádná data k zobrazení",
+  noDataOrdinanceFromRegister: "Obec {{city}} nemá ve Sbírce právních předpisů nahranou žádnou vyhlášku.",
   numberOfSchools: "Počet škol",
   ordinanceDocument: "Dokument vyhlášky",
   ordinanceFile: "Soubor vyhlášky",
@@ -83,4 +85,10 @@ const texts = {
   yes: "Ano",
 };
 
-export { texts };
+export const replacePlaceholders = (text: string, placeholders: Record<string, string>) => {
+  let result = text;
+  Object.keys(placeholders).forEach((key) => {
+    result = result.replace(`{{${key}}}`, placeholders[key]);
+  });
+  return result;
+};

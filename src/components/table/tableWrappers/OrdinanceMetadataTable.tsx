@@ -8,7 +8,7 @@ import { Colors } from "@/styles/Themes";
 import type { ColumnDefinition } from "@/types/tableTypes";
 import { routes } from "@/utils/shared/constants";
 import { getOrdinanceDocumentDownloadLink } from "@/utils/shared/ordinanceMetadata";
-import { texts } from "@/utils/shared/texts";
+import { replacePlaceholders, texts } from "@/utils/shared/texts";
 import { Button } from "@tremor/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -21,10 +21,12 @@ const foundersRepo = remult.repo(Founder);
 
 export default function OrdinanceMetadataTable({
   founderId,
+  cityName,
   count,
   initialData,
 }: {
   founderId: string;
+  cityName: string;
   count: number;
   initialData: any[];
 }) {
@@ -157,6 +159,7 @@ export default function OrdinanceMetadataTable({
       count={count}
       fetchItems={fetchItems}
       showPagination={false}
+      noDataText={replacePlaceholders(texts.noDataOrdinanceFromRegister, { city: cityName })}
     />
   );
 }

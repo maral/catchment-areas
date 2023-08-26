@@ -18,13 +18,14 @@ export default async function AddOrdinance({
 }: {
   params: { id: string };
 }) {
-  const { serializedOrdinanceMetadata, count } = await api.withRemult(
+  const { cityName, serializedOrdinanceMetadata, count } = await api.withRemult(
     async () => {
       const founder = await remult.repo(Founder).findId(Number(id));
       if (!founder) {
         notFound();
       }
       return {
+        cityName: founder.shortName,
         serializedOrdinanceMetadata: serializeOrdinancesMetadata(
           await loadOrdinanceMetadata(founder, 1, 10)
         ),
@@ -42,6 +43,7 @@ export default async function AddOrdinance({
           founderId={id}
           initialData={serializedOrdinanceMetadata}
           count={count}
+          cityName={cityName}
         />
       </Card>
       {/* BOTTOM PART OF THE VIEW */}
