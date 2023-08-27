@@ -1,5 +1,5 @@
 import { getRemultAPI } from "@/app/api/[...remult]/config";
-import { OrdinanceController } from "@/controllers/OrdinanceController";
+import { OrdinanceController } from "@/controllers/OrdinanceControllerServer";
 
 
 const main = async () => {

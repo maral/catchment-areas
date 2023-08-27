@@ -14,6 +14,7 @@ export interface TextToMapError {
 
 export interface TextExtractionResult {
   text: string | null;
+  fileName: string | null;
   fileType: FileTypeResult | null;
 }
 

@@ -20,6 +20,7 @@ import { RemultServerOptions } from "remult/server";
 import { Remult } from "remult";
 import { getServerSessionWithOptions } from "../auth/[...nextauth]/config";
 import { StreetController } from "@/controllers/StreetController";
+import { OrdinanceController } from "@/controllers/OrdinanceController";
 
 configDotenv({ path: ".env.local" });
 
@@ -54,6 +55,7 @@ export function getRemultOptions(
         FounderController,
         StreetMarkdownController,
         StreetController,
+        OrdinanceController,
       ],
       dataProvider: createKnexDataProvider({
         client: "mysql",

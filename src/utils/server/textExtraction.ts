@@ -2,24 +2,22 @@ import { TextExtractionResult } from "@/utils/shared/types";
 import { fileTypeFromFile } from "file-type";
 import {
   createWriteStream,
+  existsSync,
+  mkdirSync,
   readFileSync,
   renameSync,
   unlinkSync,
   writeFileSync,
 } from "fs";
+import { writeFile } from "fs/promises";
 import { get } from "https";
 import { uniqueId } from "lodash";
-import { tmpdir } from "os";
 import { join } from "path";
 import { convert } from "pdf-img-convert";
 import pdf from "pdf-parse";
+import * as pdfjs from "pdfjs-dist/legacy/build/pdf";
 import { createWorker } from "tesseract.js";
 import WordExtractor from "word-extractor";
-import * as pdfjs from "pdfjs-dist/legacy/build/pdf";
-
-function getFilePath(fileName: string) {
-  return join(tmpdir(), fileName);
-}
 
 async function extractImagesFromPdf(pdfPath: string) {
   pdfjs.GlobalWorkerOptions.workerSrc = "pdfjs-dist/legacy/build/pdf.worker.js";
@@ -45,7 +43,7 @@ function download(url: string, fileName: string): Promise<string> {
       const givenFileName = parseContentDisposition(
         response.headers["content-disposition"]
       );
-      fileName = givenFileName ?? fileName;
+      fileName = createUniqueFileName(givenFileName ?? fileName);
 
       const file = createWriteStream(getFilePath(fileName));
 
@@ -86,23 +84,83 @@ async function recognizeImage(imagePath: string): Promise<string> {
   return text;
 }
 
-export async function extractText(url: string): Promise<TextExtractionResult> {
+function getDirectoryPath(): string {
+  const directoryPath = join(".", "data", "ordinances");
+  if (!existsSync(directoryPath)) {
+    mkdirSync(directoryPath, { recursive: true });
+  }
+  return directoryPath;
+}
+
+export function getFilePath(fileName: string): string {
+  return join(getDirectoryPath(), fileName);
+}
+
+function createUniqueFileName(fileName: string): string {
+  return `${Date.now()}_${fileName}`;
+}
+
+function getEmptyResponse(): TextExtractionResult {
+  return {
+    text: null,
+    fileName: null,
+    fileType: null,
+  };
+}
+
+ async function uploadFile(file: File): Promise<string> {
+  const bytes = await file.arrayBuffer();
+  const buffer = Buffer.from(bytes);
+  const fileName = createUniqueFileName(file.name);
+  await writeFile(getFilePath(fileName), buffer);
+  return fileName;
+}
+
+async function downloadFileFromUrl(url: string): Promise<string | null> {
   const randomName = uniqueId();
-  const fileName = await download(url, randomName);
+  let fileName = await download(url, randomName);
   const path = getFilePath(fileName);
   const type = await fileTypeFromFile(path);
 
   if (!type) {
-    return {
-      text: null,
-      fileType: null,
-    };
+    return null;
   }
 
   // if the file name was not present in download link, rename with the correct extension
-  if (path === randomName) {
-    const newName = `${randomName}.${type.ext}`;
-    renameSync(getFilePath(randomName), getFilePath(newName));
+  if (fileName === randomName) {
+    fileName = `${randomName}.${type.ext}`;
+    renameSync(getFilePath(randomName), getFilePath(fileName));
+  }
+
+  return fileName;
+}
+
+export async function uploadAndExtractText(
+  file: File
+): Promise<TextExtractionResult> {
+  const fileName = await uploadFile(file);
+  if (!fileName) {
+    return getEmptyResponse();
+  }
+  return await extractText(fileName);
+}
+
+export async function downloadAndExtractText(
+  url: string
+): Promise<TextExtractionResult> {
+  const fileName = await downloadFileFromUrl(url);
+  if (!fileName) {
+    return getEmptyResponse();
+  }
+  return await extractText(fileName);
+}
+
+async function extractText(fileName: string): Promise<TextExtractionResult> {
+  const path = getFilePath(fileName);
+  const type = await fileTypeFromFile(path);
+
+  if (!type) {
+    return getEmptyResponse();
   }
 
   let text = "";
@@ -130,6 +188,7 @@ export async function extractText(url: string): Promise<TextExtractionResult> {
 
   return {
     text: text.length >= 50 ? text : null,
+    fileName,
     fileType: type,
   };
 }

@@ -1,12 +1,13 @@
 "use client";
 
 import CatchmentTable from "@/components/table/CatchmentTable";
-import { Founder, FounderStatus } from "@/entities/Founder";
+import { OrdinanceController } from "@/controllers/OrdinanceController";
+import { Founder } from "@/entities/Founder";
 import { OrdinanceMetadata } from "@/entities/OrdinanceMetadata";
-import { Ordinance } from "@/entities/Ordinance";
 import { Colors } from "@/styles/Themes";
 import type { ColumnDefinition } from "@/types/tableTypes";
 import { routes } from "@/utils/shared/constants";
+import { formatStringOrDate } from "@/utils/shared/date";
 import { getOrdinanceDocumentDownloadLink } from "@/utils/shared/ordinanceMetadata";
 import { replacePlaceholders, texts } from "@/utils/shared/texts";
 import { Button } from "@tremor/react";
@@ -14,7 +15,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { remult } from "remult";
-import { formatStringOrDate } from "@/utils/shared/date";
 
 const ordinanceMetadataRepo = remult.repo(OrdinanceMetadata);
 const foundersRepo = remult.repo(Founder);
@@ -35,7 +35,7 @@ export default function OrdinanceMetadataTable({
   const router = useRouter();
 
   const addOrdinanceFromCollection = async (ordinanceMetadataId: string) => {
-    const response = await fetch("/api/ordinance/add-from-collection", {
+    const response = await fetch("/api/ordinances/add-from-collection", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -49,51 +49,18 @@ export default function OrdinanceMetadataTable({
     if (response.ok) {
       const result = await response.json();
       if (result.success) {
-        determineActiveOrdinanceByFounderId(Number(founderId));
+        OrdinanceController.determineActiveOrdinanceByFounderId(
+          Number(founderId)
+        );
         router.push(
           `${routes.founders}/${founderId}${routes.editOrdinance}/${result.ordinanceId}`
         );
-        return;
       }
+    } else {
+      console.error("Error adding ordinance from collection");
+      setAddingOrdinanceId("");
     }
-    // @todo show error here
   };
-
-  const determineActiveOrdinanceByFounderId = async (founderId: number) => {
-    const ordinanceRepo = remult.repo(Ordinance);
-    const founder = await remult.repo(Founder).findId(founderId);
-    // find all ordinances for the founder
-    const foundersOrdinances = await ordinanceRepo.find({
-      where: { founder: { $id: founderId } },
-      orderBy: { id: "desc" },
-    });
-    if (foundersOrdinances && foundersOrdinances.length) {
-      // deactivate all active ordinances
-      const activeOrdinances = foundersOrdinances.filter((ordinance) => ordinance.isActive);
-      if (activeOrdinances.length) {
-        activeOrdinances.forEach(async (ordinance) => {
-          await ordinanceRepo.save({ ...ordinance, isActive: false});
-        });
-      }
-      // find valid ordinances
-      const validOrdinances = foundersOrdinances.filter((ordinance) =>
-        ordinance.validFrom <= new Date() && ordinance.validTo ? ordinance.validTo >= new Date() : true
-      );
-      if (validOrdinances.length) {
-        // activate the first valid ordinance
-        await ordinanceRepo.save({ ...validOrdinances[0], isActive: true });
-        // set founder status to InProgress
-        if (founder && founder.status !== FounderStatus.InProgress) {
-          await remult.repo(Founder).save({ ...founder, status: FounderStatus.InProgress });
-        }
-      } else {
-        // set founder status to NoActiveOrdinance
-        if (founder && founder.status !== FounderStatus.NoActiveOrdinance) {
-          await remult.repo(Founder).save({ ...founder, status: FounderStatus.NoActiveOrdinance });
-        }
-      }
-    }
-  }
 
   const columnDefinitions: ColumnDefinition<OrdinanceMetadata>[] = [
     {
@@ -149,7 +116,7 @@ export default function OrdinanceMetadataTable({
     return ordinanceMetadataRepo.find({
       where: { $or: [{ city: founder.name }, { city: founder.shortName }] },
       orderBy: { validFrom: "asc" },
-  });
+    });
   };
 
   return (
@@ -159,7 +126,9 @@ export default function OrdinanceMetadataTable({
       count={count}
       fetchItems={fetchItems}
       showPagination={false}
-      noDataText={replacePlaceholders(texts.noDataOrdinanceFromRegister, { city: cityName })}
+      noDataText={replacePlaceholders(texts.noDataOrdinanceFromRegister, {
+        city: cityName,
+      })}
     />
   );
 }

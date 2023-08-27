@@ -26,7 +26,7 @@ export default function RootLayout({
       <body className={`${inter.className} flex`}>
         <Providers>
           <AppMenu breadcrumbNav={breadcrumbNav}>
-            <main className="p-6 grow flex flex-col bg-slate-50">
+            <main className="h-[calc(100vh-3.5rem)] overflow-auto p-6 grow flex flex-col bg-slate-50">
               {children}
             </main>
           </AppMenu>

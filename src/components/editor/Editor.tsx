@@ -11,7 +11,8 @@ import {
   CloudArrowDownIcon,
   EyeIcon,
   EyeSlashIcon,
-  MapIcon
+  MapIcon,
+  SparklesIcon,
 } from "@heroicons/react/24/outline";
 import MonacoEditor, { useMonaco } from "@monaco-editor/react";
 import { Button, Icon } from "@tremor/react";
@@ -87,7 +88,10 @@ export default function Editor({
           await streetMarkdownRepo.update(streetMarkdown.id, {
             ...streetMarkdown,
           });
-          await ordinanceRepo.update(ordinance.id, { ...ordinance, jsonData: undefined });
+          await ordinanceRepo.update(ordinance.id, {
+            ...ordinance,
+            jsonData: undefined,
+          });
           setIsSaving(false);
         };
         saveToSmd();
@@ -107,18 +111,22 @@ export default function Editor({
     }
   }, [monacoInstance, validate, preprocessedText]);
 
+  const preprocessText = useCallback(() => {
+    setIsPreprocessing(true);
+    getPreprocessedText(
+      ordinance,
+      setPreprocessedText,
+      setStreetMarkdown,
+      setIsPreprocessing
+    );
+  }, [ordinance]);
+
   // preprocess the original text if no text is provided
   useEffect(() => {
     if (!streetMarkdown && !isPreprocessing) {
-      setIsPreprocessing(true);
-      getPreprocessedText(
-        ordinance,
-        setPreprocessedText,
-        setStreetMarkdown,
-        setIsPreprocessing
-      );
+      preprocessText();
     }
-  }, [ordinance, streetMarkdown, isPreprocessing]);
+  }, [streetMarkdown, isPreprocessing]);
 
   // update markers
   useEffect(() => {
@@ -142,13 +150,6 @@ export default function Editor({
         }
       >
         <div className="flex items-center gap-2">
-          <Button
-            color={Colors.Secondary}
-            onClick={() => setShowOriginal(!showOriginal)}
-            icon={showOriginal ? EyeSlashIcon : EyeIcon}
-          >
-            {texts.originalText}
-          </Button>
           <LinkButton
             buttonProps={{
               color: Colors.Primary,
@@ -158,6 +159,13 @@ export default function Editor({
           >
             {texts.map}
           </LinkButton>
+          <Button
+            color={Colors.Secondary}
+            onClick={() => setShowOriginal(!showOriginal)}
+            icon={showOriginal ? EyeSlashIcon : EyeIcon}
+          >
+            {texts.originalText}
+          </Button>
           <LinkButton
             buttonProps={{
               color: Colors.Secondary,
@@ -165,11 +173,20 @@ export default function Editor({
               icon: ArrowDownTrayIcon,
             }}
             prefetch={false}
-            href={ordinance.documentUrl}
+            href={`/api/ordinances/${ordinance.id}/download`}
             target="_blank"
           >
             {texts.ordinanceDocument}
-          </LinkButton>{" "}
+          </LinkButton>
+          <Button
+            color={Colors.Secondary}
+            variant="secondary"
+            onClick={() => preprocessText()}
+            icon={SparklesIcon}
+            disabled={isPreprocessing}
+          >
+            {texts.gpt}
+          </Button>{" "}
         </div>
       </HeaderBox>
 

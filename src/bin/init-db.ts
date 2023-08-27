@@ -1,6 +1,6 @@
 import { getRemultAPI } from "@/app/api/[...remult]/config";
 import { FounderController } from "@/controllers/FounderController";
-import { OrdinanceController } from "@/controllers/OrdinanceController";
+import { OrdinanceController } from "@/controllers/OrdinanceControllerServer";
 import { downloadAndImportEverything } from "text-to-map";
 
 const main = async () => {

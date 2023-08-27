@@ -26,8 +26,8 @@ export class Ordinance extends EntityBase {
   @Field(() => Founder, { dbName: "founder_id" })
   founder!: Founder;
 
-  @Fields.string({ dbName: "document_url" })
-  documentUrl: string = "";
+  @Fields.string({ dbName: "file_name" })
+  fileName: string = "";
 
   @Fields.string({ dbName: "original_text" })
   originalText: string = "";

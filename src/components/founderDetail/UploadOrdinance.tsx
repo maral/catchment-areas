@@ -2,116 +2,112 @@
 
 import { texts } from "@/utils/shared/texts";
 import { Button, DatePicker, Subtitle, TextInput } from "@tremor/react";
-import { Formik, Form, Field, ErrorMessage } from "formik";
+import { Formik, Form, Field, ErrorMessage, FieldProps } from "formik";
 import { cs } from "date-fns/locale";
 import * as Yup from "yup";
 import Header from "../common/Header";
 import { Colors } from "@/styles/Themes";
+import { ComponentProps } from "react";
+import { OrdinanceController } from "@/controllers/OrdinanceController";
+import { useRouter } from "next/navigation";
+import { routes } from "@/utils/shared/constants";
 
 interface FormValues {
-  name: string;
-  validFrom: string;
-  validTo: string;
+  validFrom: Date | undefined;
+  validTo: Date | undefined;
   serialNumber: string;
   file: File | null;
 }
 
 export default function UploadOrdinance({ founderId }: { founderId: string }) {
+  const router = useRouter();
+
   const onSubmit = async (values: FormValues) => {
     const data = new FormData();
-    if (values.file) {
-      data.append("file", values.file);
-    }
-    data.append("name", values.name);
-    data.append("validFrom", values.validFrom);
-    data.append("validTo", values.validTo);
-    data.append("serialNumber", values.serialNumber);
 
-    const res = await fetch("/api/upload", {
+    data.set("file", values.file!);
+    data.set("validFrom", values.validFrom!.toISOString());
+    data.set("validTo", values.validTo ? values.validTo.toISOString() : "");
+    data.set("serialNumber", values.serialNumber);
+    data.set("founderId", founderId);
+
+    const res = await fetch("/api/ordinances/add-from-upload", {
       method: "POST",
       body: data,
     });
 
     if (res.ok) {
-      console.log("File uploaded successfully");
+      const result = await res.json();
+      if (result.success) {
+        OrdinanceController.determineActiveOrdinanceByFounderId(
+          Number(founderId)
+        );
+        router.push(
+          `${routes.founders}/${founderId}${routes.editOrdinance}/${result.ordinanceId}`
+        );
+        return;
+      }
     } else {
       console.error("File upload error");
     }
   };
 
   const validationSchema = Yup.object({
-    name: Yup.string().required("Required"),
-    validFrom: Yup.date().required("Required"),
+    validFrom: Yup.date().nullable().required(texts.requiredField),
     validTo: Yup.date()
-      .required("Required")
-      .when(
-        "validFrom",
-        (validFrom, schema) =>
-          validFrom &&
-          schema.min(validFrom, "validTo must be later than validFrom")
+      .nullable()
+      .when("validFrom", ([validFrom], schema) =>
+        schema.test({
+          test: (validTo: Date | null | undefined) => {
+            return (
+              !validTo ||
+              !validFrom ||
+              (!isNaN(validFrom.getTime()) &&
+                !isNaN(validTo.getTime()) &&
+                validTo > validFrom)
+            );
+          },
+          message: texts.requiredValidToAfterValidFrom,
+        })
       ),
-    serialNumber: Yup.string().required("Required"),
-    file: Yup.mixed().required("A file is required"),
+    serialNumber: Yup.string().required(texts.requiredOrdinanceNumber),
+    file: Yup.mixed().required(texts.requiredFile),
   });
 
   return (
     <Formik
       initialValues={{
-        name: "",
-        validFrom: "",
-        validTo: "",
+        validFrom: undefined,
+        validTo: undefined,
         serialNumber: "",
         file: null,
       }}
       validationSchema={validationSchema}
       onSubmit={onSubmit}
     >
-      {({ isSubmitting, setFieldValue }) => (
+      {({ isSubmitting, setFieldValue, setFieldTouched }) => (
         <Form className="flex flex-col gap-8">
           <Header className="shrink">{texts.addOrdinanceManually}</Header>
-          <div>
-            <InputSubtitle>{texts.ordinanceName}</InputSubtitle>
-            <Field
-              type="text"
-              name="name"
-              placeholder={texts.fillOutName}
-              component={TextInput}
-            />
-            <ErrorMessage name="name" component="div" />
-          </div>
 
           <div>
             <InputSubtitle>{texts.validFrom}</InputSubtitle>
-            <Field
-              type="date"
-              name="validFrom"
-              placeholder={texts.selectDate}
-              component={DatePicker}
-            />
-            <ErrorMessage name="validFrom" component="div" />
+            <Field name="validFrom" children={DatePickerWrapper} />
           </div>
 
           <div>
             <InputSubtitle>{texts.validTo}</InputSubtitle>
-            <Field
-              type="date"
-              name="validTo"
-              locale={cs}
-              placeholder={texts.selectDate}
-              component={DatePicker}
-            />
-            <ErrorMessage name="validTo" component="div" />
+            <Field name="validTo" children={DatePickerWrapper} />
           </div>
 
           <div>
             <InputSubtitle>{texts.ordinanceNumber}</InputSubtitle>
             <Field
               type="text"
-              name="ordinanceNumber"
+              name="serialNumber"
               placeholder={texts.ordinanceNumber}
-              component={TextInput}
+              as={TextInput}
             />
-            <ErrorMessage name="ordinanceNumber" component="div" />
+            <StyledErrorMessage name="serialNumber" component="div" />
           </div>
 
           <div>
@@ -133,7 +129,7 @@ export default function UploadOrdinance({ founderId }: { founderId: string }) {
                 setFieldValue("file", event.currentTarget.files?.[0]);
               }}
             />
-            <ErrorMessage name="file" component="div" />
+            <StyledErrorMessage name="file" component="div" />
           </div>
 
           <Button
@@ -152,4 +148,36 @@ export default function UploadOrdinance({ founderId }: { founderId: string }) {
 
 function InputSubtitle({ children }: { children: React.ReactNode }) {
   return <Subtitle className="ml-4 mb-2">{children}</Subtitle>;
+}
+
+function StyledErrorMessage(props: ComponentProps<typeof ErrorMessage>) {
+  return (
+    <ErrorWrapper>
+      <ErrorMessage {...props} />
+    </ErrorWrapper>
+  );
+}
+
+function ErrorWrapper({ children }: { children: React.ReactNode }) {
+  return <div className="text-red-500 text-sm ml-4 mt-2">{children}</div>;
+}
+
+function DatePickerWrapper({
+  field: { name },
+  form: { setFieldValue, setFieldTouched },
+  meta: { touched, error },
+}: FieldProps<Date | undefined, FormValues>) {
+  return (
+    <div>
+      <DatePicker
+        locale={cs}
+        placeholder={texts.selectDate}
+        onValueChange={(value) => {
+          setFieldTouched(name, true);
+          setFieldValue(name, value ?? null);
+        }}
+      />
+      {touched && error ? <ErrorWrapper>{error}</ErrorWrapper> : null}
+    </div>
+  );
 }

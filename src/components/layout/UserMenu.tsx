@@ -4,7 +4,7 @@ import Avatar from "@/components/Avatar";
 import IconButton from "@/components/buttons/IconButton";
 import { texts } from "@/utils/shared/texts";
 import { ArrowRightOnRectangleIcon } from "@heroicons/react/24/solid";
-import { Button, Title } from "@tremor/react";
+import { Title } from "@tremor/react";
 import { signOut, useSession } from "next-auth/react";
 
 export default function UserMenu() {
@@ -24,14 +24,6 @@ export default function UserMenu() {
           tooltip={texts.logout}
           onClick={() => signOut()}
         />
-      </div>
-    );
-  } else {
-    return (
-      <div className="flex">
-        <Button className="ml-2">
-          <a href="/auth/signin">Přihlásit se</a>
-        </Button>
       </div>
     );
   }

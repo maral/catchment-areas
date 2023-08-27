@@ -12,7 +12,7 @@ export default function Login() {
   const router = useRouter();
   useEffect(() => {
     if (session && session.status === "authenticated") {
-      router.push("/");
+      router.push("/founders");
     }
   }, [session, router]);
 

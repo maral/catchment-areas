@@ -1,7 +1,6 @@
 import { api } from "@/app/api/[...remult]/api";
 import { Founder } from "@/entities/Founder";
 import {
-  getOrCreateMunicipalitiesByFounderId,
   getOrCreateMunicipalities,
 } from "@/utils/server/textToMap";
 import { NextRequest, NextResponse } from "next/server";
