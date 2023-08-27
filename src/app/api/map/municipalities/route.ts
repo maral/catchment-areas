@@ -1,3 +1,4 @@
+import { getNotLoggedInResponse, isLoggedIn } from "@/utils/server/auth";
 import {
   getOrCreateMunicipalitiesByCityCodes
 } from "@/utils/server/textToMap";
@@ -9,6 +10,10 @@ interface RequestBody {
 }
 
 export async function POST(request: NextRequest) {
+  if (!(await isLoggedIn())) {
+    return getNotLoggedInResponse();
+  }
+
   const { cityCodes }: RequestBody = await request.json();
   const municipalitiesByCityCodes = await getOrCreateMunicipalitiesByCityCodes(cityCodes);
 

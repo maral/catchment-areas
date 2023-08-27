@@ -33,5 +33,5 @@ export class Ordinance extends EntityBase {
   originalText: string = "";
 
   @Fields.json({ dbName: "json_data", allowNull: true })
-  jsonData!: Municipality[];
+  jsonData!: Municipality[] | null;
 }

@@ -6,6 +6,7 @@ import { ChatCompletionRequestMessage, Configuration, OpenAIApi } from "openai";
 import { remult } from "remult";
 import { api } from "@/app/api/[...remult]/api";
 import { getServerSessionWithOptions } from "../../auth/[...nextauth]/config";
+import { getNotLoggedInResponse, isLoggedIn } from "@/utils/server/auth";
 
 interface SchoolResult {
   school: string;
@@ -36,17 +37,11 @@ const getGptAnswer = async (
 };
 
 export async function POST(request: NextRequest) {
-  const { ordinanceId } = await request.json();
-
-  const session = await getServerSessionWithOptions();
-  if (!session) {
-    return NextResponse.json(
-      {
-        error: "You must be signed in.",
-      },
-      { status: 401 }
-    );
+  if (!(await isLoggedIn())) {
+    return getNotLoggedInResponse();
   }
+
+  const { ordinanceId } = await request.json();
 
   const ordinanceRepo = remult.repo(Ordinance);
   const ordinance = await api.withRemult(async () => {

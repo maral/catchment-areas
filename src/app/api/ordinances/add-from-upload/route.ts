@@ -1,8 +1,13 @@
+import { getNotLoggedInResponse, isLoggedIn } from "@/utils/server/auth";
 import { insertOrdinanceAndGetResponse } from "@/utils/server/ordinance";
 import { uploadAndExtractText } from "@/utils/server/textExtraction";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
+  if (!(await isLoggedIn())) {
+    return getNotLoggedInResponse();
+  }
+
   const data = await req.formData();
   const file: File | null = data.get("file") as unknown as File;
   const validFrom = data.get("validFrom") as string;

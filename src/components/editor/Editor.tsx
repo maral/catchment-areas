@@ -24,6 +24,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { remult } from "remult";
@@ -55,6 +56,8 @@ export default function Editor({
   const [preprocessedText, setPreprocessedText] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isPreprocessing, setIsPreprocessing] = useState(false);
+  const isValidating = useRef(false);
+  const shouldValidate = useRef(false);
 
   const ordinance = useMemo(() => {
     return ordinanceRepo.fromJson(ordinanceJson);
@@ -63,15 +66,25 @@ export default function Editor({
   const monacoInstance = useMonaco();
 
   // debounced validation function
+  // only one validation can be running at a time
+  // if a later validation is prevented, it will be run again after the current one finishes
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const validate = useCallback(
-    debounce(async () => {
-      if (monacoInstance) {
+    debounce(async (monacoInstance) => {
+      if (isValidating.current) {
+        shouldValidate.current = true;
+      } else {
+        isValidating.current = true;
         const lines = monacoInstance.editor.getModels()[0].getLinesContent();
         setMarkers(await getMarkersFromLines(lines, ordinance.founder.id));
+        isValidating.current = false;
+        if (shouldValidate.current) {
+          shouldValidate.current = false;
+          setTimeout(() => validate(monacoInstance), 100);
+        }
       }
     }, 1000),
-    [monacoInstance, ordinance]
+    [ordinance]
   );
 
   // debounced autosave function
@@ -90,7 +103,7 @@ export default function Editor({
           });
           await ordinanceRepo.update(ordinance.id, {
             ...ordinance,
-            jsonData: undefined,
+            jsonData: null,
           });
           setIsSaving(false);
         };
@@ -107,7 +120,8 @@ export default function Editor({
         monacoInstance.editor.getModels()[0].setValue(preprocessedText);
       }
 
-      validate();
+      console.log("initial validation");
+      validate(monacoInstance);
     }
   }, [monacoInstance, validate, preprocessedText]);
 
@@ -205,12 +219,12 @@ export default function Editor({
           <MonacoEditor
             theme="smd-theme"
             beforeMount={(monaco: Monaco) => {
-              console.log("configureMonaco");
               configureMonaco(monaco, suggestions);
             }}
             value={streetMarkdown?.sourceText || ""}
             onChange={() => {
-              validate();
+              validate(monacoInstance);
+              console.log("onchange");
               autoSave();
             }}
             options={{ automaticLayout: true, wordWrap: "on" }}

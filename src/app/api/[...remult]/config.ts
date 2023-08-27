@@ -59,6 +59,13 @@ export function getRemultOptions(
       ],
       dataProvider: createKnexDataProvider({
         client: "mysql",
+        // pool: {
+        //   min: 0,
+        //   max: 10,
+        //   afterCreate: (conn: any, done: any) => {
+        //     console.log("AFTER CREATE");
+        //   },
+        // },
         connection: {
           host,
           port: Number(port),
@@ -73,6 +80,7 @@ export function getRemultOptions(
         useNullAsDefault: true,
         // debug: true,
       }),
+      ensureSchema: false,
       getUser: async () => {
         if (isBackendOnly) {
           return {

@@ -5,11 +5,16 @@ import { readFileSync } from "fs";
 import { NextRequest, NextResponse } from "next/server";
 import { remult } from "remult";
 import { api } from "../../../[...remult]/api";
+import { getNotLoggedInResponse, isLoggedIn } from "@/utils/server/auth";
 
 export async function GET(
   req: NextRequest,
   { params }: { params: { ordinanceId: string } }
 ) {
+  if (!(await isLoggedIn())) {
+    return getNotLoggedInResponse();
+  }
+
   const ordinance = await api.withRemult(async () => {
     return await remult.repo(Ordinance).findId(Number(params.ordinanceId));
   });
