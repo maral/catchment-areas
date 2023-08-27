@@ -85,18 +85,22 @@ export default function UploadOrdinance({ founderId }: { founderId: string }) {
       validationSchema={validationSchema}
       onSubmit={onSubmit}
     >
-      {({ isSubmitting, setFieldValue, setFieldTouched }) => (
+      {({ isSubmitting, setFieldValue }) => (
         <Form className="flex flex-col gap-8">
           <Header className="shrink">{texts.addOrdinanceManually}</Header>
 
           <div>
             <InputSubtitle>{texts.validFrom}</InputSubtitle>
-            <Field name="validFrom" children={DatePickerWrapper} />
+            <Field name="validFrom">
+              {(props: FieldProps) => <DatePickerWrapper {...props} />}
+            </Field>
           </div>
 
           <div>
             <InputSubtitle>{texts.validTo}</InputSubtitle>
-            <Field name="validTo" children={DatePickerWrapper} />
+            <Field name="validTo">
+              {(props: FieldProps) => <DatePickerWrapper {...props} />}
+            </Field>
           </div>
 
           <div>

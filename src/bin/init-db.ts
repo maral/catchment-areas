@@ -1,6 +1,6 @@
 import { getRemultAPI } from "@/app/api/[...remult]/config";
 import { FounderController } from "@/controllers/FounderController";
-import { OrdinanceController } from "@/controllers/OrdinanceControllerServer";
+import { OrdinanceControllerServer } from "@/controllers/OrdinanceControllerServer";
 import { downloadAndImportEverything } from "text-to-map";
 
 const main = async () => {
@@ -9,7 +9,7 @@ const main = async () => {
   const api = getRemultAPI(true);
   await api.withRemult(async () => {
     await FounderController.recalculateFounderSchoolCounts(false);
-    await OrdinanceController.syncOrdinanceMetadata();
+    await OrdinanceControllerServer.syncOrdinanceMetadata();
   });
   console.log("Done!");
 };

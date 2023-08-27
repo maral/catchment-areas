@@ -126,7 +126,7 @@ export default function Editor({
     if (!streetMarkdown && !isPreprocessing) {
       preprocessText();
     }
-  }, [streetMarkdown, isPreprocessing]);
+  }, [streetMarkdown, isPreprocessing, preprocessText]);
 
   // update markers
   useEffect(() => {
