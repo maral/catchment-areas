@@ -92,12 +92,14 @@ export const configureMonaco = (
     },
   });
 
-  const municipalityTypes = [
+  const municipalityTypes: [string, string][] = [
     ["městské části", "MČ"],
     ["městského obvodu", "MO"],
     ["města", "města"],
     ["obce", "obce"],
   ];
+
+  const municipalityPartTypes: string[] = ["města", "obce"];
 
   const syntaxSuggestionList: SyntaxSuggestion[] = municipalityTypes
     .map((type) => ({
@@ -115,10 +117,26 @@ export const configureMonaco = (
       }))
     )
     .concat(
+      municipalityPartTypes.map((type) => ({
+        label: `část ${type} <název ${type}>`,
+        insertText: `část ${type} `,
+        documentation: `Název části ${type} musí být v 1. pádě.`,
+        isSnippet: false,
+      }))
+    )
+    .concat(
       municipalityTypes.map((type) => ({
-        label: `část ${type[0]} <název ${type[1]}>`,
-        insertText: `část ${type[0]} `,
-        documentation: `Název ${type[0]} musí být v 1. pádě.`,
+        label: `zbytek ${type[0]}`,
+        insertText: `zbytek ${type[0]}`,
+        documentation: `Přiřadí této škole všechna zbývající adresní místa.`,
+        isSnippet: false,
+      }))
+    )
+    .concat(
+      municipalityPartTypes.map((type) => ({
+        label: `zbytek části ${type} <název ${type}>`,
+        insertText: `zbytek části ${type} `,
+        documentation: `Název části ${type} musí být v 1. pádě.`,
         isSnippet: false,
       }))
     )
