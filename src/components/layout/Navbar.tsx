@@ -1,3 +1,5 @@
+"use client";
+
 import { Icon, List, ListItem } from "@tremor/react";
 import Link from "next/link";
 import { texts } from "@/utils/shared/texts";
@@ -12,12 +14,13 @@ import {
 import { routes } from "@/utils/shared/constants";
 import { Colors } from "@/styles/Themes";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
+
+const listItemClass =
+  "cursor-pointer hover:bg-white rounded-md px-2 justify-start transition-colors";
+const spanClass = "ml-2 text-lg";
 
 export default function Navbar({ className }: { className?: string }) {
-  const listItemClass =
-    "cursor-pointer hover:bg-slate-50 rounded-md px-2 justify-start";
-  const spanClass = "ml-2 text-lg";
-
   return (
     <div
       className={`${className ?? ""} bg-slate-100 border-r border-slate-300`}
@@ -28,43 +31,27 @@ export default function Navbar({ className }: { className?: string }) {
         </span>
         <div className="flex-grow flex flex-col justify-between">
           <List className="mt-6">
-            <Link href={routes.founders}>
-              <ListItem className={listItemClass}>
-                <Icon icon={ShieldCheckIcon} color={Colors.Secondary}></Icon>
-                <span className={spanClass}>{texts.founders}</span>
-              </ListItem>
-            </Link>
+            <MenuItem
+              href={routes.founders}
+              icon={ShieldCheckIcon}
+              text={texts.founders}
+            />
 
-            <Link href={routes.regions}>
-              <ListItem className={listItemClass}>
-                <Icon
-                  icon={BuildingOffice2Icon}
-                  color={Colors.Secondary}
-                ></Icon>
-                <span className={spanClass}>{texts.regions}</span>
-              </ListItem>
-            </Link>
+            <MenuItem
+              href={routes.regions}
+              icon={BuildingOffice2Icon}
+              text={texts.regions}
+            />
 
-            <Link href={routes.counties}>
-              <ListItem className={listItemClass}>
-                <Icon icon={BuildingOfficeIcon} color={Colors.Secondary}></Icon>
-                <span className={spanClass}>{texts.counties}</span>
-              </ListItem>
-            </Link>
+            <MenuItem
+              href={routes.counties}
+              icon={BuildingOfficeIcon}
+              text={texts.counties}
+            />
 
-            <Link href={routes.orps}>
-              <ListItem className={listItemClass}>
-                <Icon icon={MapPinIcon} color={Colors.Secondary}></Icon>
-                <span className={spanClass}>{texts.orp}</span>
-              </ListItem>
-            </Link>
+            <MenuItem href={routes.orps} icon={MapPinIcon} text={texts.orp} />
 
-            <Link href={routes.users}>
-              <ListItem className={listItemClass}>
-                <Icon icon={UserIcon} color={Colors.Secondary}></Icon>
-                <span className={spanClass}>{texts.users}</span>
-              </ListItem>
-            </Link>
+            <MenuItem href={routes.users} icon={UserIcon} text={texts.users} />
 
             <hr className="my-4" />
 
@@ -87,5 +74,27 @@ export default function Navbar({ className }: { className?: string }) {
         </div>
       </div>
     </div>
+  );
+}
+
+function MenuItem({
+  icon,
+  text,
+  href,
+}: {
+  icon: React.ElementType;
+  text: string;
+  href: string;
+}) {
+  const pathname = usePathname();
+  const isActive = pathname.includes(href);
+
+  return (
+    <Link href={href}>
+      <ListItem className={`${listItemClass} ${isActive ? "bg-slate-50" : ""}`}>
+        <Icon icon={icon} color={Colors.Secondary}></Icon>
+        <span className={spanClass}>{text}</span>
+      </ListItem>
+    </Link>
   );
 }
