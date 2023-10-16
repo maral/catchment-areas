@@ -10,11 +10,15 @@ import {
   ArrowDownTrayIcon,
   MapIcon,
   PencilSquareIcon,
+  TrashIcon,
 } from "@heroicons/react/24/solid";
 import Link from "next/link";
 import { remult } from "remult";
 import { deserializeOrdinances } from "../fetchFunctions/loadOrdinances";
 import { routes } from "@/utils/shared/constants";
+import { OrdinanceController } from "@/controllers/OrdinanceController";
+import ConfirmDialog from "@/components/common/ConfirmDialog";
+import { useState } from "react";
 
 const ordinancesRepo = remult.repo(Ordinance);
 
@@ -29,6 +33,11 @@ export default function OrdinancesTable({
   count?: number;
   urlFrom?: string[];
 }) {
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [confirmFunction, setConfirmFunction] = useState<
+    (() => Promise<void>) | null
+  >(null);
+
   const columnDefinitions: ColumnDefinition<Ordinance>[] = [
     {
       title: texts.ordinanceNumber,
@@ -48,7 +57,7 @@ export default function OrdinancesTable({
     },
     {
       title: texts.actions,
-      cellFactory: (item) => (
+      cellFactory: (item, fetchData) => (
         <span className="whitespace-nowrap flex gap-2">
           <Link
             className="inline-block"
@@ -90,6 +99,21 @@ export default function OrdinancesTable({
               size="sm"
             />
           </Link>
+          <IconButton
+            icon={TrashIcon}
+            color={Colors.Error}
+            tooltip={texts.delete}
+            size="sm"
+            onClick={() => {
+              console.log("setting the confirm function");
+              setConfirmFunction(() => async () => {
+                console.log("running the confirm function");
+                await OrdinanceController.deleteOrdinance(item.id);
+                await fetchData();
+              });
+              setIsConfirmOpen(true);
+            }}
+          />
         </span>
       ),
     },
@@ -105,12 +129,27 @@ export default function OrdinancesTable({
   };
 
   return (
-    <CatchmentTable
-      columnDefinitions={columnDefinitions}
-      fetchItems={fetchItems}
-      count={count}
-      showPagination={false}
-      initialData={deserializeOrdinances(initialData)}
-    />
+    <>
+      <CatchmentTable
+        columnDefinitions={columnDefinitions}
+        fetchItems={fetchItems}
+        count={count}
+        showPagination={false}
+        initialData={deserializeOrdinances(initialData)}
+      />
+      <ConfirmDialog
+        title={texts.deleteOrdinanceTitle}
+        message={texts.deleteOrdinanceMessage}
+        onConfirm={async () => {
+          if (confirmFunction) {
+            await confirmFunction();
+          }
+        }}
+        isOpen={isConfirmOpen}
+        setIsOpen={setIsConfirmOpen}
+        confirmColor={Colors.Error}
+        confirmText={texts.delete}
+      />
+    </>
   );
 }

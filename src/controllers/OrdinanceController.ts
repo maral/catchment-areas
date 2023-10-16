@@ -47,4 +47,15 @@ export class OrdinanceController {
       }
     }
   }
+
+  @BackendMethod({ allowed: true })
+  static async deleteOrdinance(ordinanceId: number) {
+    const ordinanceRepo = remult.repo(Ordinance);
+    const ordinance = await ordinanceRepo.findId(ordinanceId);
+    if (ordinance) {
+      const founderId = ordinance.founder.id;
+      await ordinanceRepo.delete(ordinance);
+      await OrdinanceController.determineActiveOrdinanceByFounderId(founderId);
+    }
+  }
 }

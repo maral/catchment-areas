@@ -71,6 +71,8 @@ export default function Editor({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const validate = useCallback(
     debounce(async (monacoInstance) => {
+      if (!monacoInstance || !monacoInstance.editor.getModels()[0]) return;
+
       if (isValidating.current) {
         shouldValidate.current = true;
       } else {

@@ -77,7 +77,7 @@ export default function CatchmentTable<T>({
             <TableRow key={i}>
               {columnDefinitions.map((column, index) => (
                 <TableCell key={index} className="p-2">
-                  {column.cellFactory(item)}
+                  {column.cellFactory(item, fetchData)}
                 </TableCell>
               ))}
             </TableRow>

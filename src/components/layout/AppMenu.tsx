@@ -15,7 +15,7 @@ export default function AppMenu({
   children: React.ReactNode;
   breadcrumbNav: React.ReactNode;
 }) {
-  const [isNavbarOpen, setIsNavbarOpen] = useLocalStorage(constants.localStorageKey.isNavbarOpen, false);
+  const [isNavbarOpen, setIsNavbarOpen] = useLocalStorage(constants.localStorageKey.isNavbarOpen, true);
 
   const pathname = usePathname();
 
