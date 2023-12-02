@@ -21,7 +21,7 @@ export default async function OrpPage({
       return {
         orp,
         serializedFounders: serializeFounders(
-          await loadFoundersByOrp(code, 1, 10)
+          await loadFoundersByOrp(code, 1, 50)
         ),
         count: await getFoundersCountByOrp(code),
       };

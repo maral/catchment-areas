@@ -12,7 +12,7 @@ import CountiesTable from "@/components/table/tableWrappers/CountiesTable";
 export default async function Counties() {
   const { serializedCounties, count } = await api.withRemult(async () => {
     return {
-      serializedCounties: serializeCounties(await loadCounties(1, 10)),
+      serializedCounties: serializeCounties(await loadCounties(1, 50)),
       count: await getCountiesCount(),
     };
   });

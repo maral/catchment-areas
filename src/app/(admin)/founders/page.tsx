@@ -8,7 +8,7 @@ import { Card } from "@tremor/react";
 export default async function Founders() {
   const { serializedFounders, count } = await api.withRemult(async () => {
     return {
-      serializedFounders: serializeFounders(await loadFounders(1, 10)),
+      serializedFounders: serializeFounders(await loadFounders(1, 50)),
       count: await getFoundersCount()
     }
   });

@@ -21,7 +21,7 @@ export default async function RegionDetailPage({
       return {
         region,
         serializedFounders: serializeFounders(
-          await loadFoundersByRegion(code, 1, 10)
+          await loadFoundersByRegion(code, 1, 50)
         ),
         count: await getFoundersCountByRegion(code),
       };

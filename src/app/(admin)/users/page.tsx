@@ -10,7 +10,7 @@ import { Card } from "@tremor/react";
 export default async function Users() {
   const { serializedUsers, count } = await api.withRemult(async () => {
     return {
-      serializedUsers: serializeUsers(await loadUsers(1, 10)),
+      serializedUsers: serializeUsers(await loadUsers(1, 50)),
       count: await getUsersCount()
     }
   });

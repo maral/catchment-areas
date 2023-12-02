@@ -17,7 +17,7 @@ export default async function CountyDetailPage({
       return {
         county,
         serializedFounders: serializeFounders(
-          await loadFoundersByCounty(code, 1, 10)
+          await loadFoundersByCounty(code, 1, 50)
         ),
         count: await getFoundersCountByCounty(code),
       };

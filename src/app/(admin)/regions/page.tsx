@@ -12,7 +12,7 @@ import { api } from "@/app/api/[...remult]/api";
 export default async function Regions() {
   const { serializedRegions, count } = await api.withRemult(async () => {
     return {
-      serializedRegions: serializeRegions(await loadRegions(1, 10)),
+      serializedRegions: serializeRegions(await loadRegions(1, 50)),
       count: await getRegionsCount()
     }
   });

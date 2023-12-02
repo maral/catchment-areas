@@ -8,7 +8,7 @@ import OrpsTable from "@/components/table/tableWrappers/OrpsTable";
 export default async function Orps() {
   const { serializedOrps, count } = await api.withRemult(async () => {
     return {
-      serializedOrps: serializeOrps(await loadOrps(1, 10)),
+      serializedOrps: serializeOrps(await loadOrps(1, 50)),
       count: await getOrpsCount()
     }
   });

@@ -27,7 +27,7 @@ export default async function AddOrdinance({
       return {
         cityName: founder.shortName,
         serializedOrdinanceMetadata: serializeOrdinancesMetadata(
-          await loadOrdinanceMetadata(founder, 1, 10)
+          await loadOrdinanceMetadata(founder, 1, 50)
         ),
         count: await getOrdinanceMetadataCount(founder),
       };
