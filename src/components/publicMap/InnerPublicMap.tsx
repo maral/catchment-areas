@@ -38,7 +38,7 @@ const InnerMap = memo(
               src="logo_npi_svg_full.svg"
               alt="Logo NPI"
               width={200}
-              height={200}
+              height={29}
             />
           </Link>
         </div>

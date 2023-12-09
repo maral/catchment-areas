@@ -80,7 +80,6 @@ const createPublicMoveAndZoomEndHandler = (
   citiesMap: Record<string, CityOnMap>
 ) => {
   return debounce(async () => {
-    console.log(map.getZoom());
     if (map.getZoom() >= minZoomForLoadingCities) {
       const publishedCitiesInViewport = getPublishedCitiesInViewport(
         map,
@@ -240,8 +239,4 @@ const loadNewCities = async (
       };
     }
   }
-};
-
-const printCitiesByCodes = (message: string, codes: number[]) => {
-  console.log(message, codes.map((c) => citiesMap[c].name).join(", "));
 };
