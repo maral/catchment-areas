@@ -19,7 +19,7 @@ export const isPopupWithMarker = (popup: Popup): popup is PopupWithMarker => {
 
 export type MarkerMap = { [name: string]: CircleMarkerWithSchool };
 export type AddressLayerGroup = LayerGroup<CircleMarkerWithSchool>;
-export type SchoolLayerGroup = LayerGroup<CircleMarker>;
+export type SchoolLayerGroup = LayerGroup<CircleMarker> & { cityCode?: string; type?: string };
 
 export interface CityOnMap {
   code: number;

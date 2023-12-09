@@ -82,47 +82,20 @@ const createPublicMoveAndZoomEndHandler = (
   return debounce(async () => {
     console.log(map.getZoom());
     if (map.getZoom() >= minZoomForLoadingCities) {
-      const bounds = getCurrentBounds(map);
-
-      const publishedCitiesInViewport: CityOnMap[] = [];
-      for (let id in cityMarkers) {
-        let marker = cityMarkers[id];
-
-        // Check if the marker is in the current map bounds
-        if (bounds.contains(marker.getLatLng()) && citiesMap[id].isPublished) {
-          publishedCitiesInViewport.push(citiesMap[id]);
-        }
-      }
-
-      const newCities = publishedCitiesInViewport.filter(
-        (c) => !(c.code in loadedCities)
-      );
-      console.log(newCities.map((c) => c.name));
-
-      const result = await loadMunicipalitiesByCityCodes(
-        newCities.map((c) => c.code)
+      const publishedCitiesInViewport = getPublishedCitiesInViewport(
+        map,
+        cityMarkers
       );
 
-      if (result) {
-        for (let id in result) {
-          const { addressesLayerGroup, schoolsLayerGroup } = createCityLayers(
-            result[id]
-          );
-          loadedCities[id] = {
-            city: citiesMap[id],
-            addressesLayerGroup,
-            schoolsLayerGroup,
-          };
-        }
-      }
+      await loadNewCities(publishedCitiesInViewport, citiesMap);
 
       // show schools of cities in viewport
       publishedCitiesInViewport.forEach((city) => {
         if (!citiesWithShownSchools.has(city.code)) {
           const loadedCity = loadedCities[city.code];
           if (loadedCity) {
-            map.addLayer(loadedCity.schoolsLayerGroup);
             citiesWithShownSchools.add(city.code);
+            map.addLayer(loadedCity.schoolsLayerGroup);
           }
         }
       });
@@ -144,8 +117,8 @@ const createPublicMoveAndZoomEndHandler = (
           if (!citiesWithShownAddresses.has(city.code)) {
             const loadedCity = loadedCities[city.code];
             if (loadedCity) {
-              map.addLayer(loadedCity.addressesLayerGroup);
               citiesWithShownAddresses.add(city.code);
+              map.addLayer(loadedCity.addressesLayerGroup);
             }
           }
         });
@@ -182,6 +155,20 @@ const createPublicMoveAndZoomEndHandler = (
         }
       });
     }
+
+    // sometimes a layer is not removed, so we remove it manually
+    map.eachLayer((layer: any) => {
+      if (layer.cityCode) {
+        if (
+          (layer.type === "addresses" &&
+            !citiesWithShownAddresses.has(Number(layer.cityCode))) ||
+          (layer.type === "schools" &&
+            !citiesWithShownSchools.has(Number(layer.cityCode)))
+        ) {
+          map.removeLayer(layer);
+        }
+      }
+    });
   }, 300);
 };
 
@@ -209,4 +196,52 @@ const getCurrentBounds = (map: Map) => {
   );
 
   return L.latLngBounds(topLeftLatLng, bottomRightLatLng);
+};
+
+const getPublishedCitiesInViewport = (
+  map: Map,
+  cityMarkers: Record<string, Marker>
+) => {
+  const bounds = getCurrentBounds(map);
+  const publishedCitiesInViewport: CityOnMap[] = [];
+  for (let id in cityMarkers) {
+    let marker = cityMarkers[id];
+
+    // Check if the marker is in the current map bounds
+    if (bounds.contains(marker.getLatLng()) && citiesMap[id].isPublished) {
+      publishedCitiesInViewport.push(citiesMap[id]);
+    }
+  }
+  return publishedCitiesInViewport;
+};
+
+const loadNewCities = async (
+  publishedCitiesInViewport: CityOnMap[],
+  citiesMap: Record<string, CityOnMap>
+) => {
+  const newCities = publishedCitiesInViewport.filter(
+    (c) => !(c.code in loadedCities)
+  );
+
+  const result = await loadMunicipalitiesByCityCodes(
+    newCities.map((c) => c.code)
+  );
+
+  if (result) {
+    for (let id in result) {
+      const { addressesLayerGroup, schoolsLayerGroup } = createCityLayers(
+        result[id],
+        id
+      );
+      loadedCities[id] = {
+        city: citiesMap[id],
+        addressesLayerGroup,
+        schoolsLayerGroup,
+      };
+    }
+  }
+};
+
+const printCitiesByCodes = (message: string, codes: number[]) => {
+  console.log(message, codes.map((c) => citiesMap[c].name).join(", "));
 };

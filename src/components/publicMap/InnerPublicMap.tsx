@@ -15,7 +15,7 @@ const InnerMap = memo(
 
     useEffect(() => {
       if (mapRef.current) {
-        return createMap(mapRef.current, cities, undefined);
+        return createMap(mapRef.current, cities, true);
       }
     }, [cities, mapRef]);
 

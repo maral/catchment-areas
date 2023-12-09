@@ -7,7 +7,14 @@ import {
   SchoolLayerGroup,
   isPopupWithMarker,
 } from "@/types/mapTypes";
-import L, { LatLngBounds, Map, Polyline, PopupEvent } from "leaflet";
+import L, {
+  LatLngBounds,
+  LayerGroup,
+  Map,
+  Polyline,
+  PopupEvent,
+} from "leaflet";
+import { add } from "lodash";
 import { Municipality, School } from "text-to-map";
 
 export const colors = [
@@ -256,13 +263,20 @@ export const loadMunicipalitiesByCityCodes = async (
 const markers: MarkerMap = {};
 
 export const createCityLayers = (
-  municipalities: Municipality[]
+  municipalities: Municipality[],
+  cityCode: string
 ): {
   addressesLayerGroup: AddressLayerGroup;
   schoolsLayerGroup: SchoolLayerGroup;
 } => {
-  const addressesLayerGroup = L.layerGroup();
+  const addressesLayerGroup: LayerGroup & { cityCode?: string; type?: string } =
+    L.layerGroup();
   const schoolsLayerGroup: SchoolLayerGroup = L.layerGroup();
+
+  addressesLayerGroup.cityCode = cityCode;
+  addressesLayerGroup.type = "addresses";
+  schoolsLayerGroup.cityCode = cityCode;
+  schoolsLayerGroup.type = "schools";
 
   let colorIndex = 0;
   municipalities.forEach((municipality) => {
