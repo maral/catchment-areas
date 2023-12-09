@@ -1,15 +1,18 @@
-import { AddressLayerGroup, MarkerMap, SchoolLayerGroup } from "@/types/mapTypes";
+import {
+  AddressLayerGroup,
+  MarkerMap,
+  SchoolLayerGroup,
+} from "@/types/mapTypes";
 import {
   colors,
+  createCityLayers,
   createSchoolMarkers,
   createZoomEndHandler,
   prepareMap,
-  setupPopups
+  setupPopups,
 } from "@/utils/client/mapUtils";
 import { texts } from "@/utils/shared/texts";
-import L, {
-  Map as LeafletMap
-} from "leaflet";
+import L, { Map as LeafletMap } from "leaflet";
 import { Municipality } from "text-to-map";
 
 let markers: MarkerMap = {};
@@ -29,29 +32,15 @@ export const createMap = (
 
   map = prepareMap(element, showControls);
 
-  const municipalityLayerGroups: AddressLayerGroup[] = [];
-  const layerGroupsForControl: { [key: string]: SchoolLayerGroup } = {};
-  const schoolsLayerGroup: SchoolLayerGroup = L.layerGroup().addTo(map);
-  layerGroupsForControl[texts.schools] = schoolsLayerGroup;
-  const bounds = L.latLngBounds([]);
+  const {
+    municipalityLayerGroups,
+    layerGroupsForControl,
+    schoolsLayerGroup,
+    bounds,
+  } = createCityLayers(municipalities);
 
-  let colorIndex = 0;
-  municipalities.forEach((municipality) => {
-    let layerGroup: AddressLayerGroup = L.layerGroup();
-    layerGroupsForControl[municipality.municipalityName] = layerGroup;
-    municipalityLayerGroups.push(layerGroup);
-    municipality.schools.forEach((school) => {
-      createSchoolMarkers(
-        school,
-        color ? color : `#${colors[colorIndex % colors.length]}`,
-        schoolsLayerGroup,
-        layerGroup,
-        markers,
-        bounds
-      );
-      colorIndex++;
-    });
-  });
+  schoolsLayerGroup.addTo(map);
+  layerGroupsForControl[texts.schools] = schoolsLayerGroup;
 
   setupPopups(map);
 

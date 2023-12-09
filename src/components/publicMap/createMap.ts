@@ -1,8 +1,4 @@
-import {
-  CityOnMap,
-  LoadedCitiesData,
-  MunicipalitiesByCityCodes,
-} from "@/types/mapTypes";
+import { CityOnMap, LoadedCitiesData } from "@/types/mapTypes";
 import {
   createCityLayers,
   createSvgIcon,

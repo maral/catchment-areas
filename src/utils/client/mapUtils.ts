@@ -1,5 +1,6 @@
 import {
   AddressLayerGroup,
+  AddressesLayerGroup,
   CircleMarkerWithSchool,
   MarkerMap,
   MunicipalitiesByCityCodes,
@@ -107,7 +108,7 @@ export const createSchoolMarkers = (
     .addTo(schoolLayerGroup);
 
   if (markers) {
-    markers[school.name] = schoolMarker;
+    markers[school.name] = [schoolMarker];
   }
 
   if (bounds) {
@@ -142,7 +143,10 @@ export const createSchoolMarkers = (
     addressLayerGroup.addLayer(marker);
 
     if (markers) {
-      markers[point.address] = marker;
+      markers[point.address] = [
+        marker,
+        ...(point.address in markers ? markers[point.address] : []),
+      ];
     }
 
     if (bounds) {
@@ -264,14 +268,19 @@ const markers: MarkerMap = {};
 
 export const createCityLayers = (
   municipalities: Municipality[],
-  cityCode: string
+  cityCode?: string
 ): {
+  bounds: LatLngBounds;
   addressesLayerGroup: AddressLayerGroup;
   schoolsLayerGroup: SchoolLayerGroup;
+  layerGroupsForControl: { [key: string]: SchoolLayerGroup };
+  municipalityLayerGroups: AddressLayerGroup[];
 } => {
-  const addressesLayerGroup: LayerGroup & { cityCode?: string; type?: string } =
-    L.layerGroup();
+  const bounds = L.latLngBounds([]);
+  const addressesLayerGroup: AddressesLayerGroup = L.layerGroup();
   const schoolsLayerGroup: SchoolLayerGroup = L.layerGroup();
+  const layerGroupsForControl: { [key: string]: SchoolLayerGroup } = {};
+  const municipalityLayerGroups: AddressLayerGroup[] = [];
 
   addressesLayerGroup.cityCode = cityCode;
   addressesLayerGroup.type = "addresses";
@@ -281,6 +290,8 @@ export const createCityLayers = (
   let colorIndex = 0;
   municipalities.forEach((municipality) => {
     let layerGroup: AddressLayerGroup = L.layerGroup();
+    layerGroupsForControl[municipality.municipalityName] = layerGroup;
+    municipalityLayerGroups.push(layerGroup);
     addressesLayerGroup.addLayer(layerGroup);
     municipality.schools.forEach((school) => {
       createSchoolMarkers(
@@ -288,15 +299,18 @@ export const createCityLayers = (
         `#${colors[colorIndex % colors.length]}`,
         schoolsLayerGroup,
         layerGroup,
-        markers
+        markers,
+        bounds
       );
       colorIndex++;
     });
-    municipalities;
   });
 
   return {
+    bounds,
     addressesLayerGroup,
     schoolsLayerGroup,
+    layerGroupsForControl,
+    municipalityLayerGroups,
   };
 };

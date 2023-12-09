@@ -17,8 +17,9 @@ export const isPopupWithMarker = (popup: Popup): popup is PopupWithMarker => {
   return popup.hasOwnProperty("marker");
 };
 
-export type MarkerMap = { [name: string]: CircleMarkerWithSchool };
+export type MarkerMap = { [name: string]: CircleMarkerWithSchool[] };
 export type AddressLayerGroup = LayerGroup<CircleMarkerWithSchool>;
+export type AddressesLayerGroup = LayerGroup & { cityCode?: string; type?: string };
 export type SchoolLayerGroup = LayerGroup<CircleMarker> & { cityCode?: string; type?: string };
 
 export interface CityOnMap {
