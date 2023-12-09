@@ -6,7 +6,7 @@ import { remult } from "remult";
 import {
   ErrorCallbackParams,
   Municipality,
-  getNewMunicipality,
+  getNewMunicipalityByFounderId,
   parseOrdinanceToAddressPoints,
 } from "text-to-map";
 import { TextToMapError } from "../shared/types";
@@ -29,28 +29,23 @@ export async function validateStreetMarkdown(
       warningList.push({ ...error, lineNumber, line });
     });
   };
-  const founder = await api.withRemult(async () => {
-    return remult.repo(Founder).findId(founderId);
-  });
 
-  if (!founder) {
-    return null;
-  }
-
-  const currentMunicipality = await getNewMunicipality(founder.shortName);
+  const currentMunicipality = await getNewMunicipalityByFounderId(founderId);
 
   if (currentMunicipality.errors.length > 0) {
     return null;
   }
 
-  await parseOrdinanceToAddressPoints(
+  await parseOrdinanceToAddressPoints({
     lines,
-    currentMunicipality.errors.length === 0
-      ? { currentMunicipality: currentMunicipality.municipality }
-      : {},
+    initialState:
+      currentMunicipality.errors.length === 0
+        ? { currentMunicipality: currentMunicipality.municipality }
+        : {},
     onError,
-    onWarning
-  );
+    onWarning,
+    includeUnmappedAddressPoints: false,
+  });
 
   return { errors: errorList, warnings: warningList };
 }
@@ -59,16 +54,20 @@ export async function parseStreetMarkdown(
   ordinance: Ordinance,
   text: string
 ): Promise<Municipality[] | null> {
-  const currentMunicipality = await getNewMunicipality(
-    ordinance.founder.shortName
+  const currentMunicipality = await getNewMunicipalityByFounderId(
+    ordinance.founder.id
   );
 
   if (currentMunicipality.errors.length > 0) {
     return null;
   }
 
-  return await parseOrdinanceToAddressPoints(text.split("\n"), {
-    currentMunicipality: currentMunicipality.municipality,
+  return await parseOrdinanceToAddressPoints({
+    lines: text.split("\n"),
+    initialState: {
+      currentMunicipality: currentMunicipality.municipality,
+    },
+    includeUnmappedAddressPoints: true,
   });
 }
 
