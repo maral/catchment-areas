@@ -17,7 +17,7 @@ let mapInitialized = false;
 const publicIcon = createSvgIcon("#03b703");
 const notReadyIcon = createSvgIcon("#999");
 
-export const createMap = (
+export const createPublicMap = (
   element: HTMLElement,
   cities: CityOnMap[],
   showControls: boolean = true

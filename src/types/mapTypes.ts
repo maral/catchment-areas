@@ -1,26 +1,30 @@
-import {
-  CircleMarker,
-  LayerGroup,
-  Popup
-} from "leaflet";
+import { Circle, LayerGroup, Marker, Popup } from "leaflet";
 import { Municipality } from "text-to-map";
 
-export interface CircleMarkerWithSchools extends CircleMarker {
-  schools?: CircleMarkerWithSchools[];
+export type SchoolMarker = Circle
+
+export type MarkerWithSchools = (Marker | Circle) & {
+  schools?: Circle[];
 }
 
 export interface PopupWithMarker extends Popup {
-  marker: CircleMarkerWithSchools;
+  marker: MarkerWithSchools;
 }
 
 export const isPopupWithMarker = (popup: Popup): popup is PopupWithMarker => {
   return popup.hasOwnProperty("marker");
 };
 
-export type MarkerMap = { [name: string]: CircleMarkerWithSchools };
-export type AddressLayerGroup = LayerGroup<CircleMarkerWithSchools>;
-export type AddressesLayerGroup = LayerGroup & { cityCode?: string; type?: string };
-export type SchoolLayerGroup = LayerGroup<CircleMarker> & { cityCode?: string; type?: string };
+export type MarkerMap = { [name: string]: MarkerWithSchools | SchoolMarker };
+export type AddressLayerGroup = LayerGroup<MarkerWithSchools>;
+export type AddressesLayerGroup = LayerGroup & {
+  cityCode?: string;
+  type?: string;
+};
+export type SchoolLayerGroup = LayerGroup<MarkerWithSchools | Circle> & {
+  cityCode?: string;
+  type?: string;
+};
 
 export interface CityOnMap {
   code: number;

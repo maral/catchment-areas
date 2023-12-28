@@ -1,4 +1,4 @@
-import { createMap } from "@/components/publicMap/createMap";
+import { createPublicMap } from "@/components/publicMap/createPublicMap";
 import { CityOnMap } from "@/types/mapTypes";
 import "leaflet/dist/leaflet.css";
 import Image from "next/image";
@@ -15,7 +15,7 @@ const InnerMap = memo(
 
     useEffect(() => {
       if (mapRef.current) {
-        return createMap(mapRef.current, cities, true);
+        return createPublicMap(mapRef.current, cities, true);
       }
     }, [cities, mapRef]);
 
