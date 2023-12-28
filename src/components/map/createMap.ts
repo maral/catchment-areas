@@ -1,12 +1,5 @@
 import {
-  AddressLayerGroup,
-  MarkerMap,
-  SchoolLayerGroup,
-} from "@/types/mapTypes";
-import {
-  colors,
   createCityLayers,
-  createSchoolMarkers,
   createZoomEndHandler,
   prepareMap,
   setupPopups,
@@ -15,7 +8,6 @@ import { texts } from "@/utils/shared/texts";
 import L, { Map as LeafletMap } from "leaflet";
 import { Municipality } from "text-to-map";
 
-let markers: MarkerMap = {};
 let map: LeafletMap;
 
 export const createMap = (
@@ -23,14 +15,22 @@ export const createMap = (
   municipalities: Municipality[],
   center?: [number, number],
   zoom?: number,
-  showControls: boolean = true,
-  color?: string
+  showControls: boolean = true
 ): (() => void) => {
   if (!element || map) {
     return () => null;
   }
 
   map = prepareMap(element, showControls);
+
+  L.circle([52, 12], {
+    radius: 8,
+    weight: 8,
+    fill: true,
+    fillColor: "red",
+    fillOpacity: 1,
+    color: "red",
+  });
 
   const {
     municipalityLayerGroups,

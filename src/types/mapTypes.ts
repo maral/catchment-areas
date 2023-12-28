@@ -5,20 +5,20 @@ import {
 } from "leaflet";
 import { Municipality } from "text-to-map";
 
-export interface CircleMarkerWithSchool extends CircleMarker {
-  school?: CircleMarkerWithSchool;
+export interface CircleMarkerWithSchools extends CircleMarker {
+  schools?: CircleMarkerWithSchools[];
 }
 
 export interface PopupWithMarker extends Popup {
-  marker: CircleMarkerWithSchool;
+  marker: CircleMarkerWithSchools;
 }
 
 export const isPopupWithMarker = (popup: Popup): popup is PopupWithMarker => {
   return popup.hasOwnProperty("marker");
 };
 
-export type MarkerMap = { [name: string]: CircleMarkerWithSchool[] };
-export type AddressLayerGroup = LayerGroup<CircleMarkerWithSchool>;
+export type MarkerMap = { [name: string]: CircleMarkerWithSchools };
+export type AddressLayerGroup = LayerGroup<CircleMarkerWithSchools>;
 export type AddressesLayerGroup = LayerGroup & { cityCode?: string; type?: string };
 export type SchoolLayerGroup = LayerGroup<CircleMarker> & { cityCode?: string; type?: string };
 

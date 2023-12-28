@@ -1,21 +1,14 @@
 import {
   AddressLayerGroup,
   AddressesLayerGroup,
-  CircleMarkerWithSchool,
+  CircleMarkerWithSchools as CircleMarkerWithSchools,
   MarkerMap,
   MunicipalitiesByCityCodes,
   PopupWithMarker,
   SchoolLayerGroup,
   isPopupWithMarker,
 } from "@/types/mapTypes";
-import L, {
-  LatLngBounds,
-  LayerGroup,
-  Map,
-  Polyline,
-  PopupEvent,
-} from "leaflet";
-import { add } from "lodash";
+import L, { Circle, LatLngBounds, Map, Polyline, PopupEvent } from "leaflet";
 import { Municipality, School } from "text-to-map";
 
 export const colors = [
@@ -77,6 +70,7 @@ export const setupPopups = (map: Map): void => {
         e.popup._source._popup._contentNode.querySelector(".marker-button");
       button.removeEventListener("click", lastListener);
     }
+    resetCenteredMarker();
   });
 };
 
@@ -87,9 +81,15 @@ export const createSchoolMarkers = (
   color: string,
   schoolLayerGroup: SchoolLayerGroup,
   addressLayerGroup: AddressLayerGroup,
-  markers?: MarkerMap,
-  bounds?: LatLngBounds
+  markers: MarkerMap,
+  bounds: LatLngBounds
 ): void => {
+  const schoolTooltip = L.tooltip({
+    direction: "top",
+    content: `<div style="text-align: center;">${school.name
+      .split(", ")
+      .join(",<br>")}</div>`,
+  });
   const schoolMarker = L.circle(
     [
       school.position?.lat ?? defaultPosition[0],
@@ -104,23 +104,24 @@ export const createSchoolMarkers = (
       color,
     }
   )
-    .bindPopup(school.name)
+    .bindTooltip(schoolTooltip)
     .addTo(schoolLayerGroup);
 
-  if (markers) {
-    markers[school.name] = [schoolMarker];
-  }
+  markers[school.name] = schoolMarker;
 
-  if (bounds) {
-    bounds.extend(schoolMarker.getLatLng());
-  }
+  bounds.extend(schoolMarker.getLatLng());
 
   school.addresses.forEach((point) => {
     if (!point.lat || !point.lng) {
       return;
     }
 
-    const marker: CircleMarkerWithSchool = L.circle([point.lat, point.lng], {
+    if (point.address in markers) {
+      markers[point.address].schools?.push(schoolMarker);
+      return;
+    }
+
+    const marker: CircleMarkerWithSchools = L.circle([point.lat, point.lng], {
       radius: markerRadius,
       weight: markerWeight,
       fill: true,
@@ -132,26 +133,19 @@ export const createSchoolMarkers = (
       L.popup().setContent(`
       <div>
         ${point.address}
-        <div class="text-center mt-2"><button class="btn btn-success btn-sm marker-button">
+        <div class="text-center mt-2"><button class="border rounded px-2 py-1 text-xs bg-emerald-500 border-emerald-500 text-white hover:bg-emerald-600 hover:border-emerald-700 marker-button">
           Zobrazit spádovou školu    
         </button></div>
       </div>`),
       { marker: marker }
     );
     marker.bindPopup(popup);
-    marker.school = schoolMarker;
+    marker.schools = [schoolMarker];
     addressLayerGroup.addLayer(marker);
 
-    if (markers) {
-      markers[point.address] = [
-        marker,
-        ...(point.address in markers ? markers[point.address] : []),
-      ];
-    }
+    markers[point.address] = marker;
 
-    if (bounds) {
-      bounds.extend(marker.getLatLng());
-    }
+    bounds.extend(marker.getLatLng());
   });
 };
 
@@ -179,48 +173,77 @@ export const createZoomEndHandler = (
   };
 };
 
-let polyline: Polyline;
+let polylines: Polyline[];
+let selectedSchools: CircleMarkerWithSchools[] = [];
+
+export const resetCenteredMarker = () => {
+  deselectMarker();
+  if (polylines) {
+    polylines.forEach((p) => p.remove());
+  }
+  selectedSchools.forEach((school) => {
+    const tooltip = school.getTooltip()!;
+    school.unbindTooltip();
+    tooltip.options.permanent = false;
+    school.bindTooltip(tooltip);
+  });
+  selectedSchools = [];
+};
 
 export const centerLeafletMapOnMarker = (
   map: Map,
-  marker: CircleMarkerWithSchool
+  marker: CircleMarkerWithSchools
 ) => {
-  if (map === null || !marker.school) {
+  if (map === null || !marker.schools) {
     return;
   }
-  var latLngs = [marker.getLatLng(), marker.school.getLatLng()];
+  var latLngs = [
+    marker.getLatLng(),
+    ...marker.schools.map((m) => m.getLatLng()),
+  ];
   var markerBounds = L.latLngBounds(latLngs);
   map.once("moveend", function () {
+    resetCenteredMarker();
     selectMarker(marker);
-    if (polyline) {
-      polyline.remove();
-    }
-    polyline = L.polyline(latLngs, { color: "red", dashArray: "10, 10" }).addTo(
-      map
-    );
+    polylines = [];
+    marker.schools?.forEach((school) => {
+      const schoolLatLngs = [marker.getLatLng(), school.getLatLng()];
+      polylines.push(
+        L.polyline(schoolLatLngs, { color: "red", dashArray: "10, 10" }).addTo(
+          map
+        )
+      );
+
+      const tooltip = school.getTooltip()!;
+      school.unbindTooltip();
+      tooltip.options.permanent = true;
+      school.bindTooltip(tooltip);
+      selectedSchools.push(school);
+    });
     marker.bringToFront();
-    if (marker.school) {
-      marker.school.bringToFront();
-      marker.school.openPopup();
-    }
   });
   map.fitBounds(markerBounds, { padding: [150, 150] });
 };
 
-let selectedMarker: CircleMarkerWithSchool;
+let selectedMarker: CircleMarkerWithSchools | undefined;
 let selectedMarkerOriginalColor: string;
 
-const selectMarker = (marker: CircleMarkerWithSchool) => {
-  if (selectedMarker) {
-    selectedMarker
-      .setRadius(markerRadius)
-      .setStyle({ weight: markerWeight, color: selectedMarkerOriginalColor });
-  }
+const selectMarker = (marker: CircleMarkerWithSchools) => {
+  deselectMarker();
   selectedMarker = marker;
   selectedMarkerOriginalColor = marker.options.color || selectedMarkerColor;
   selectedMarker
     .setRadius(selectedMarkerRadius)
     .setStyle({ weight: selectedMarkerWeight, color: selectedMarkerColor });
+};
+
+const deselectMarker = () => {
+  if (selectedMarker) {
+    selectedMarker
+      .setRadius(markerRadius)
+      .setStyle({ weight: markerWeight, color: selectedMarkerOriginalColor });
+  }
+  selectedMarker = undefined;
 };
 
 export const createSvgIcon = (color: string): L.DivIcon => {
