@@ -13,14 +13,7 @@ const InnerMap = memo(
 
     useEffect(() => {
       if (mapRef.current) {
-        createMap(
-          mapRef.current,
-          municipalities,
-          undefined,
-          undefined,
-          true,
-          undefined
-        );
+        createMap(mapRef.current, municipalities, undefined, undefined, true);
       }
     }, [municipalities, mapRef]);
 

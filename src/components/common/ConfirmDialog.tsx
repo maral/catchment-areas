@@ -1,7 +1,7 @@
 import { Colors } from "@/styles/Themes";
 import { texts } from "@/utils/shared/texts";
 import { Button, Color, Subtitle } from "@tremor/react";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 
 type ConfirmDialogProps = {
   title: string;
@@ -26,21 +26,30 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
 }) => {
   const [isConfirming, setIsConfirming] = useState(false);
 
-  const onCancel = () => setIsOpen(false);
+  const onCancel = useCallback(() => setIsOpen(false), [setIsOpen]);
 
   const modalRef = useRef<HTMLDivElement>(null);
 
-  const handleEscape = (event: KeyboardEvent) => {
-    if (event.key === "Escape") {
-      onCancel();
-    }
-  };
+  const handleEscape = useCallback(
+    (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        onCancel();
+      }
+    },
+    [onCancel]
+  );
 
-  const handleClickOutside = (event: Event) => {
-    if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
-      onCancel();
-    }
-  };
+  const handleClickOutside = useCallback(
+    (event: Event) => {
+      if (
+        modalRef.current &&
+        !modalRef.current.contains(event.target as Node)
+      ) {
+        onCancel();
+      }
+    },
+    [onCancel]
+  );
 
   useEffect(() => {
     if (isOpen) {
@@ -52,7 +61,7 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
       document.removeEventListener("keydown", handleEscape);
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [isOpen]);
+  }, [isOpen, handleEscape, handleClickOutside]);
 
   if (!isOpen) return null;
 
