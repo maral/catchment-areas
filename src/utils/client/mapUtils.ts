@@ -1,16 +1,15 @@
 import {
   AddressLayerGroup,
   AddressesLayerGroup,
-  MarkerWithSchools,
   MarkerMap,
+  MarkerWithSchools,
   MunicipalitiesByCityCodes,
   PopupWithMarker,
   SchoolLayerGroup,
-  isPopupWithMarker,
   SchoolMarker,
+  isPopupWithMarker,
 } from "@/types/mapTypes";
 import L, { Circle, LatLngBounds, Map, Polyline, PopupEvent } from "leaflet";
-import { get } from "lodash";
 import { ExportAddressPoint, Municipality, School } from "text-to-map";
 
 export const colors = [
@@ -193,17 +192,23 @@ export const createSvgIcon = (color: string): L.DivIcon => {
 
 const iconCache: Record<string, L.DivIcon> = {};
 
-export const getMulticolorIcon = (colors: string[]): L.DivIcon => {
-  const key = colors.join("_");
-  if (key in iconCache) {
-    return iconCache[key];
-  }
-  return (iconCache[key] = L.divIcon({
-    html: generateMulticolorIcon(colors, markerRadius),
-    className: "svg-icon",
-    iconSize: [markerRadius * 2, markerRadius * 2],
-    iconAnchor: [markerRadius, markerRadius],
-  }));
+export const getMulticolorIcon = (colors: string[]): L.Icon => {
+  return L.icon({
+    iconUrl: "/dot.png",
+    iconSize: [24, 24],
+    iconAnchor: [12, 12],
+  });
+
+  // const key = colors.join("_");
+  // if (key in iconCache) {
+  //   return iconCache[key];
+  // }
+  // return (iconCache[key] = L.divIcon({
+  //   html: generateMulticolorIcon(colors, markerRadius),
+  //   className: "svg-icon",
+  //   iconSize: [markerRadius * 2, markerRadius * 2],
+  //   iconAnchor: [markerRadius, markerRadius],
+  // }));
 };
 
 const generateMulticolorIcon = (colors: string[], radius: number): string => {
@@ -247,12 +252,18 @@ const rotatePointOnCircle = (
   x: number,
   y: number,
   r: number,
-  degrees: number
+  degrees: number,
+  xCoefficient = 1,
+  yCoefficient = 1
 ): [number, number] => {
   const radians = (degrees * Math.PI) / 180;
-  const newX = x + r * Math.sin(radians);
-  const newY = y - r * Math.cos(radians);
+  const newX = x + r * Math.sin(radians) * xCoefficient;
+  const newY = y - r * Math.cos(radians) * yCoefficient;
   return [newX, newY];
+};
+
+const flip = ([x, y]: [number, number]): [number, number] => {
+  return [y, x];
 };
 
 export const loadMunicipalitiesByCityCodes = async (
@@ -347,14 +358,16 @@ export const createCityLayers = (
 
   Object.values(markersToCreate).forEach(({ point, schools }) => {
     const colors = schools.map((school) => schoolColors[school.izo]);
-    const marker = createAddressMarker(
+    const newMarkers = createAddressMarker(
       point,
       colors,
       schools.map((s) => markers[s.name]) as SchoolMarker[]
     );
-    addressLayerGroups[schools[0].izo].addLayer(marker);
-    markers[point.address] = marker;
-    bounds.extend(marker.getLatLng());
+    newMarkers.forEach((marker) => {
+      addressLayerGroups[schools[0].izo].addLayer(marker);
+      markers[point.address] = marker;
+      bounds.extend(marker.getLatLng());
+    });
   });
 
   return {
@@ -396,38 +409,65 @@ const createAddressMarker = (
   colors: string[],
   schoolMarkers: SchoolMarker[]
 ) => {
-  const marker = createMarkerByColorCount(point, colors);
-  const popup: PopupWithMarker = Object.assign(
-    L.popup().setContent(`
+  const markers = createMarkerByColorCount(point, colors);
+  markers.forEach((marker) => {
+    const popup: PopupWithMarker = Object.assign(
+      L.popup().setContent(`
     <div>
       ${point.address}
       <div class="text-center mt-2"><button class="border rounded px-2 py-1 text-xs bg-emerald-500 border-emerald-500 text-white hover:bg-emerald-600 hover:border-emerald-700 marker-button">
         Zobrazit spádovou školu    
       </button></div>
     </div>`),
-    { marker: marker }
-  );
-  marker.bindPopup(popup);
-  marker.schools = schoolMarkers;
-  return marker;
+      { marker: marker }
+    );
+    marker.bindPopup(popup);
+    marker.schools = schoolMarkers;
+  });
+  return markers;
 };
 
 const createMarkerByColorCount = (
   point: ExportAddressPoint,
   colors: string[]
-): MarkerWithSchools => {
+): MarkerWithSchools[] => {
   if (colors.length > 1) {
-    return L.marker([point.lat, point.lng], {
-      icon: getMulticolorIcon(colors),
-    });
+    const angle = 360 / colors.length;
+    return colors.map((color, index) =>
+      L.circle(
+        flip(
+          rotatePointOnCircle(
+            point.lng,
+            point.lat,
+            0.00005,
+            angle * index,
+            1,
+            0.7
+          )
+        ),
+        {
+          radius: markerRadius,
+          fill: true,
+          fillColor: color,
+          fillOpacity: 1,
+          weight: markerWeight,
+          color: color,
+        }
+      )
+    );
+    // return L.marker([point.lat, point.lng], {
+    //   icon: getMulticolorIcon(colors),
+    // });
   } else {
-    return L.circle([point.lat, point.lng], {
-      radius: markerRadius,
-      fill: true,
-      fillColor: colors[0],
-      fillOpacity: 1,
-      weight: markerWeight,
-      color: colors[0],
-    });
+    return [
+      L.circle([point.lat, point.lng], {
+        radius: markerRadius,
+        fill: true,
+        fillColor: colors[0],
+        fillOpacity: 1,
+        weight: markerWeight,
+        color: colors[0],
+      }),
+    ];
   }
 };
