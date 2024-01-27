@@ -123,11 +123,11 @@ export const centerLeafletMapOnMarker = (
   if (map === null || !marker.schools) {
     return;
   }
-  var latLngs = [
+  const latLngs = [
     marker.getLatLng(),
     ...marker.schools.map((m) => m.getLatLng()),
   ];
-  var markerBounds = L.latLngBounds(latLngs);
+  const markerBounds = L.latLngBounds(latLngs);
   map.once("moveend", function () {
     resetCenteredMarker();
     selectMarker(marker);
@@ -171,84 +171,7 @@ const deselectMarker = () => {
   selectedMarker = undefined;
 };
 
-export const createSvgIcon = (color: string): L.DivIcon => {
-  return L.divIcon({
-    html: `
-  <svg
-    width="24"
-    height="24"
-    viewBox="0 0 100 100"
-    version="1.1"
-    preserveAspectRatio="none"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <path d="M0 0 L50 100 L100 0 Z" fill="${color}"></path>
-  </svg>`,
-    className: "svg-icon",
-    iconSize: [24, 24],
-    iconAnchor: [12, 24],
-  });
-};
-
-const iconCache: Record<string, L.DivIcon> = {};
-
-export const getMulticolorIcon = (colors: string[]): L.Icon => {
-  return L.icon({
-    iconUrl: "/dot.png",
-    iconSize: [24, 24],
-    iconAnchor: [12, 12],
-  });
-
-  // const key = colors.join("_");
-  // if (key in iconCache) {
-  //   return iconCache[key];
-  // }
-  // return (iconCache[key] = L.divIcon({
-  //   html: generateMulticolorIcon(colors, markerRadius),
-  //   className: "svg-icon",
-  //   iconSize: [markerRadius * 2, markerRadius * 2],
-  //   iconAnchor: [markerRadius, markerRadius],
-  // }));
-};
-
-const generateMulticolorIcon = (colors: string[], radius: number): string => {
-  if (colors.length === 1) {
-    return `<svg ${svgAttributes(
-      radius
-    )}><circle cx="${radius}" cy="${radius}" r="${radius}" fill="${
-      colors[0]
-    }" /></svg>`;
-  }
-
-  const angle = 360 / colors.length;
-
-  const paths = colors.map((color, index) => {
-    const startPoint = rotatePointOnCircle(
-      radius,
-      radius,
-      radius,
-      index * angle
-    );
-    const endPoint = rotatePointOnCircle(
-      radius,
-      radius,
-      radius,
-      (index + 1) * angle
-    );
-    const pathData = `M ${radius} ${radius} L ${startPoint[0]} ${startPoint[1]} A ${radius} ${radius} 0 0 1 ${endPoint[0]} ${endPoint[1]} Z L ${radius} ${radius}`;
-    return `<path d="${pathData}" fill="${color}" />`;
-  });
-
-  return `<svg ${svgAttributes(radius)}>${paths.join("")}</svg>`;
-};
-
-const svgAttributes = (radius: number): string => {
-  return `xmlns="http://www.w3.org/2000/svg" version="1.1" width="${
-    radius * 2
-  }" height="${radius * 2}" viewBox="0 0 ${radius * 2} ${radius * 2}"`;
-};
-
-const rotatePointOnCircle = (
+export const rotatePointOnCircle = (
   x: number,
   y: number,
   r: number,
@@ -455,9 +378,6 @@ const createMarkerByColorCount = (
         }
       )
     );
-    // return L.marker([point.lat, point.lng], {
-    //   icon: getMulticolorIcon(colors),
-    // });
   } else {
     return [
       L.circle([point.lat, point.lng], {
@@ -470,4 +390,23 @@ const createMarkerByColorCount = (
       }),
     ];
   }
+};
+
+export const createSvgIcon = (color: string): L.DivIcon => {
+  return L.divIcon({
+    html: `
+  <svg
+    width="24"
+    height="24"
+    viewBox="0 0 100 100"
+    version="1.1"
+    preserveAspectRatio="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path d="M0 0 L50 100 L100 0 Z" fill="${color}"></path>
+  </svg>`,
+    className: "svg-icon",
+    iconSize: [24, 24],
+    iconAnchor: [12, 24],
+  });
 };
