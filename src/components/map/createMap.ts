@@ -1,6 +1,5 @@
 import {
   createCityLayers,
-  createZoomEndHandler,
   prepareMap,
   setupPopups,
 } from "@/utils/client/mapUtils";
@@ -38,7 +37,11 @@ export const createMap = (
     layerGroupsForControl,
     schoolsLayerGroup,
     bounds,
-  } = createCityLayers({ municipalities, showDebugInfo: true, lines: text.split("\n") });
+  } = createCityLayers({
+    municipalities,
+    showDebugInfo: true,
+    lines: text.split("\n"),
+  });
 
   schoolsLayerGroup.addTo(map);
   layerGroupsForControl[texts.schools] = schoolsLayerGroup;
@@ -54,15 +57,15 @@ export const createMap = (
     }
   }
 
-  if (municipalities.length > 1 && showControls) {
+  if (Object.keys(layerGroupsForControl).length > 1 && showControls) {
     L.control.layers(undefined, layerGroupsForControl).addTo(map);
   } else if (municipalities.length === 1) {
-    map.addLayer(municipalityLayerGroups[0]);
   }
+  map.addLayer(municipalityLayerGroups[0]);
 
-  const zoomEndHandler = createZoomEndHandler(map, municipalityLayerGroups);
-  map.on("zoomend", zoomEndHandler);
-  zoomEndHandler();
+  // const zoomEndHandler = createZoomEndHandler(map, municipalityLayerGroups);
+  // map.on("zoomend", zoomEndHandler);
+  // zoomEndHandler();
   return () => {
     map.remove();
   };

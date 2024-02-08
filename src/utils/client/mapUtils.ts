@@ -24,6 +24,8 @@ export const colors = [
   "6279bd",
 ];
 
+export const unmappedColor = "#ff0000";
+
 export const markerRadius = 4;
 export const markerWeight = 2;
 export const selectedMarkerRadius = 8;
@@ -59,7 +61,9 @@ export const setupPopups = (map: Map): void => {
       const button =
         // @ts-ignore not ideal but unfortunately not other way to get the button
         e.popup._source._popup._contentNode.querySelector(".marker-button");
-      button.addEventListener("click", lastListener);
+      if (button) {
+        button.addEventListener("click", lastListener);
+      }
     }
   });
 
@@ -69,7 +73,9 @@ export const setupPopups = (map: Map): void => {
       const button =
         // @ts-ignore
         e.popup._source._popup._contentNode.querySelector(".marker-button");
-      button.removeEventListener("click", lastListener);
+      if (button) {
+        button.removeEventListener("click", lastListener);
+      }
     }
     resetCenteredMarker();
   });
@@ -249,9 +255,13 @@ export const createCityLayers = ({
   > = {};
   const schoolColors: Record<string, string> = {};
   const addressLayerGroups: Record<string, AddressLayerGroup> = {};
+  const unmappedLayerGroup: AddressLayerGroup = L.layerGroup();
+  if (showDebugInfo) {
+    layerGroupsForControl["Zbývající adresní místa"] = unmappedLayerGroup;
+  }
 
   municipalities.forEach((municipality) => {
-    let layerGroup: AddressLayerGroup = L.layerGroup();
+    const layerGroup: AddressLayerGroup = L.layerGroup();
     layerGroupsForControl[municipality.municipalityName] = layerGroup;
     municipalityLayerGroups.push(layerGroup);
     addressesLayerGroup.addLayer(layerGroup);
@@ -287,19 +297,35 @@ export const createCityLayers = ({
 
       colorIndex++;
     });
+
+    if (showDebugInfo) {
+      municipality.unmappedPoints.forEach((point) => {
+        markersToCreate[point.address] = {
+          point,
+          schools: [],
+        };
+      });
+    }
   });
 
   Object.values(markersToCreate).forEach(({ point, schools }) => {
-    const colors = schools.map((school) => schoolColors[school.izo]);
+    const colors =
+      schools.length === 0
+        ? [unmappedColor]
+        : schools.map((school) => schoolColors[school.izo]);
     const newMarkers = createAddressMarker(
       point,
       colors,
       schools.map((s) => markers[s.name]) as SchoolMarker[],
-      showDebugInfo,
+      showDebugInfo && schools.length > 0,
       lines
     );
     newMarkers.forEach((marker) => {
-      addressLayerGroups[schools[0].izo].addLayer(marker);
+      if (schools.length === 0) {
+        unmappedLayerGroup.addLayer(marker);
+      } else {
+        addressLayerGroups[schools[0].izo].addLayer(marker);
+      }
       markers[point.address] = marker;
       bounds.extend(marker.getLatLng());
     });
@@ -360,9 +386,15 @@ const createAddressMarker = (
               .join("<br>")}</em>`
           : ""
       }
-      <div class="text-center mt-2"><button class="border rounded px-2 py-1 text-xs bg-emerald-500 border-emerald-500 text-white hover:bg-emerald-600 hover:border-emerald-700 marker-button">
-        Zobrazit spádovou školu    
-      </button></div>
+
+      ${
+        schoolMarkers.length > 0
+          ? `
+            <div class="text-center mt-2"><button class="border rounded px-2 py-1 text-xs bg-emerald-500 border-emerald-500 text-white hover:bg-emerald-600 hover:border-emerald-700 marker-button">
+              Zobrazit spádovou školu    
+            </button></div>`
+          : "<br><br><em>Adresní místo bez spádové školy</em>"
+      }
     </div>`),
       { marker: marker }
     );

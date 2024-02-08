@@ -23,7 +23,7 @@ const InnerMap = memo(
           true
         );
       }
-    }, [municipalities, mapRef]);
+    }, [municipalities, text, mapRef]);
 
     return (
       <>
