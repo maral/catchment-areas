@@ -5,15 +5,23 @@ import { Municipality } from "text-to-map";
 
 interface InnerMapProps {
   municipalities: Municipality[];
+  text: string;
 }
 
 const InnerMap = memo(
-  ({ municipalities }: InnerMapProps) => {
+  ({ municipalities, text }: InnerMapProps) => {
     const mapRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
       if (mapRef.current) {
-        createMap(mapRef.current, municipalities, undefined, undefined, true);
+        createMap(
+          mapRef.current,
+          municipalities,
+          text,
+          undefined,
+          undefined,
+          true
+        );
       }
     }, [municipalities, mapRef]);
 

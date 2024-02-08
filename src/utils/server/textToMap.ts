@@ -123,21 +123,45 @@ export async function getOrCreateMunicipalitiesByCityCodes(
   return municipalitiesByCityCodes;
 }
 
+export async function getStreetMarkdownSourceText(
+  founderId: number,
+  ordinanceId?: number
+): Promise<string | null> {
+  return await api.withRemult(async () => {
+    const founder = await remult.repo(Founder).findId(founderId);
+    if (!founder) {
+      return null;
+    }
+    const ordinance = await _getOrdinance(founder, ordinanceId);
+    if (!ordinance) {
+      return null;
+    }
+    const streetMarkdown = await remult
+      .repo(StreetMarkdown)
+      .findFirst({ ordinance }, { orderBy: { id: "desc" } });
+    return streetMarkdown.sourceText ?? null;
+  });
+}
+
+async function _getOrdinance(
+  founder: Founder,
+  ordinanceId?: number
+): Promise<Ordinance | null> {
+  if (ordinanceId) {
+    return await remult.repo(Ordinance).findId(ordinanceId);
+  } else {
+    return await remult
+      .repo(Ordinance)
+      .findFirst({ founder }, { where: { isActive: true } });
+  }
+}
+
 export async function getOrCreateMunicipalities(
   founder: Founder,
   ordinanceId?: number
 ): Promise<Municipality[] | null> {
   return await api.withRemult(async () => {
-    let ordinance: Ordinance;
-
-    // get latest ordinance or specified ordinance
-    if (ordinanceId) {
-      ordinance = await remult.repo(Ordinance).findId(ordinanceId);
-    } else {
-      ordinance = await remult
-        .repo(Ordinance)
-        .findFirst({ founder }, { where: { isActive: true } });
-    }
+    const ordinance = await _getOrdinance(founder, ordinanceId);
     if (!ordinance) {
       return null;
     }

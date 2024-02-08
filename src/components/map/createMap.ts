@@ -13,6 +13,7 @@ let map: LeafletMap;
 export const createMap = (
   element: HTMLElement,
   municipalities: Municipality[],
+  text: string,
   center?: [number, number],
   zoom?: number,
   showControls: boolean = true
@@ -37,7 +38,7 @@ export const createMap = (
     layerGroupsForControl,
     schoolsLayerGroup,
     bounds,
-  } = createCityLayers(municipalities);
+  } = createCityLayers({ municipalities, showDebugInfo: true, lines: text.split("\n") });
 
   schoolsLayerGroup.addTo(map);
   layerGroupsForControl[texts.schools] = schoolsLayerGroup;

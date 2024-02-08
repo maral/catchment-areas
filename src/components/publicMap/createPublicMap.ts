@@ -224,10 +224,10 @@ const loadNewCities = async (
 
   if (result) {
     for (let id in result) {
-      const { addressesLayerGroup, schoolsLayerGroup } = createCityLayers(
-        result[id],
-        id
-      );
+      const { addressesLayerGroup, schoolsLayerGroup } = createCityLayers({
+        municipalities: result[id],
+        cityCode: id,
+      });
       loadedCities[id] = {
         city: citiesMap[id],
         addressesLayerGroup,

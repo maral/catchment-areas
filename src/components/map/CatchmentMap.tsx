@@ -7,9 +7,10 @@ import { Municipality } from "text-to-map";
 
 export interface CatchmentMapProps {
   municipalities: Municipality[];
+  text: string;
 }
 
-export default function CatchmentMap({ municipalities }: CatchmentMapProps) {
+export default function CatchmentMap({ municipalities, text }: CatchmentMapProps) {
   const Map = useMemo(
     () =>
       dynamic(() => import("@/components/map/InnerMap"), {
@@ -22,6 +23,7 @@ export default function CatchmentMap({ municipalities }: CatchmentMapProps) {
   return (
     <Map
       municipalities={municipalities}
+      text={text}
     />
   );
 }

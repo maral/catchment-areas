@@ -1,5 +1,8 @@
 import CatchmentMap from "@/components/map/CatchmentMap";
-import { getOrCreateMunicipalitiesByFounderId } from "@/utils/server/textToMap";
+import {
+  getOrCreateMunicipalitiesByFounderId,
+  getStreetMarkdownSourceText,
+} from "@/utils/server/textToMap";
 import { notFound } from "next/navigation";
 
 export default async function MapPage({
@@ -7,16 +10,21 @@ export default async function MapPage({
 }: {
   params: { id: string; optionalOrdinanceId?: string[] };
 }) {
-  const municipalities = await getOrCreateMunicipalitiesByFounderId(
-    Number(id),
+  const founderId = Number(id);
+  const ordinanceId =
     optionalOrdinanceId && optionalOrdinanceId.length > 0
       ? Number(optionalOrdinanceId[0])
-      : undefined
+      : undefined;
+  const municipalities = await getOrCreateMunicipalitiesByFounderId(
+    founderId,
+    ordinanceId
   );
 
-  if (municipalities === null) {
+  const smdText = await getStreetMarkdownSourceText(founderId, ordinanceId);
+
+  if (municipalities === null || smdText === null) {
     notFound();
   }
 
-  return <CatchmentMap municipalities={municipalities} />;
+  return <CatchmentMap municipalities={municipalities} text={smdText} />;
 }

@@ -213,10 +213,17 @@ export const loadMunicipalitiesByCityCodes = async (
 
 const markers: MarkerMap = {};
 
-export const createCityLayers = (
-  municipalities: Municipality[],
-  cityCode?: string
-): {
+export const createCityLayers = ({
+  municipalities,
+  cityCode,
+  lines,
+  showDebugInfo = false,
+}: {
+  municipalities: Municipality[];
+  lines?: string[];
+  showDebugInfo?: boolean;
+  cityCode?: string;
+}): {
   bounds: LatLngBounds;
   addressesLayerGroup: AddressLayerGroup;
   schoolsLayerGroup: SchoolLayerGroup;
@@ -267,6 +274,9 @@ export const createCityLayers = (
 
         if (point.address in markersToCreate) {
           markersToCreate[point.address].schools.push(school);
+          markersToCreate[point.address].point.lineNumbers?.push(
+            ...(point.lineNumbers ?? [])
+          );
         } else {
           markersToCreate[point.address] = {
             point,
@@ -284,7 +294,9 @@ export const createCityLayers = (
     const newMarkers = createAddressMarker(
       point,
       colors,
-      schools.map((s) => markers[s.name]) as SchoolMarker[]
+      schools.map((s) => markers[s.name]) as SchoolMarker[],
+      showDebugInfo,
+      lines
     );
     newMarkers.forEach((marker) => {
       addressLayerGroups[schools[0].izo].addLayer(marker);
@@ -330,7 +342,9 @@ const createSchoolMarker = (school: School, color: string) => {
 const createAddressMarker = (
   point: ExportAddressPoint,
   colors: string[],
-  schoolMarkers: SchoolMarker[]
+  schoolMarkers: SchoolMarker[],
+  showDebugInfo: boolean,
+  lines?: string[]
 ) => {
   const markers = createMarkerByColorCount(point, colors);
   markers.forEach((marker) => {
@@ -338,6 +352,14 @@ const createAddressMarker = (
       L.popup().setContent(`
     <div>
       ${point.address}
+
+      ${
+        showDebugInfo
+          ? `<br><br><em>${point.lineNumbers
+              ?.map((line) => `řádek ${line + 1}: ${lines?.[line]}`)
+              .join("<br>")}</em>`
+          : ""
+      }
       <div class="text-center mt-2"><button class="border rounded px-2 py-1 text-xs bg-emerald-500 border-emerald-500 text-white hover:bg-emerald-600 hover:border-emerald-700 marker-button">
         Zobrazit spádovou školu    
       </button></div>
