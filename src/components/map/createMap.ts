@@ -43,7 +43,7 @@ export const createMap = (
     lines: text.split("\n"),
   });
 
-  schoolsLayerGroup.addTo(map);
+  // schoolsLayerGroup.addTo(map);
   layerGroupsForControl[texts.schools] = schoolsLayerGroup;
 
   setupPopups(map);
@@ -59,9 +59,11 @@ export const createMap = (
 
   if (Object.keys(layerGroupsForControl).length > 1 && showControls) {
     L.control.layers(undefined, layerGroupsForControl).addTo(map);
-  } else if (municipalities.length === 1) {
   }
-  map.addLayer(municipalityLayerGroups[0]);
+
+  Object.values(layerGroupsForControl).forEach((layerGroup) => {
+    map.addLayer(layerGroup);
+  });
 
   // const zoomEndHandler = createZoomEndHandler(map, municipalityLayerGroups);
   // map.on("zoomend", zoomEndHandler);
