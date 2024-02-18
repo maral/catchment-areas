@@ -2,6 +2,7 @@ import { Allow, Entity, EntityBase, Field, Fields } from "remult";
 import { Founder } from "./Founder";
 import { OrdinanceMetadata } from "./OrdinanceMetadata";
 import { Municipality } from "text-to-map";
+import { FeatureCollection } from "@turf/helpers";
 
 @Entity("ordinances", {
   allowApiCrud: Allow.authenticated,
@@ -34,4 +35,7 @@ export class Ordinance extends EntityBase {
 
   @Fields.json({ dbName: "json_data", allowNull: true })
   jsonData!: Municipality[] | null;
+
+  @Fields.json({ dbName: "polygons", allowNull: true })
+  polygons!: FeatureCollection[] | null;
 }

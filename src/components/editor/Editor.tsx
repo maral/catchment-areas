@@ -106,6 +106,7 @@ export default function Editor({
           await ordinanceRepo.update(ordinance.id, {
             ...ordinance,
             jsonData: null,
+            polygons: null,
           });
           setIsSaving(false);
         };

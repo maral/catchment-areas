@@ -17,17 +17,15 @@ export class StreetMarkdownController {
       return null;
     }
 
-    await ordinanceRepo.update(ordinance.id, { ...ordinance, jsonData: undefined });
+    await ordinanceRepo.update(ordinance.id, { ...ordinance, jsonData: null });
 
-    return (
-      await streetMarkdownRepo.insert({
-        sourceText: text,
-        ordinance,
-        state: StreetMarkdownState.AutoSave,
-        user: await userRepo.findId(remult.user.id),
-        comment: StreetMarkdown.getAutosaveComment(),
-        createdAt: new Date(),
-      })
-    );
+    return await streetMarkdownRepo.insert({
+      sourceText: text,
+      ordinance,
+      state: StreetMarkdownState.AutoSave,
+      user: await userRepo.findId(remult.user.id),
+      comment: StreetMarkdown.getAutosaveComment(),
+      createdAt: new Date(),
+    });
   }
 }

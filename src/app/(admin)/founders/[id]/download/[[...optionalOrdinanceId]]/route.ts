@@ -1,7 +1,7 @@
 import { api } from "@/app/api/[...remult]/api";
 import { Founder } from "@/entities/Founder";
 import {
-  getOrCreateMunicipalities,
+  getOrCreateDataForMap,
 } from "@/utils/server/textToMap";
 import { NextRequest, NextResponse } from "next/server";
 import { remult } from "remult";
@@ -17,7 +17,7 @@ export async function GET(
     remult.repo(Founder).findId(Number(id))
   );
 
-  const municipalities = await getOrCreateMunicipalities(
+  const municipalities = await getOrCreateDataForMap(
     founder,
     optionalOrdinanceId.length > 0 ? Number(optionalOrdinanceId[0]) : undefined
   );

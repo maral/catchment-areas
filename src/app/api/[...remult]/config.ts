@@ -59,7 +59,9 @@ export function getRemultOptions(
       ],
       dataProvider: createKnexDataProvider({
         client: "mysql",
-        // pool: {
+        pool: {
+          idleTimeoutMillis: 120000,
+        },
         //   min: 0,
         //   max: 10,
         //   afterCreate: (conn: any, done: any) => {

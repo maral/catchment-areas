@@ -68,7 +68,8 @@ export default function Navbar({ className }: { className?: string }) {
               src="/logo_npi_svg_full.svg"
               alt="Logo NPI"
               width={200}
-              height={200}
+              height={29}
+              priority={true}
             />
           </Link>
         </div>

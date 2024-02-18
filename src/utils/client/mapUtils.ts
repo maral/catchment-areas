@@ -3,7 +3,7 @@ import {
   AddressesLayerGroup,
   MarkerMap,
   MarkerWithSchools,
-  MunicipalitiesByCityCodes,
+  DataForMapByCityCodes,
   PopupWithMarker,
   SchoolLayerGroup,
   SchoolMarker,
@@ -197,7 +197,7 @@ const flip = ([x, y]: [number, number]): [number, number] => {
 
 export const loadMunicipalitiesByCityCodes = async (
   cityCodes: number[]
-): Promise<MunicipalitiesByCityCodes | null> => {
+): Promise<DataForMapByCityCodes | null> => {
   const response = await fetch("/api/map/municipalities", {
     method: "POST",
     headers: {
@@ -208,7 +208,7 @@ export const loadMunicipalitiesByCityCodes = async (
 
   if (response.ok) {
     const { municipalitiesByCityCodes } = (await response.json()) as {
-      municipalitiesByCityCodes: MunicipalitiesByCityCodes;
+      municipalitiesByCityCodes: DataForMapByCityCodes;
     };
     return municipalitiesByCityCodes;
   } else {

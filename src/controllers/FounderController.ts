@@ -1,6 +1,6 @@
 import { Founder, FounderStatus } from "@/entities/Founder";
 import { SchoolFounder } from "@/entities/SchoolFounder";
-import { BackendMethod, dbNamesOf, remult } from "remult";
+import { BackendMethod, dbNamesOf } from "remult";
 import { KnexDataProvider } from "remult/remult-knex";
 
 export class FounderController {

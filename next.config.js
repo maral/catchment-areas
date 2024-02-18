@@ -7,6 +7,9 @@ const nextConfig = {
   experimental: {
     serverComponentsExternalPackages: ["knex", "fs"],
   },
+  compiler: {
+    styledComponents: true,
+  },
 };
 
 module.exports = withBundleAnalyzer(nextConfig);

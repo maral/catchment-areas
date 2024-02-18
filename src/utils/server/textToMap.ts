@@ -1,17 +1,18 @@
 import { api } from "@/app/api/[...remult]/api";
+import { City } from "@/entities/City";
 import { Founder } from "@/entities/Founder";
 import { Ordinance } from "@/entities/Ordinance";
 import { StreetMarkdown } from "@/entities/StreetMarkdown";
+import { DataForMap, DataForMapByCityCodes } from "@/types/mapTypes";
 import { remult } from "remult";
 import {
   ErrorCallbackParams,
   Municipality,
   getNewMunicipalityByFounderId,
+  municipalityToPolygons,
   parseOrdinanceToAddressPoints,
 } from "text-to-map";
 import { TextToMapError } from "../shared/types";
-import { City } from "@/entities/City";
-import { MunicipalitiesByCityCodes } from "@/types/mapTypes";
 
 export async function validateStreetMarkdown(
   lines: string[],
@@ -59,6 +60,9 @@ export async function parseStreetMarkdown(
   );
 
   if (currentMunicipality.errors.length > 0) {
+    console.log(
+      `Could not find municipality's founder with ID = '${ordinance.founder.id}'.`
+    );
     return null;
   }
 
@@ -71,25 +75,26 @@ export async function parseStreetMarkdown(
   });
 }
 
-export async function getOrCreateMunicipalitiesByFounderId(
+export async function getOrCreateDataForMapByFounderId(
   founderId: number,
   ordinanceId?: number
-): Promise<Municipality[] | null> {
+): Promise<DataForMap | null> {
   const founder = await api.withRemult(async () => {
     return await remult.repo(Founder).findId(founderId);
   });
 
   if (!founder) {
+    console.log(`Could not find founder with ID = '${founderId}'.`);
     return null;
   }
 
-  return await getOrCreateMunicipalities(founder, ordinanceId);
+  return await getOrCreateDataForMap(founder, ordinanceId);
 }
 
-export async function getOrCreateMunicipalitiesByCityCodes(
+export async function getOrCreateDataForMapByCityCodes(
   cityCodes: number[],
   ordinanceId?: number
-): Promise<MunicipalitiesByCityCodes | null> {
+): Promise<DataForMapByCityCodes | null> {
   const founders = await api.withRemult(async () => {
     const cities = await remult.repo(City).find({
       where: { code: { $in: cityCodes.map((code) => Number(code)) } },
@@ -104,18 +109,20 @@ export async function getOrCreateMunicipalitiesByCityCodes(
     return {};
   }
 
-  const municipalitiesByCityCodes: MunicipalitiesByCityCodes = {};
+  const municipalitiesByCityCodes: DataForMapByCityCodes = {};
 
   for (const founder of founders) {
-    const municipalities = await getOrCreateMunicipalities(
-      founder,
-      ordinanceId
-    );
-    if (municipalities) {
+    const data = await getOrCreateDataForMap(founder, ordinanceId);
+    if (data) {
       if (founder.city.code in municipalitiesByCityCodes) {
-        municipalitiesByCityCodes[founder.city.code].push(...municipalities);
+        municipalitiesByCityCodes[founder.city.code].municipalities.push(
+          ...data.municipalities
+        );
+        municipalitiesByCityCodes[founder.city.code].polygons.push(
+          ...data.polygons
+        );
       } else {
-        municipalitiesByCityCodes[founder.city.code] = municipalities;
+        municipalitiesByCityCodes[founder.city.code] = data;
       }
     }
   }
@@ -156,26 +163,32 @@ async function _getOrdinance(
   }
 }
 
-export async function getOrCreateMunicipalities(
+export async function getOrCreateDataForMap(
   founder: Founder,
   ordinanceId?: number
-): Promise<Municipality[] | null> {
+): Promise<DataForMap | null> {
   return await api.withRemult(async () => {
     const ordinance = await _getOrdinance(founder, ordinanceId);
     if (!ordinance) {
+      console.log(`Could not find ordinance with ID = '${ordinanceId}'.`);
       return null;
     }
 
+    let municipalities = ordinance.jsonData;
+    let polygons = ordinance.polygons;
     // get municipalities JSON or parse latest street markdown
-    if (!ordinance.jsonData) {
+    if (!municipalities || municipalities.length === 0) {
       const streetMarkdown = await remult
         .repo(StreetMarkdown)
         .findFirst({ ordinance }, { orderBy: { id: "desc" } });
-      const municipalities = await parseStreetMarkdown(
+      municipalities = await parseStreetMarkdown(
         ordinance,
         streetMarkdown.sourceText
       );
-      if (!municipalities) {
+      if (!municipalities || municipalities.length === 0) {
+        console.log(
+          `No municipalities found for founder.id = '${founder.id}' and ordinance.id = '${ordinance.id}'.`
+        );
         return null;
       }
 
@@ -183,9 +196,26 @@ export async function getOrCreateMunicipalities(
         ...ordinance,
         jsonData: municipalities,
       });
-      return municipalities;
-    } else {
-      return ordinance.jsonData;
     }
+
+    if (!polygons) {
+      polygons = [];
+      for (const municipality of municipalities) {
+        polygons.push(await municipalityToPolygons(municipality));
+      }
+      if (!polygons || polygons.length === 0) {
+        console.log(
+          `Could not retrieve any polygons for founder.id = '${ordinanceId}' and ordinance.id = '${ordinance.id}'.`
+        );
+        return null;
+      }
+
+      await remult.repo(Ordinance).update(ordinance.id, {
+        ...ordinance,
+        polygons,
+      });
+    }
+
+    return { municipalities, polygons };
   });
 }

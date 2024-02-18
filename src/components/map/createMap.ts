@@ -21,6 +21,8 @@ export const createMap = (
     return () => null;
   }
 
+  console.log(municipalities);
+
   map = prepareMap(element, showControls);
 
   L.circle([52, 12], {
@@ -32,16 +34,13 @@ export const createMap = (
     color: "red",
   });
 
-  const {
-    municipalityLayerGroups,
-    layerGroupsForControl,
-    schoolsLayerGroup,
-    bounds,
-  } = createCityLayers({
-    municipalities,
-    showDebugInfo: true,
-    lines: text.split("\n"),
-  });
+  const { layerGroupsForControl, schoolsLayerGroup, bounds } = createCityLayers(
+    {
+      municipalities,
+      showDebugInfo: true,
+      lines: text.split("\n"),
+    }
+  );
 
   // schoolsLayerGroup.addTo(map);
   layerGroupsForControl[texts.schools] = schoolsLayerGroup;
