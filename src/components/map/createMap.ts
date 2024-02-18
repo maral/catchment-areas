@@ -37,7 +37,6 @@ export const createMap = (
     schoolsLayerGroup,
     unmappedLayerGroup,
     polygonLayer,
-    bounds,
   } = createCityLayers({
     data,
     showDebugInfo: true,

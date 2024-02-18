@@ -233,14 +233,12 @@ export const createCityLayers = ({
   showDebugInfo?: boolean;
   cityCode?: string;
 }): {
-  bounds: LatLngBounds;
   addressesLayerGroup: AddressLayerGroup;
   schoolsLayerGroup: SchoolLayerGroup;
   polygonLayer: L.GeoJSON;
   unmappedLayerGroup: AddressLayerGroup;
   municipalityLayerGroups: AddressLayerGroup[];
 } => {
-  const bounds = L.latLngBounds([]);
   const addressesLayerGroup: AddressesLayerGroup = L.layerGroup(undefined, {
     pane: "markerPane",
   });
@@ -258,7 +256,6 @@ export const createCityLayers = ({
 
   createMarkers(
     data,
-    bounds,
     municipalityLayerGroups,
     addressesLayerGroup,
     schoolsLayerGroup,
@@ -268,7 +265,6 @@ export const createCityLayers = ({
   );
 
   return {
-    bounds,
     addressesLayerGroup,
     schoolsLayerGroup,
     polygonLayer,
@@ -311,7 +307,6 @@ const createPolygonLayer = (data: DataForMap) => {
 
 const createMarkers = (
   data: DataForMap,
-  bounds: LatLngBounds,
   municipalityLayerGroups: AddressLayerGroup[],
   addressesLayerGroup: AddressesLayerGroup,
   schoolsLayerGroup: SchoolLayerGroup,
@@ -336,7 +331,6 @@ const createMarkers = (
       const schoolMarker = createSchoolMarker(school, color).addTo(
         schoolsLayerGroup
       );
-      bounds.extend(schoolMarker.getLatLng());
 
       schoolColors[school.izo] = color;
       addressLayerGroupsMap[school.izo] = layerGroup;
@@ -393,7 +387,6 @@ const createMarkers = (
         addressLayerGroupsMap[schools[0].izo].addLayer(marker);
       }
       markers[point.address] = marker;
-      bounds.extend(marker.getLatLng());
     });
   });
 };
