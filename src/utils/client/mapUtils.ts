@@ -207,10 +207,10 @@ export const loadMunicipalitiesByCityCodes = async (
   });
 
   if (response.ok) {
-    const { municipalitiesByCityCodes } = (await response.json()) as {
-      municipalitiesByCityCodes: DataForMapByCityCodes;
+    const { dataForMapByCityCodes } = (await response.json()) as {
+      dataForMapByCityCodes: DataForMapByCityCodes;
     };
-    return municipalitiesByCityCodes;
+    return dataForMapByCityCodes;
   } else {
     console.error("Error while loading municipalities");
     return null;
