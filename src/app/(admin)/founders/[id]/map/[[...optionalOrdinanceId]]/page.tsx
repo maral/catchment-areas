@@ -28,5 +28,5 @@ export default async function MapPage({
     notFound();
   }
 
-  return <CatchmentMap municipalities={data.municipalities} text={smdText} />;
+  return <CatchmentMap data={data} text={smdText} />;
 }

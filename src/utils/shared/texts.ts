@@ -7,6 +7,7 @@ export const texts = {
   addOrdinanceManually: "Přidat vyhlášku ručně",
   addOrdinance: "Přidat vyhlášku",
   addOrdinanceFromCollection: "Přidat vyhlášku ze sbírky právních předpisů",
+  addressPoints: "Adresní místa",
   approvedAt: "Datum schválení",
   author: "Autor",
   cancel: "Zrušit",
@@ -47,7 +48,8 @@ export const texts = {
   name: "Název",
   no: "Ne",
   noData: "Nebyla nalezena žádná data k zobrazení",
-  noDataOrdinanceFromRegister: "Obec {{city}} nemá ve Sbírce právních předpisů nahranou žádnou vyhlášku.",
+  noDataOrdinanceFromRegister:
+    "Obec {{city}} nemá ve Sbírce právních předpisů nahranou žádnou vyhlášku.",
   numberOfSchools: "Počet škol",
   ordinanceDocument: "Dokument vyhlášky",
   ordinanceFile: "Soubor vyhlášky",
@@ -58,13 +60,16 @@ export const texts = {
   originalText: "Původní text",
   orp: "ORP",
   password: "Heslo",
+  polygons: "Oblasti",
   publishedAt: "Datum zveřejnění",
   region: "Kraj",
   regions: "Kraje",
   requiredField: "Toto pole je povinné.",
   requiredFile: "Vyberte prosím soubor.",
-  requiredOrdinanceNumber: "Vyplňte prosím číslo vyhlášky (ve formátu číslo/rok, např. 3/2019).",
-  requiredValidToAfterValidFrom: "Datum konce platnosti musí být později než datum začátku platnosti.",
+  requiredOrdinanceNumber:
+    "Vyplňte prosím číslo vyhlášky (ve formátu číslo/rok, např. 3/2019).",
+  requiredValidToAfterValidFrom:
+    "Datum konce platnosti musí být později než datum začátku platnosti.",
   role: "Role",
   save: "Uložit",
   saved: "Uloženo",
@@ -76,7 +81,7 @@ export const texts = {
   setAsPublished: 'Označit jako "Zveřejněno"',
   shortName: "Zkratka",
   statusInProgress: "Rozpracováno",
-  statusNoActiveOrdinance: 'Bez platné vyhlášky',
+  statusNoActiveOrdinance: "Bez platné vyhlášky",
   statusNoOrdinance: "Bez vyhlášky",
   statusPublished: "Zveřejněno",
   streetEditorLabel: "ulice",
@@ -84,6 +89,7 @@ export const texts = {
   unverified: "Neověřený",
   url: "URL",
   unknownStatus: "Neznámý stav",
+  unmappedAddressPoints: "Neurčená adresní místa",
   user: "Uživatel",
   users: "Uživatelé",
   valid: "Platná",
@@ -94,7 +100,10 @@ export const texts = {
   yes: "Ano",
 };
 
-export const replacePlaceholders = (text: string, placeholders: Record<string, string>) => {
+export const replacePlaceholders = (
+  text: string,
+  placeholders: Record<string, string>
+) => {
   let result = text;
   Object.keys(placeholders).forEach((key) => {
     result = result.replace(`{{${key}}}`, placeholders[key]);

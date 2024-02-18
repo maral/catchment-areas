@@ -1,30 +1,33 @@
 import {
   AddressLayerGroup,
   AddressesLayerGroup,
+  DataForMap,
+  DataForMapByCityCodes,
   MarkerMap,
   MarkerWithSchools,
-  DataForMapByCityCodes,
   PopupWithMarker,
   SchoolLayerGroup,
   SchoolMarker,
   isPopupWithMarker,
 } from "@/types/mapTypes";
 import L, { Circle, LatLngBounds, Map, Polyline, PopupEvent } from "leaflet";
-import { ExportAddressPoint, Municipality, School } from "text-to-map";
+import { ExportAddressPoint, School } from "text-to-map";
+import { texts } from "../shared/texts";
 
 export const colors = [
-  "d33d81",
-  "0ea13b",
-  "0082ad",
-  "f17b5a",
-  "c45a18",
-  "2bc6d9",
-  "c686d0",
-  "81b2e9",
-  "6279bd",
+  "#d33d81",
+  "#0ea13b",
+  "#0082ad",
+  "#f17b5a",
+  "#c45a18",
+  "#2bc6d9",
+  "#c686d0",
+  "#81b2e9",
+  "#6279bd",
 ];
 
-export const unmappedColor = "#ff0000";
+const unmappedMarkerColor = "#ff0000";
+const unmappedPolygonColor = "#888888";
 
 export const markerRadius = 4;
 export const markerWeight = 2;
@@ -220,12 +223,12 @@ export const loadMunicipalitiesByCityCodes = async (
 const markers: MarkerMap = {};
 
 export const createCityLayers = ({
-  municipalities,
+  data,
   cityCode,
   lines,
   showDebugInfo = false,
 }: {
-  municipalities: Municipality[];
+  data: DataForMap;
   lines?: string[];
   showDebugInfo?: boolean;
   cityCode?: string;
@@ -233,13 +236,15 @@ export const createCityLayers = ({
   bounds: LatLngBounds;
   addressesLayerGroup: AddressLayerGroup;
   schoolsLayerGroup: SchoolLayerGroup;
-  layerGroupsForControl: { [key: string]: SchoolLayerGroup };
+  polygonLayer: L.GeoJSON;
+  unmappedLayerGroup: AddressLayerGroup;
   municipalityLayerGroups: AddressLayerGroup[];
 } => {
   const bounds = L.latLngBounds([]);
-  const addressesLayerGroup: AddressesLayerGroup = L.layerGroup();
+  const addressesLayerGroup: AddressesLayerGroup = L.layerGroup(undefined, {
+    pane: "markerPane",
+  });
   const schoolsLayerGroup: SchoolLayerGroup = L.layerGroup();
-  const layerGroupsForControl: { [key: string]: SchoolLayerGroup } = {};
   const municipalityLayerGroups: AddressLayerGroup[] = [];
 
   addressesLayerGroup.cityCode = cityCode;
@@ -247,33 +252,94 @@ export const createCityLayers = ({
   schoolsLayerGroup.cityCode = cityCode;
   schoolsLayerGroup.type = "schools";
 
-  let colorIndex = 0;
+  const unmappedLayerGroup: AddressLayerGroup = L.layerGroup();
 
+  const polygonLayer = createPolygonLayer(data);
+
+  createMarkers(
+    data,
+    bounds,
+    municipalityLayerGroups,
+    addressesLayerGroup,
+    schoolsLayerGroup,
+    unmappedLayerGroup,
+    showDebugInfo,
+    lines
+  );
+
+  return {
+    bounds,
+    addressesLayerGroup,
+    schoolsLayerGroup,
+    polygonLayer,
+    unmappedLayerGroup,
+    municipalityLayerGroups,
+  };
+};
+
+const createPolygonLayer = (data: DataForMap) => {
+  const geoJsonLayer = L.geoJSON(data.polygons, {
+    pane: "overlayPane",
+    style: (feature) => {
+      const color =
+        feature?.properties.colorIndex === -1
+          ? unmappedPolygonColor
+          : colors[feature?.properties.colorIndex % colors.length ?? -1];
+      console.log(color);
+      return feature
+        ? {
+            fillColor:
+              feature?.properties.colorIndex === -1
+                ? unmappedPolygonColor
+                : colors[feature.properties.colorIndex % colors.length],
+            color: "#777",
+            weight: 2,
+            fillOpacity: 0.5,
+          }
+        : {};
+    },
+    onEachFeature: (feature, layer) => {
+      // layer.on({
+      //   click: function (e) {
+      //     geoJsonLayer.removeLayer(layer);
+      //   },
+      // });
+    },
+  });
+  return geoJsonLayer;
+};
+
+const createMarkers = (
+  data: DataForMap,
+  bounds: LatLngBounds,
+  municipalityLayerGroups: AddressLayerGroup[],
+  addressesLayerGroup: AddressesLayerGroup,
+  schoolsLayerGroup: SchoolLayerGroup,
+  unmappedLayerGroup: AddressLayerGroup,
+  showDebugInfo: boolean,
+  lines?: string[]
+) => {
+  let colorIndex = 0;
   const markersToCreate: Record<
     string,
     { point: ExportAddressPoint; schools: School[] }
   > = {};
   const schoolColors: Record<string, string> = {};
-  const addressLayerGroups: Record<string, AddressLayerGroup> = {};
-  const unmappedLayerGroup: AddressLayerGroup = L.layerGroup();
-  if (showDebugInfo) {
-    layerGroupsForControl["Zbývající adresní místa"] = unmappedLayerGroup;
-  }
+  const addressLayerGroupsMap: Record<string, AddressLayerGroup> = {};
 
-  municipalities.forEach((municipality) => {
+  data.municipalities.forEach((municipality) => {
     const layerGroup: AddressLayerGroup = L.layerGroup();
-    layerGroupsForControl[municipality.municipalityName] = layerGroup;
     municipalityLayerGroups.push(layerGroup);
     addressesLayerGroup.addLayer(layerGroup);
     municipality.schools.forEach((school) => {
-      const color = `#${colors[colorIndex % colors.length]}`;
+      const color = colors[colorIndex % colors.length];
       const schoolMarker = createSchoolMarker(school, color).addTo(
         schoolsLayerGroup
       );
       bounds.extend(schoolMarker.getLatLng());
 
       schoolColors[school.izo] = color;
-      addressLayerGroups[school.izo] = layerGroup;
+      addressLayerGroupsMap[school.izo] = layerGroup;
       markers[school.name] = schoolMarker;
 
       // first put the address points' schools together, add them later
@@ -311,7 +377,7 @@ export const createCityLayers = ({
   Object.values(markersToCreate).forEach(({ point, schools }) => {
     const colors =
       schools.length === 0
-        ? [unmappedColor]
+        ? [unmappedMarkerColor]
         : schools.map((school) => schoolColors[school.izo]);
     const newMarkers = createAddressMarker(
       point,
@@ -324,20 +390,12 @@ export const createCityLayers = ({
       if (schools.length === 0) {
         unmappedLayerGroup.addLayer(marker);
       } else {
-        addressLayerGroups[schools[0].izo].addLayer(marker);
+        addressLayerGroupsMap[schools[0].izo].addLayer(marker);
       }
       markers[point.address] = marker;
       bounds.extend(marker.getLatLng());
     });
   });
-
-  return {
-    bounds,
-    addressesLayerGroup,
-    schoolsLayerGroup,
-    layerGroupsForControl,
-    municipalityLayerGroups,
-  };
 };
 
 const defaultPosition = [49.19506, 16.606837];

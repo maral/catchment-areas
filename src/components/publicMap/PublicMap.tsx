@@ -1,7 +1,7 @@
 "use client";
 
 import Spinner from "@/components/common/Spinner";
-import { CityOnMap, DataForMapByCityCodes } from "@/types/mapTypes";
+import { CityOnMap } from "@/types/mapTypes";
 import dynamic from "next/dynamic";
 import { useMemo } from "react";
 

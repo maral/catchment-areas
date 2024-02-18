@@ -4,14 +4,14 @@ import {
   setupPopups,
 } from "@/utils/client/mapUtils";
 import { texts } from "@/utils/shared/texts";
-import L, { Map as LeafletMap } from "leaflet";
-import { Municipality } from "text-to-map";
+import L, { LayerGroup, Map as LeafletMap } from "leaflet";
+import { DataForMap } from "@/types/mapTypes";
 
 let map: LeafletMap;
 
 export const createMap = (
   element: HTMLElement,
-  municipalities: Municipality[],
+  data: DataForMap,
   text: string,
   center?: [number, number],
   zoom?: number,
@@ -20,8 +20,6 @@ export const createMap = (
   if (!element || map) {
     return () => null;
   }
-
-  console.log(municipalities);
 
   map = prepareMap(element, showControls);
 
@@ -34,23 +32,31 @@ export const createMap = (
     color: "red",
   });
 
-  const { layerGroupsForControl, schoolsLayerGroup, bounds } = createCityLayers(
-    {
-      municipalities,
-      showDebugInfo: true,
-      lines: text.split("\n"),
-    }
-  );
+  const {
+    addressesLayerGroup,
+    schoolsLayerGroup,
+    unmappedLayerGroup,
+    polygonLayer,
+    bounds,
+  } = createCityLayers({
+    data,
+    showDebugInfo: true,
+    lines: text.split("\n"),
+  });
 
-  // schoolsLayerGroup.addTo(map);
+  const layerGroupsForControl: Record<string, LayerGroup> = {};
+
   layerGroupsForControl[texts.schools] = schoolsLayerGroup;
+  layerGroupsForControl[texts.polygons] = polygonLayer;
+  layerGroupsForControl[texts.addressPoints] = addressesLayerGroup;
+  layerGroupsForControl[texts.unmappedAddressPoints] = unmappedLayerGroup;
 
   setupPopups(map);
 
   if (center) {
     map.setView(center, zoom ?? 15);
   } else {
-    map.fitBounds(bounds);
+    map.fitBounds(polygonLayer.getBounds());
     if (zoom) {
       map.setZoom(zoom);
     }
@@ -60,13 +66,15 @@ export const createMap = (
     L.control.layers(undefined, layerGroupsForControl).addTo(map);
   }
 
-  Object.values(layerGroupsForControl).forEach((layerGroup) => {
-    map.addLayer(layerGroup);
-  });
+  // Object.values(layerGroupsForControl).forEach((layerGroup) => {
+  //   map.addLayer(layerGroup);
+  // });
 
-  // const zoomEndHandler = createZoomEndHandler(map, municipalityLayerGroups);
-  // map.on("zoomend", zoomEndHandler);
-  // zoomEndHandler();
+  map.addLayer(polygonLayer);
+  map.addLayer(addressesLayerGroup);
+  map.addLayer(schoolsLayerGroup);
+  map.addLayer(unmappedLayerGroup);
+
   return () => {
     map.remove();
   };

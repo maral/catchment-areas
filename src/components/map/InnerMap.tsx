@@ -2,39 +2,28 @@ import "leaflet/dist/leaflet.css";
 import { memo, useEffect, useRef } from "react";
 import { createMap } from "@/components/map/createMap";
 import { Municipality } from "text-to-map";
+import { DataForMap } from "@/types/mapTypes";
 
 interface InnerMapProps {
-  municipalities: Municipality[];
+  data: DataForMap;
   text: string;
 }
 
-const InnerMap = memo(
-  ({ municipalities, text }: InnerMapProps) => {
-    const mapRef = useRef<HTMLDivElement>(null);
+const InnerMap = ({ data, text }: InnerMapProps) => {
+  const mapRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
-      if (mapRef.current) {
-        createMap(
-          mapRef.current,
-          municipalities,
-          text,
-          undefined,
-          undefined,
-          true
-        );
-      }
-    }, [municipalities, text, mapRef]);
+  useEffect(() => {
+    if (mapRef.current) {
+      createMap(mapRef.current, data, text, undefined, undefined, true);
+    }
+  }, [data, text, mapRef]);
 
-    return (
-      <>
-        <div ref={mapRef} className="h-[calc(100vh-8rem)]" />
-      </>
-    );
-  },
-  (prevProps: InnerMapProps, nextProps: InnerMapProps) => {
-    return prevProps.municipalities === nextProps.municipalities;
-  }
-);
+  return (
+    <>
+      <div ref={mapRef} className="h-[calc(100vh-8rem)]" />
+    </>
+  );
+};
 
 InnerMap.displayName = "InnerMap";
 
