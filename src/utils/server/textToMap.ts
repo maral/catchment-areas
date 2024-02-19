@@ -212,6 +212,7 @@ export async function getOrCreateDataForMap(
 
       await remult.repo(Ordinance).update(ordinance.id, {
         ...ordinance,
+        jsonData: municipalities,
         polygons,
       });
     }
