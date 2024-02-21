@@ -1,5 +1,12 @@
 import { FeatureCollection } from "@turf/helpers";
-import { Circle, LayerGroup, Marker, Popup } from "leaflet";
+import {
+  Circle,
+  LayerGroup,
+  Marker,
+  Popup,
+  GeoJSON,
+  FeatureGroup,
+} from "leaflet";
 import { Municipality } from "text-to-map";
 
 export type SchoolMarker = Circle;
@@ -22,7 +29,7 @@ export type AddressesLayerGroup = LayerGroup & {
   cityCode?: string;
   type?: string;
 };
-export type SchoolLayerGroup = LayerGroup<MarkerWithSchools | Circle> & {
+export type SchoolLayerGroup = FeatureGroup<MarkerWithSchools | Circle> & {
   cityCode?: string;
   type?: string;
 };
@@ -42,10 +49,11 @@ export type DataForMap = {
 
 export type DataForMapByCityCodes = Record<number, DataForMap>;
 
-export interface LoadedCitiesData {
-  [code: number]: {
-    city: CityOnMap;
-    addressesLayerGroup: AddressLayerGroup;
-    schoolsLayerGroup: SchoolLayerGroup;
-  };
+export type LoadedCitiesData = Record<number, CityData>;
+
+export interface CityData {
+  city: CityOnMap;
+  addressesLayerGroup: AddressLayerGroup;
+  schoolsLayerGroup: SchoolLayerGroup;
+  polygonLayer: GeoJSON;
 }

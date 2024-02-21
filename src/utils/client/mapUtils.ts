@@ -298,7 +298,7 @@ export const createCityLayers = ({
   const addressesLayerGroup: AddressesLayerGroup = L.layerGroup(undefined, {
     pane: "markerPane",
   });
-  const schoolsLayerGroup: SchoolLayerGroup = L.layerGroup();
+  const schoolsLayerGroup: SchoolLayerGroup = L.featureGroup();
   const municipalityLayerGroups: AddressLayerGroup[] = [];
   const schoolMarkers: SchoolMarkerMap = {};
 

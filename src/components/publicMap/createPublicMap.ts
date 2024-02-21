@@ -67,6 +67,7 @@ const addCityMarker = (city: CityOnMap, bounds: L.LatLngBounds) => {
 const minZoomForLoadingCities = 11;
 const minZoomForAddressPoints = 13;
 const loadedCities: LoadedCitiesData = {};
+const loadingCities = new Set<number>();
 const citiesWithShownSchools = new Set<number>();
 const citiesWithShownAddresses = new Set<number>();
 
@@ -86,85 +87,89 @@ const createPublicMoveAndZoomEndHandler = (
 
       // show schools of cities in viewport
       publishedCitiesInViewport.forEach((city) => {
-        if (!citiesWithShownSchools.has(city.code)) {
-          const loadedCity = loadedCities[city.code];
-          if (loadedCity) {
-            citiesWithShownSchools.add(city.code);
-            map.addLayer(loadedCity.schoolsLayerGroup);
-          }
-        }
+        showSchools(city.code);
       });
 
       // hide schools of cities not in viewport
-      Array.from(citiesWithShownSchools).forEach((code) => {
+      citiesWithShownSchools.forEach((code) => {
         if (!publishedCitiesInViewport.find((c) => c.code === code)) {
-          const loadedCity = loadedCities[code];
-          if (loadedCity) {
-            map.removeLayer(loadedCity.schoolsLayerGroup);
-            citiesWithShownSchools.delete(code);
-          }
+          hideSchools(code);
         }
       });
 
       if (map.getZoom() >= minZoomForAddressPoints) {
         // show addresses of cities in viewport
         publishedCitiesInViewport.forEach((city) => {
-          if (!citiesWithShownAddresses.has(city.code)) {
-            const loadedCity = loadedCities[city.code];
-            if (loadedCity) {
-              citiesWithShownAddresses.add(city.code);
-              map.addLayer(loadedCity.addressesLayerGroup);
-            }
-          }
+          showAddresses(city.code);
         });
 
         // hide addresses of cities not in viewport
-        Array.from(citiesWithShownAddresses).forEach((code) => {
+        citiesWithShownAddresses.forEach((code) => {
           if (!publishedCitiesInViewport.find((c) => c.code === code)) {
-            const loadedCity = loadedCities[code];
-            if (loadedCity) {
-              map.removeLayer(loadedCity.addressesLayerGroup);
-              citiesWithShownAddresses.delete(code);
-            }
+            hideAddresses(code);
           }
         });
       }
     } else {
       // hide all schools
-      Array.from(citiesWithShownSchools).forEach((code) => {
-        const loadedCity = loadedCities[code];
-        if (loadedCity) {
-          map.removeLayer(loadedCity.schoolsLayerGroup);
-          citiesWithShownSchools.delete(code);
-        }
+      citiesWithShownSchools.forEach((code) => {
+        hideSchools(code);
       });
     }
 
     if (map.getZoom() < minZoomForAddressPoints) {
       // hide all addresses
-      Array.from(citiesWithShownAddresses).forEach((code) => {
-        const loadedCity = loadedCities[code];
-        if (loadedCity) {
-          map.removeLayer(loadedCity.addressesLayerGroup);
-          citiesWithShownAddresses.delete(code);
-        }
+      citiesWithShownAddresses.forEach((code) => {
+        hideAddresses(code);
       });
     }
 
-    // sometimes a layer is not removed, so we remove it manually
-    map.eachLayer((layer: any) => {
-      if (layer.cityCode) {
-        if (
-          (layer.type === "addresses" &&
-            !citiesWithShownAddresses.has(Number(layer.cityCode))) ||
-          (layer.type === "schools" &&
-            !citiesWithShownSchools.has(Number(layer.cityCode)))
-        ) {
-          map.removeLayer(layer);
-        }
-      }
-    });
+    // // sometimes a layer is not removed, so we remove it manually
+    // map.eachLayer((layer: any) => {
+    //   if (layer.cityCode) {
+    //     if (
+    //       (layer.type === "addresses" &&
+    //         !citiesWithShownAddresses.has(Number(layer.cityCode))) ||
+    //       (layer.type === "schools" &&
+    //         !citiesWithShownSchools.has(Number(layer.cityCode)))
+    //     ) {
+    //       map.removeLayer(layer);
+    //     }
+    //   }
+    // });
   }, 300);
+};
+
+const hideAddresses = (code: number) => {
+  if (loadedCities[code]) {
+    map.removeLayer(loadedCities[code].polygonLayer);
+    map.removeLayer(loadedCities[code].addressesLayerGroup);
+    citiesWithShownAddresses.delete(code);
+  }
+};
+
+const showAddresses = (code: number) => {
+  if (!citiesWithShownAddresses.has(code) && loadedCities[code]) {
+    citiesWithShownAddresses.add(code);
+    map.addLayer(loadedCities[code].polygonLayer);
+    map.addLayer(loadedCities[code].addressesLayerGroup);
+    console.log(loadedCities[code].schoolsLayerGroup);
+    loadedCities[code].schoolsLayerGroup.bringToFront();
+  }
+};
+
+const showSchools = (code: number) => {
+  if (!citiesWithShownSchools.has(code) && loadedCities[code]) {
+    citiesWithShownSchools.add(code);
+    map.addLayer(loadedCities[code].schoolsLayerGroup);
+  }
+};
+
+const hideSchools = (code: number) => {
+  if (loadedCities[code]) {
+    map.removeLayer(loadedCities[code].schoolsLayerGroup);
+    citiesWithShownSchools.delete(code);
+  }
 };
 
 // The rectangle size
@@ -215,8 +220,14 @@ const loadNewCities = async (
   citiesMap: Record<string, CityOnMap>
 ) => {
   const newCities = publishedCitiesInViewport.filter(
-    (c) => !(c.code in loadedCities)
+    (c) => !loadingCities.has(c.code)
   );
+
+  if (newCities.length === 0) {
+    return;
+  }
+
+  newCities.forEach((c) => loadingCities.add(c.code));
 
   const result = await loadMunicipalitiesByCityCodes(
     newCities.map((c) => c.code)
@@ -224,14 +235,16 @@ const loadNewCities = async (
 
   if (result) {
     for (let id in result) {
-      const { addressesLayerGroup, schoolsLayerGroup } = createCityLayers({
-        data: result[id],
-        cityCode: id,
-      });
+      const { addressesLayerGroup, schoolsLayerGroup, polygonLayer } =
+        createCityLayers({
+          data: result[id],
+          cityCode: id,
+        });
       loadedCities[id] = {
         city: citiesMap[id],
         addressesLayerGroup,
         schoolsLayerGroup,
+        polygonLayer,
       };
     }
   }
