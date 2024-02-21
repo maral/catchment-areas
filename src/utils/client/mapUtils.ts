@@ -10,9 +10,9 @@ import {
   SchoolMarker,
   isPopupWithMarker,
 } from "@/types/mapTypes";
-import L, { Circle, LatLngBounds, Map, Polyline, PopupEvent } from "leaflet";
+import booleanPointInPolygon from "@turf/boolean-point-in-polygon";
+import L, { Circle, Map, Polyline, PopupEvent } from "leaflet";
 import { ExportAddressPoint, School } from "text-to-map";
-import { texts } from "../shared/texts";
 
 export const colors = [
   "#d33d81",
@@ -56,6 +56,7 @@ let lastListener: () => void;
 
 export const setupPopups = (map: Map): void => {
   map.on("popupopen", function (e: PopupEvent) {
+    resetCenteredMarker();
     const popup = e.popup;
     if (isPopupWithMarker(popup)) {
       lastListener = () => {
@@ -80,6 +81,10 @@ export const setupPopups = (map: Map): void => {
         button.removeEventListener("click", lastListener);
       }
     }
+    resetCenteredMarker();
+  });
+
+  map.on("click", function () {
     resetCenteredMarker();
   });
 };
@@ -117,6 +122,7 @@ export const resetCenteredMarker = () => {
     polylines.forEach((p) => p.remove());
   }
   selectedSchools.forEach((school) => {
+    school.setStyle({ color: school.options.fillColor });
     const tooltip = school.getTooltip()!;
     school.unbindTooltip();
     tooltip.options.permanent = false;
@@ -125,37 +131,49 @@ export const resetCenteredMarker = () => {
   selectedSchools = [];
 };
 
-export const centerLeafletMapOnMarker = (
+const centerLeafletMapOnMarker = (map: Map, marker: MarkerWithSchools) => {
+  map.once("moveend", function () {
+    selectMarker(marker);
+  });
+  _centerLeafletMapOnPoint(map, marker.getLatLng(), marker.schools);
+};
+
+const centerLeafletMapOnPoint = (
   map: Map,
-  marker: MarkerWithSchools
+  point: L.LatLng,
+  schools: L.Circle[] | undefined
 ) => {
-  if (map === null || !marker.schools) {
+  _centerLeafletMapOnPoint(map, point, schools);
+};
+
+const _centerLeafletMapOnPoint = (
+  map: Map,
+  point: L.LatLng,
+  schools: L.Circle[] | undefined
+) => {
+  if (map === null || !schools || schools.length === 0) {
     return;
   }
-  const latLngs = [
-    marker.getLatLng(),
-    ...marker.schools.map((m) => m.getLatLng()),
-  ];
+  const latLngs = [point, ...schools.map((m) => m.getLatLng())];
   const markerBounds = L.latLngBounds(latLngs);
-  map.once("moveend", function () {
-    resetCenteredMarker();
-    selectMarker(marker);
-    polylines = [];
-    marker.schools?.forEach((school) => {
-      const schoolLatLngs = [marker.getLatLng(), school.getLatLng()];
-      polylines.push(
-        L.polyline(schoolLatLngs, { color: "red", dashArray: "10, 10" }).addTo(
-          map
-        )
-      );
+  resetCenteredMarker();
+  polylines = [];
+  schools?.forEach((school) => {
+    school.setStyle({ color: selectedMarkerColor });
+    const schoolLatLngs = [point, school.getLatLng()];
+    polylines.push(
+      L.polyline(schoolLatLngs, { color: "red", dashArray: "10, 10" }).addTo(
+        map
+      )
+    );
 
-      const tooltip = school.getTooltip()!;
-      school.unbindTooltip();
-      tooltip.options.permanent = true;
-      school.bindTooltip(tooltip);
-      selectedSchools.push(school);
-    });
+    const tooltip = school.getTooltip()!;
+    school.unbindTooltip();
+    tooltip.options.permanent = true;
+    school.bindTooltip(tooltip);
+    selectedSchools.push(school);
   });
+  map.once("moveend", function () {});
   map.fitBounds(markerBounds, { padding: [150, 150] });
 };
 
@@ -220,8 +238,6 @@ export const loadMunicipalitiesByCityCodes = async (
   }
 };
 
-const markers: MarkerMap = {};
-
 export const createCityLayers = ({
   data,
   cityCode,
@@ -244,6 +260,7 @@ export const createCityLayers = ({
   });
   const schoolsLayerGroup: SchoolLayerGroup = L.layerGroup();
   const municipalityLayerGroups: AddressLayerGroup[] = [];
+  const schoolMarkers: MarkerMap = {};
 
   addressesLayerGroup.cityCode = cityCode;
   addressesLayerGroup.type = "addresses";
@@ -252,17 +269,18 @@ export const createCityLayers = ({
 
   const unmappedLayerGroup: AddressLayerGroup = L.layerGroup();
 
-  const polygonLayer = createPolygonLayer(data);
-
   createMarkers(
     data,
     municipalityLayerGroups,
     addressesLayerGroup,
     schoolsLayerGroup,
     unmappedLayerGroup,
+    schoolMarkers,
     showDebugInfo,
     lines
   );
+
+  const polygonLayer = createPolygonLayer(data, schoolMarkers);
 
   return {
     addressesLayerGroup,
@@ -273,15 +291,10 @@ export const createCityLayers = ({
   };
 };
 
-const createPolygonLayer = (data: DataForMap) => {
+const createPolygonLayer = (data: DataForMap, schoolMarkers: MarkerMap) => {
   const geoJsonLayer = L.geoJSON(data.polygons, {
     pane: "overlayPane",
     style: (feature) => {
-      const color =
-        feature?.properties.colorIndex === -1
-          ? unmappedPolygonColor
-          : colors[feature?.properties.colorIndex % colors.length ?? -1];
-      console.log(color);
       return feature
         ? {
             fillColor:
@@ -290,7 +303,7 @@ const createPolygonLayer = (data: DataForMap) => {
                 : colors[feature.properties.colorIndex % colors.length],
             color: "#777",
             weight: 2,
-            fillOpacity: 0.5,
+            fillOpacity: 0.4,
           }
         : {};
     },
@@ -301,6 +314,22 @@ const createPolygonLayer = (data: DataForMap) => {
       //   },
       // });
     },
+    bubblingMouseEvents: false,
+  }).on("click", function (e) {
+    let map = (geoJsonLayer as any)._map;
+    const relatedSchoolMarkers = geoJsonLayer
+      .getLayers()
+      .map((layer) => {
+        if (
+          // @ts-ignore
+          booleanPointInPolygon([e.latlng.lng, e.latlng.lat], layer.feature)
+        ) {
+          // @ts-ignore
+          return schoolMarkers[layer.feature.properties.schoolIzo];
+        }
+      })
+      .filter((marker) => marker !== undefined) as L.Circle[];
+    centerLeafletMapOnPoint(map, e.latlng, relatedSchoolMarkers);
   });
   return geoJsonLayer;
 };
@@ -311,6 +340,7 @@ const createMarkers = (
   addressesLayerGroup: AddressesLayerGroup,
   schoolsLayerGroup: SchoolLayerGroup,
   unmappedLayerGroup: AddressLayerGroup,
+  schoolMarkers: MarkerMap,
   showDebugInfo: boolean,
   lines?: string[]
 ) => {
@@ -334,7 +364,7 @@ const createMarkers = (
 
       schoolColors[school.izo] = color;
       addressLayerGroupsMap[school.izo] = layerGroup;
-      markers[school.name] = schoolMarker;
+      schoolMarkers[school.izo] = schoolMarker;
 
       // first put the address points' schools together, add them later
       school.addresses.forEach((point) => {
@@ -376,7 +406,7 @@ const createMarkers = (
     const newMarkers = createAddressMarker(
       point,
       colors,
-      schools.map((s) => markers[s.name]) as SchoolMarker[],
+      schools.map((s) => schoolMarkers[s.izo]) as SchoolMarker[],
       showDebugInfo && schools.length > 0,
       lines
     );
@@ -386,7 +416,6 @@ const createMarkers = (
       } else {
         addressLayerGroupsMap[schools[0].izo].addLayer(marker);
       }
-      markers[point.address] = marker;
     });
   });
 };
@@ -396,9 +425,7 @@ const defaultPosition = [49.19506, 16.606837];
 const createSchoolMarker = (school: School, color: string) => {
   const schoolTooltip = L.tooltip({
     direction: "top",
-    content: `<div style="text-align: center;">${school.name
-      .split(", ")
-      .join(",<br>")}</div>`,
+    content: `<div style="text-align: center;">${school.name}</div>`,
   });
   return L.circle(
     [
@@ -406,11 +433,11 @@ const createSchoolMarker = (school: School, color: string) => {
       school.position?.lng ?? defaultPosition[1],
     ],
     {
-      radius: 15,
+      radius: 19,
       fill: true,
       fillColor: color,
       fillOpacity: 1,
-      weight: 8,
+      weight: 4,
       color,
     }
   ).bindTooltip(schoolTooltip);

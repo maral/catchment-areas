@@ -1,3 +1,4 @@
+import { DataForMap } from "@/types/mapTypes";
 import {
   createCityLayers,
   prepareMap,
@@ -5,7 +6,6 @@ import {
 } from "@/utils/client/mapUtils";
 import { texts } from "@/utils/shared/texts";
 import L, { LayerGroup, Map as LeafletMap } from "leaflet";
-import { DataForMap } from "@/types/mapTypes";
 
 let map: LeafletMap;
 
@@ -73,6 +73,10 @@ export const createMap = (
   map.addLayer(addressesLayerGroup);
   map.addLayer(schoolsLayerGroup);
   map.addLayer(unmappedLayerGroup);
+
+  polygonLayer.on("add", () => {
+    polygonLayer.bringToBack();
+  });
 
   return () => {
     map.remove();
