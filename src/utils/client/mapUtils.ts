@@ -3,7 +3,7 @@ import {
   AddressesLayerGroup,
   DataForMap,
   DataForMapByCityCodes,
-  MarkerMap,
+  SchoolMarkerMap,
   MarkerWithSchools,
   PopupWithMarker,
   SchoolLayerGroup,
@@ -11,7 +11,8 @@ import {
   isPopupWithMarker,
 } from "@/types/mapTypes";
 import booleanPointInPolygon from "@turf/boolean-point-in-polygon";
-import L, { Circle, Map, Polyline, PopupEvent } from "leaflet";
+import { Feature, MultiPolygon, Polygon } from "@turf/helpers";
+import L, { Circle, Map, Polyline, PopupEvent, polygon } from "leaflet";
 import { ExportAddressPoint, School } from "text-to-map";
 
 export const colors = [
@@ -56,7 +57,7 @@ let lastListener: () => void;
 
 export const setupPopups = (map: Map): void => {
   map.on("popupopen", function (e: PopupEvent) {
-    resetCenteredMarker();
+    resetAllHighlights();
     const popup = e.popup;
     if (isPopupWithMarker(popup)) {
       lastListener = () => {
@@ -81,11 +82,42 @@ export const setupPopups = (map: Map): void => {
         button.removeEventListener("click", lastListener);
       }
     }
-    resetCenteredMarker();
+    resetAllHighlights();
   });
 
   map.on("click", function () {
-    resetCenteredMarker();
+    resetAllHighlights();
+  });
+};
+
+const setUpSchoolMarkersEvents = (
+  schoolMarkers: SchoolMarkerMap,
+  polygonLayer: L.GeoJSON
+) => {
+  Object.entries(schoolMarkers).forEach(([schoolIzo, marker]) => {
+    marker.on("click", function (e) {
+      // check polygonLayer is currently visible
+      if (!(polygonLayer as any)._map) {
+        return;
+      }
+      resetAllHighlights();
+      lastPolygonLayer = polygonLayer;
+      // when we click on a school marker, we want to hide all other polygons
+      // leave only the one that is related to the school
+      polygonLayer.getLayers().forEach((_layer) => {
+        const layer = _layer as L.Polygon & {
+          feature: Feature<Polygon | MultiPolygon>;
+        };
+        if (layer.feature.properties?.schoolIzo !== schoolIzo) {
+          layer.setStyle({ fillOpacity: 0.1, opacity: 0.3, fillColor: "#888" });
+        } else {
+          const map = (polygonLayer as any)._map;
+
+          map.fitBounds(layer.getBounds());
+        }
+        selectSchool(marker);
+      });
+    });
   });
 };
 
@@ -115,8 +147,12 @@ export const createZoomEndHandler = (
 
 let polylines: Polyline[];
 let selectedSchools: Circle[] = [];
+let lastPolygonLayer: L.GeoJSON | undefined;
 
-export const resetCenteredMarker = () => {
+export const resetAllHighlights = () => {
+  if (lastPolygonLayer) {
+    lastPolygonLayer.resetStyle();
+  }
   deselectMarker();
   if (polylines) {
     polylines.forEach((p) => p.remove());
@@ -156,7 +192,7 @@ const _centerLeafletMapOnPoint = (
   }
   const latLngs = [point, ...schools.map((m) => m.getLatLng())];
   const markerBounds = L.latLngBounds(latLngs);
-  resetCenteredMarker();
+  resetAllHighlights();
   polylines = [];
   schools?.forEach((school) => {
     school.setStyle({ color: selectedMarkerColor });
@@ -167,14 +203,18 @@ const _centerLeafletMapOnPoint = (
       )
     );
 
-    const tooltip = school.getTooltip()!;
-    school.unbindTooltip();
-    tooltip.options.permanent = true;
-    school.bindTooltip(tooltip);
-    selectedSchools.push(school);
+    selectSchool(school);
   });
   map.once("moveend", function () {});
   map.fitBounds(markerBounds, { padding: [150, 150] });
+};
+
+const selectSchool = (school: SchoolMarker) => {
+  const tooltip = school.getTooltip()!;
+  school.unbindTooltip();
+  tooltip.options.permanent = true;
+  school.bindTooltip(tooltip);
+  selectedSchools.push(school);
 };
 
 let selectedMarker: MarkerWithSchools | undefined;
@@ -260,7 +300,7 @@ export const createCityLayers = ({
   });
   const schoolsLayerGroup: SchoolLayerGroup = L.layerGroup();
   const municipalityLayerGroups: AddressLayerGroup[] = [];
-  const schoolMarkers: MarkerMap = {};
+  const schoolMarkers: SchoolMarkerMap = {};
 
   addressesLayerGroup.cityCode = cityCode;
   addressesLayerGroup.type = "addresses";
@@ -282,6 +322,8 @@ export const createCityLayers = ({
 
   const polygonLayer = createPolygonLayer(data, schoolMarkers);
 
+  setUpSchoolMarkersEvents(schoolMarkers, polygonLayer);
+
   return {
     addressesLayerGroup,
     schoolsLayerGroup,
@@ -291,7 +333,10 @@ export const createCityLayers = ({
   };
 };
 
-const createPolygonLayer = (data: DataForMap, schoolMarkers: MarkerMap) => {
+const createPolygonLayer = (
+  data: DataForMap,
+  schoolMarkers: SchoolMarkerMap
+) => {
   const geoJsonLayer = L.geoJSON(data.polygons, {
     pane: "overlayPane",
     style: (feature) => {
@@ -307,25 +352,15 @@ const createPolygonLayer = (data: DataForMap, schoolMarkers: MarkerMap) => {
           }
         : {};
     },
-    onEachFeature: (feature, layer) => {
-      // layer.on({
-      //   click: function (e) {
-      //     geoJsonLayer.removeLayer(layer);
-      //   },
-      // });
-    },
     bubblingMouseEvents: false,
   }).on("click", function (e) {
-    let map = (geoJsonLayer as any)._map;
+    const map = (geoJsonLayer as any)._map;
     const relatedSchoolMarkers = geoJsonLayer
       .getLayers()
       .map((layer) => {
-        if (
-          // @ts-ignore
-          booleanPointInPolygon([e.latlng.lng, e.latlng.lat], layer.feature)
-        ) {
-          // @ts-ignore
-          return schoolMarkers[layer.feature.properties.schoolIzo];
+        const feature: Feature<Polygon | MultiPolygon> = (layer as any).feature;
+        if (booleanPointInPolygon([e.latlng.lng, e.latlng.lat], feature)) {
+          return schoolMarkers[feature.properties?.schoolIzo];
         }
       })
       .filter((marker) => marker !== undefined) as L.Circle[];
@@ -340,7 +375,7 @@ const createMarkers = (
   addressesLayerGroup: AddressesLayerGroup,
   schoolsLayerGroup: SchoolLayerGroup,
   unmappedLayerGroup: AddressLayerGroup,
-  schoolMarkers: MarkerMap,
+  schoolMarkers: SchoolMarkerMap,
   showDebugInfo: boolean,
   lines?: string[]
 ) => {
@@ -439,6 +474,7 @@ const createSchoolMarker = (school: School, color: string) => {
       fillOpacity: 1,
       weight: 4,
       color,
+      bubblingMouseEvents: false,
     }
   ).bindTooltip(schoolTooltip);
 };
