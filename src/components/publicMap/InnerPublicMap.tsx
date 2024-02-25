@@ -3,7 +3,9 @@ import { CityOnMap } from "@/types/mapTypes";
 import "leaflet/dist/leaflet.css";
 import Image from "next/image";
 import Link from "next/link";
-import { memo, useEffect, useRef } from "react";
+import { memo, useEffect, useRef, useState } from "react";
+import { SearchInput } from "./SearchInput";
+import { SuggestionItem } from "../../types/suggestionTypes";
 
 interface InnerPublicMapProps {
   cities: CityOnMap[];
@@ -12,10 +14,21 @@ interface InnerPublicMapProps {
 const InnerMap = memo(
   ({ cities }: InnerPublicMapProps) => {
     const mapRef = useRef<HTMLDivElement>(null);
+    const [onSelect, setOnSelect] = useState<(item: SuggestionItem) => void>(
+      () => () => {}
+    );
 
     useEffect(() => {
       if (mapRef.current) {
-        return createPublicMap(mapRef.current, cities, true);
+        const { onSuggestionSelect, destructor } = createPublicMap(
+          mapRef.current,
+          cities,
+          true
+        );
+        if (onSuggestionSelect) {
+          setOnSelect(() => onSuggestionSelect);
+        }
+        return destructor;
       }
     }, [cities, mapRef]);
 
@@ -23,22 +36,38 @@ const InnerMap = memo(
       <>
         <div ref={mapRef} className="h-screen w-screen" />
 
-        <div className="absolute top-0 right-0 z-[1000]
-          flex flex-col gap-2 items-center text-center
-          p-4 rounded-bl-lg bg-gray-50/60">
+        <div className="absolute top-[10px] left-[54px] z-[1000] w-[min(450px,calc(100vw-64px))]">
+          <SearchInput onSelect={onSelect} />
+        </div>
+
+        <div
+          className="absolute z-[1000] bottom-[16px] right-0
+          flex flex-col gap-1 items-center text-center
+          p-2 bg-gray-50/60 rounded-tl-lg
+          md:top-0 md:bottom-auto md:rounded-bl-lg md:rounded-tl-lg-none
+          md:p-4 md:gap-2"
+        >
           <Link
             href="/"
-            className="block text-3xl font-title font-medium text-slate-700"
+            className="block text-xl md:text-3xl font-title font-medium text-slate-700"
           >
             Spádové oblasti
           </Link>
 
-          <Link href="https://www.npi.cz/" target="_blank" className="p-2">
+          <Link href="https://www.npi.cz/" target="_blank" className="md:p-2">
             <Image
+              className="hidden md:block"
               src="logo_npi_svg_full.svg"
               alt="Logo NPI"
               width={200}
               height={29}
+            />
+            <Image
+              className="block md:hidden"
+              src="logo_npi_svg_full.svg"
+              alt="Logo NPI"
+              width={150}
+              height={22}
             />
           </Link>
         </div>

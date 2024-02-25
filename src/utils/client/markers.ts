@@ -1,0 +1,246 @@
+import { School, ExportAddressPoint } from "text-to-map";
+import {
+  SchoolMarker,
+  PopupWithMarker,
+  MarkerWithSchools,
+  DataForMap,
+  AddressLayerGroup,
+  AddressesLayerGroup,
+  SchoolLayerGroup,
+  SchoolMarkerMap,
+  AddressMarkerMap,
+} from "@/types/mapTypes";
+import { colors, markerRadius, markerWeight } from "./mapUtils";
+import L from "leaflet";
+
+const unmappedMarkerColor = "#ff0000";
+
+export const createMarkers = (
+  data: DataForMap,
+  municipalityLayerGroups: AddressLayerGroup[],
+  addressesLayerGroup: AddressesLayerGroup,
+  schoolsLayerGroup: SchoolLayerGroup,
+  unmappedLayerGroup: AddressLayerGroup,
+  schoolMarkers: SchoolMarkerMap,
+  addressMarkers: AddressMarkerMap,
+  showDebugInfo: boolean,
+  lines?: string[]
+) => {
+  let colorIndex = 0;
+  const markersToCreate: Record<
+    string,
+    { point: ExportAddressPoint; schools: School[] }
+  > = {};
+  const schoolColors: Record<string, string> = {};
+  const addressLayerGroupsMap: Record<string, AddressLayerGroup> = {};
+
+  data.municipalities.forEach((municipality) => {
+    const layerGroup: AddressLayerGroup = L.layerGroup();
+    municipalityLayerGroups.push(layerGroup);
+    addressesLayerGroup.addLayer(layerGroup);
+    municipality.schools.forEach((school) => {
+      const color = colors[colorIndex % colors.length];
+      const schoolMarker = createSchoolMarker(school, color).addTo(
+        schoolsLayerGroup
+      );
+
+      schoolColors[school.izo] = color;
+      addressLayerGroupsMap[school.izo] = layerGroup;
+      schoolMarkers[school.izo] = schoolMarker;
+
+      // first put the address points' schools together, add them later
+      school.addresses.forEach((point) => {
+        if (!point.lat || !point.lng) {
+          return;
+        }
+
+        if (point.address in markersToCreate) {
+          markersToCreate[point.address].schools.push(school);
+          markersToCreate[point.address].point.lineNumbers?.push(
+            ...(point.lineNumbers ?? [])
+          );
+        } else {
+          markersToCreate[point.address] = {
+            point,
+            schools: [school],
+          };
+        }
+      });
+
+      colorIndex++;
+    });
+
+    if (showDebugInfo) {
+      municipality.unmappedPoints.forEach((point) => {
+        markersToCreate[point.address] = {
+          point,
+          schools: [],
+        };
+      });
+    }
+  });
+
+  Object.values(markersToCreate).forEach(({ point, schools }) => {
+    const colors =
+      schools.length === 0
+        ? [unmappedMarkerColor]
+        : schools.map((school) => schoolColors[school.izo]);
+    const newMarkers = createAddressMarker(
+      point,
+      colors,
+      schools.map((s) => schoolMarkers[s.izo]) as SchoolMarker[],
+      showDebugInfo && schools.length > 0,
+      lines
+    );
+    addressMarkers[point.address] = newMarkers;
+    newMarkers.forEach((marker) => {
+      if (schools.length === 0) {
+        unmappedLayerGroup.addLayer(marker);
+      } else {
+        addressLayerGroupsMap[schools[0].izo].addLayer(marker);
+      }
+    });
+  });
+};
+
+const defaultPosition = [49.19506, 16.606837];
+
+export const createSchoolMarker = (school: School, color: string) => {
+  const schoolTooltip = L.tooltip({
+    direction: "top",
+    content: `<div style="text-align: center;">${school.name}</div>`,
+  });
+  return L.circle(
+    [
+      school.position?.lat ?? defaultPosition[0],
+      school.position?.lng ?? defaultPosition[1],
+    ],
+    {
+      radius: 19,
+      fill: true,
+      fillColor: color,
+      fillOpacity: 1,
+      weight: 4,
+      color,
+      bubblingMouseEvents: false,
+    }
+  ).bindTooltip(schoolTooltip);
+};
+
+export const createAddressMarker = (
+  point: ExportAddressPoint,
+  colors: string[],
+  schoolMarkers: SchoolMarker[],
+  showDebugInfo: boolean,
+  lines?: string[]
+) => {
+  const markers = createMarkerByColorCount(point, colors);
+  markers.forEach((marker) => {
+    const popup: PopupWithMarker = Object.assign(
+      L.popup().setContent(`
+    <div>
+      ${point.address}
+
+      ${
+        showDebugInfo
+          ? `<br><br><em>${point.lineNumbers
+              ?.map((line) => `řádek ${line + 1}: ${lines?.[line]}`)
+              .join("<br>")}</em>`
+          : ""
+      }
+
+      ${
+        schoolMarkers.length > 0
+          ? `
+            <div class="text-center mt-2"><button class="border rounded px-2 py-1 text-xs bg-emerald-500 border-emerald-500 text-white hover:bg-emerald-600 hover:border-emerald-700 marker-button">
+              Zobrazit spádovou školu    
+            </button></div>`
+          : "<br><br><em>Adresní místo bez spádové školy</em>"
+      }
+    </div>`),
+      { marker: marker }
+    );
+    marker.bindPopup(popup);
+    marker.schools = schoolMarkers;
+  });
+  return markers;
+};
+
+const createMarkerByColorCount = (
+  point: ExportAddressPoint,
+  colors: string[]
+): MarkerWithSchools[] => {
+  if (colors.length > 1) {
+    const angle = 360 / colors.length;
+    return colors.map((color, index) =>
+      L.circle(
+        flip(
+          rotatePointOnCircle(
+            point.lng,
+            point.lat,
+            0.00005,
+            angle * index,
+            1,
+            0.7
+          )
+        ),
+        {
+          radius: markerRadius,
+          fill: true,
+          fillColor: color,
+          fillOpacity: 1,
+          weight: markerWeight,
+          color: color,
+        }
+      )
+    );
+  } else {
+    return [
+      L.circle([point.lat, point.lng], {
+        radius: markerRadius,
+        fill: true,
+        fillColor: colors[0],
+        fillOpacity: 1,
+        weight: markerWeight,
+        color: colors[0],
+      }),
+    ];
+  }
+};
+
+export const createSvgIcon = (color: string): L.DivIcon => {
+  return L.divIcon({
+    html: `
+  <svg
+    width="24"
+    height="24"
+    viewBox="0 0 100 100"
+    version="1.1"
+    preserveAspectRatio="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path d="M0 0 L50 100 L100 0 Z" fill="${color}"></path>
+  </svg>`,
+    className: "svg-icon",
+    iconSize: [24, 24],
+    iconAnchor: [12, 24],
+  });
+};
+
+const rotatePointOnCircle = (
+  x: number,
+  y: number,
+  r: number,
+  degrees: number,
+  xCoefficient = 1,
+  yCoefficient = 1
+): [number, number] => {
+  const radians = (degrees * Math.PI) / 180;
+  const newX = x + r * Math.sin(radians) * xCoefficient;
+  const newY = y - r * Math.cos(radians) * yCoefficient;
+  return [newX, newY];
+};
+
+const flip = ([x, y]: [number, number]): [number, number] => {
+  return [y, x];
+};

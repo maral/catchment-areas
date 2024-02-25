@@ -23,7 +23,8 @@ export const isPopupWithMarker = (popup: Popup): popup is PopupWithMarker => {
   return popup.hasOwnProperty("marker");
 };
 
-export type SchoolMarkerMap = { [name: string]: SchoolMarker };
+export type SchoolMarkerMap = Record<string, SchoolMarker>;
+export type AddressMarkerMap = Record<string, MarkerWithSchools[]>;
 export type AddressLayerGroup = LayerGroup<MarkerWithSchools>;
 export type AddressesLayerGroup = LayerGroup & {
   cityCode?: string;
@@ -53,7 +54,9 @@ export type LoadedCitiesData = Record<number, CityData>;
 
 export interface CityData {
   city: CityOnMap;
+  data: DataForMap;
   addressesLayerGroup: AddressLayerGroup;
   schoolsLayerGroup: SchoolLayerGroup;
   polygonLayer: GeoJSON;
+  addressMarkers: AddressMarkerMap;
 }
