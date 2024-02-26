@@ -47,6 +47,13 @@ const InnerMap = memo(
           md:top-0 md:bottom-auto md:rounded-bl-lg md:rounded-tl-lg-none
           md:p-4 md:gap-2"
         >
+          <Image
+            src="/beta.png"
+            alt="Beta Icon"
+            className="absolute top-0 right-0"
+            width={60}
+            height={60}
+          />
           <Link
             href="/"
             className="block text-xl md:text-3xl font-title font-medium text-slate-700"
@@ -70,6 +77,16 @@ const InnerMap = memo(
               height={22}
             />
           </Link>
+        </div>
+
+        <div className="absolute bottom-[24px] left-[16px] z-[1000]">
+          <a
+            href="#"
+            target="_blank"
+            className="px-5 py-4 bg-blue-500 text-white text-lg rounded-md"
+          >
+            Nahlásit chybu
+          </a>
         </div>
       </>
     );

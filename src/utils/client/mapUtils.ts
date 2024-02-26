@@ -112,7 +112,7 @@ const setUpSchoolMarkersEvents = (
         } else {
           const map = (polygonLayer as any)._map;
 
-          map.fitBounds(layer.getBounds());
+          map.flyToBounds(layer.getBounds(), { duration: 0.7 });
         }
         selectSchool(marker);
       });
@@ -166,7 +166,10 @@ export const resetAllHighlights = () => {
   selectedSchools = [];
 };
 
-export const centerLeafletMapOnMarker = (map: Map, marker: MarkerWithSchools) => {
+export const centerLeafletMapOnMarker = (
+  map: Map,
+  marker: MarkerWithSchools
+) => {
   map.once("moveend", () => selectMarker(marker));
   _centerLeafletMapOnPoint(map, marker.getLatLng(), marker.schools);
 };
@@ -203,7 +206,7 @@ const _centerLeafletMapOnPoint = (
     selectSchool(school);
   });
   map.once("moveend", function () {});
-  map.fitBounds(markerBounds, { padding: [150, 150] });
+  map.flyToBounds(markerBounds, { padding: [150, 150], duration: 0.7 });
 };
 
 const selectSchool = (school: SchoolMarker) => {
