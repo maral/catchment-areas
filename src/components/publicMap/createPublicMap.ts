@@ -138,20 +138,6 @@ const createPublicMoveAndZoomEndHandler = (
         hideAddresses(code);
       });
     }
-
-    // // sometimes a layer is not removed, so we remove it manually
-    // map.eachLayer((layer: any) => {
-    //   if (layer.cityCode) {
-    //     if (
-    //       (layer.type === "addresses" &&
-    //         !citiesWithShownAddresses.has(Number(layer.cityCode))) ||
-    //       (layer.type === "schools" &&
-    //         !citiesWithShownSchools.has(Number(layer.cityCode)))
-    //     ) {
-    //       map.removeLayer(layer);
-    //     }
-    //   }
-    // });
   }, loadCitiesDebounceTime);
 };
 
