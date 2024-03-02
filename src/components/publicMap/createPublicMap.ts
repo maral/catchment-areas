@@ -145,7 +145,6 @@ const createPublicMoveAndZoomEndHandler = (
 
 const hideAddresses = (code: number) => {
   if (loadedCities.has(code)) {
-    map.removeLayer(loadedCities.get(code)!.polygonLayer);
     map.removeLayer(loadedCities.get(code)!.addressesLayerGroup);
     citiesWithShownAddresses.delete(code);
   }
@@ -154,7 +153,6 @@ const hideAddresses = (code: number) => {
 const showAddresses = (code: number) => {
   if (!citiesWithShownAddresses.has(code) && loadedCities.has(code)) {
     citiesWithShownAddresses.add(code);
-    map.addLayer(loadedCities.get(code)!.polygonLayer);
     map.addLayer(loadedCities.get(code)!.addressesLayerGroup);
     loadedCities.get(code)!.schoolsLayerGroup.bringToFront();
   }
@@ -163,6 +161,7 @@ const showAddresses = (code: number) => {
 const showSchools = (code: number) => {
   if (!citiesWithShownSchools.has(code) && loadedCities.has(code)) {
     citiesWithShownSchools.add(code);
+    map.addLayer(loadedCities.get(code)!.polygonLayer);
     map.addLayer(loadedCities.get(code)!.schoolsLayerGroup);
   }
 };
@@ -170,6 +169,7 @@ const showSchools = (code: number) => {
 const hideSchools = (code: number) => {
   if (loadedCities.has(code)) {
     map.removeLayer(loadedCities.get(code)!.schoolsLayerGroup);
+    map.removeLayer(loadedCities.get(code)!.polygonLayer);
     citiesWithShownSchools.delete(code);
   }
 };
@@ -197,7 +197,9 @@ const getCurrentBounds = (map: LeafletMap) => {
     center.lng + lngChange / 2
   );
 
-  return L.latLngBounds(topLeftLatLng, bottomRightLatLng);
+  return L.latLngBounds(topLeftLatLng, bottomRightLatLng).extend(
+    map.getBounds()
+  );
 };
 
 const getPublishedCitiesInViewport = (

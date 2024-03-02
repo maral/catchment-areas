@@ -85,7 +85,7 @@ const InnerMap = memo(
           <a
             href="#"
             target="_blank"
-            className="block px-4 py-3 bg-white hover:bg-slate-100 transition-colors border border-gray-300 shadow text-slate-700 hover:text-slate-800 rounded-md"
+            className="block px-3 py-2 bg-white hover:bg-slate-100 transition-colors border border-gray-300 shadow text-slate-700 hover:text-slate-800 rounded-md"
           >
             <Icon
               icon={ExclamationTriangleIcon}
