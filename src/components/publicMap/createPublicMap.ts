@@ -4,6 +4,7 @@ import {
   createCityLayers,
   loadMunicipalitiesByCityCodes,
   prepareMap,
+  resetAllHighlights,
   setupPopups,
 } from "@/utils/client/mapUtils";
 import L, { Map as LeafletMap, Marker } from "leaflet";
@@ -130,6 +131,7 @@ const createPublicMoveAndZoomEndHandler = (
       citiesWithShownSchools.forEach((code) => {
         hideSchools(code);
       });
+      resetAllHighlights();
     }
 
     if (map.getZoom() < minZoomForAddressPoints) {

@@ -85,7 +85,7 @@ export const setupPopups = (map: Map): void => {
   });
 
   map.on("click", function () {
-    resetAllHighlights();
+    resetAllHighlights(true);
   });
 };
 
@@ -100,6 +100,7 @@ const setUpSchoolMarkersEvents = (
         return;
       }
       resetAllHighlights();
+      schoolHighlighted = true;
       lastPolygonLayer = polygonLayer;
       // when we click on a school marker, we want to hide all other polygons
       // leave only the one that is related to the school
@@ -114,93 +115,59 @@ const setUpSchoolMarkersEvents = (
 
           map.flyToBounds(layer.getBounds(), { duration: 0.7 });
         }
-        selectSchool(marker);
       });
+      selectSchool(marker);
     });
   });
 };
 
-export const createZoomEndHandler = (
-  map: Map,
-  municipalityLayerGroups: AddressLayerGroup[]
-) => {
-  if (municipalityLayerGroups.length <= 1) {
-    return () => null;
-  }
-  let added = false;
-  return () => {
-    if (map.getZoom() < minZoomForAddressPoints && added === true) {
-      municipalityLayerGroups.forEach((layerGroup) => {
-        map.removeLayer(layerGroup);
-      });
-      added = false;
-    }
-    if (map.getZoom() >= minZoomForAddressPoints && added === false) {
-      municipalityLayerGroups.forEach((layerGroup) => {
-        map.addLayer(layerGroup);
-      });
-      added = true;
-    }
-  };
+let polylines: Polyline[];
+let selectedSchools = new Set<Circle>();
+let lastPolygonLayer: L.GeoJSON | undefined;
+let schoolHighlighted = false;
+let addressHighlighted = false;
+
+const isSomethingHighlighted = () => {
+  return schoolHighlighted || addressHighlighted;
 };
 
-let polylines: Polyline[];
-let selectedSchools: Circle[] = [];
-let lastPolygonLayer: L.GeoJSON | undefined;
-
-export const resetAllHighlights = () => {
+export const resetAllHighlights = (exceptPolygonHighlights = false) => {
+  if (!isSomethingHighlighted() && exceptPolygonHighlights) {
+    return;
+  }
   if (lastPolygonLayer) {
     lastPolygonLayer.resetStyle();
+    lastPolygonLayer = undefined;
   }
-  deselectMarker();
   if (polylines) {
     polylines.forEach((p) => p.remove());
   }
-  selectedSchools.forEach((school) => {
-    school.setStyle({ color: school.options.fillColor });
-    const tooltip = school.getTooltip()!;
-    school.unbindTooltip();
-    tooltip.options.permanent = false;
-    school.bindTooltip(tooltip);
-  });
-  selectedSchools = [];
+  selectedSchools.forEach(deselectSchool);
+  schoolHighlighted = false;
+  addressHighlighted = false;
 };
 
 export const centerLeafletMapOnMarker = (
   map: Map,
   marker: MarkerWithSchools
 ) => {
-  map.once("moveend", () => selectMarker(marker));
-  _centerLeafletMapOnPoint(map, marker.getLatLng(), marker.schools);
-};
-
-const centerLeafletMapOnPoint = (
-  map: Map,
-  point: L.LatLng,
-  schools: L.Circle[] | undefined
-) => {
-  _centerLeafletMapOnPoint(map, point, schools);
-};
-
-const _centerLeafletMapOnPoint = (
-  map: Map,
-  point: L.LatLng,
-  schools: L.Circle[] | undefined
-) => {
-  if (map === null || !schools || schools.length === 0) {
+  if (map === null || !marker.schools || marker.schools.length === 0) {
     return;
   }
-  const latLngs = [point, ...schools.map((m) => m.getLatLng())];
+  const latLngs = [
+    marker.getLatLng(),
+    ...marker.schools.map((m) => m.getLatLng()),
+  ];
   const markerBounds = L.latLngBounds(latLngs);
   resetAllHighlights();
+  addressHighlighted = true;
   polylines = [];
-  schools?.forEach((school) => {
-    school.setStyle({ color: selectedMarkerColor });
-    const schoolLatLngs = [point, school.getLatLng()];
+  marker.schools.forEach((school) => {
     polylines.push(
-      L.polyline(schoolLatLngs, { color: "red", dashArray: "10, 10" }).addTo(
-        map
-      )
+      L.polyline([marker.getLatLng(), school.getLatLng()], {
+        color: "red",
+        dashArray: "10, 10",
+      }).addTo(map)
     );
 
     selectSchool(school);
@@ -210,31 +177,21 @@ const _centerLeafletMapOnPoint = (
 };
 
 const selectSchool = (school: SchoolMarker) => {
+  school.setStyle({ color: selectedMarkerColor });
   const tooltip = school.getTooltip()!;
   school.unbindTooltip();
   tooltip.options.permanent = true;
   school.bindTooltip(tooltip);
-  selectedSchools.push(school);
+  selectedSchools.add(school);
 };
 
-let selectedMarker: MarkerWithSchools | undefined;
-
-const selectMarker = (marker: MarkerWithSchools) => {
-  deselectMarker();
-  selectedMarker = marker;
-  // selectedMarkerOriginalColor = marker.options.color || selectedMarkerColor;
-  // selectedMarker
-  //   .setRadius(selectedMarkerRadius)
-  //   .setStyle({ weight: selectedMarkerWeight, color: selectedMarkerColor });
-};
-
-const deselectMarker = () => {
-  if (selectedMarker) {
-    // selectedMarker
-    //   .setRadius(markerRadius)
-    //   .setStyle({ weight: markerWeight, color: selectedMarker.options.fillColor });
-  }
-  selectedMarker = undefined;
+const deselectSchool = (school: SchoolMarker) => {
+  school.setStyle({ color: school.options.fillColor });
+  const tooltip = school.getTooltip()!;
+  school.unbindTooltip();
+  tooltip.options.permanent = false;
+  school.bindTooltip(tooltip);
+  selectedSchools.delete(school);
 };
 
 export const loadMunicipalitiesByCityCodes = async (
@@ -322,7 +279,7 @@ const createPolygonLayer = (
   data: DataForMap,
   schoolMarkers: SchoolMarkerMap
 ) => {
-  const geoJsonLayer = L.geoJSON(data.polygons, {
+  const geoJsonLayer: L.GeoJSON = L.geoJSON(data.polygons, {
     pane: "overlayPane",
     style: (feature) => {
       return feature
@@ -338,18 +295,42 @@ const createPolygonLayer = (
         : {};
     },
     bubblingMouseEvents: false,
-  }).on("click", function (e) {
-    const map = (geoJsonLayer as any)._map;
-    const relatedSchoolMarkers = geoJsonLayer
-      .getLayers()
-      .map((layer) => {
-        const feature: Feature<Polygon | MultiPolygon> = (layer as any).feature;
-        if (booleanPointInPolygon([e.latlng.lng, e.latlng.lat], feature)) {
-          return schoolMarkers[feature.properties?.schoolIzo];
-        }
-      })
-      .filter((marker) => marker !== undefined) as L.Circle[];
-    centerLeafletMapOnPoint(map, e.latlng, relatedSchoolMarkers);
-  });
+  })
+    .on("mouseout", (e) => handleMouseMove(schoolMarkers, geoJsonLayer, e))
+    .on("mousemove", (e) => handleMouseMove(schoolMarkers, geoJsonLayer, e));
   return geoJsonLayer;
+};
+
+const handleMouseMove = (
+  schoolMarkers: SchoolMarkerMap,
+  geoJsonLayer: L.GeoJSON,
+  e: L.LeafletMouseEvent
+) => {
+  if (isSomethingHighlighted()) {
+    return;
+  }
+
+  const relatedSchoolMarkers = geoJsonLayer
+    .getLayers()
+    .map((layer) => {
+      const feature: Feature<Polygon | MultiPolygon> = (layer as any).feature;
+      if (booleanPointInPolygon([e.latlng.lng, e.latlng.lat], feature)) {
+        return schoolMarkers[feature.properties?.schoolIzo];
+      }
+    })
+    .filter((marker) => marker !== undefined) as L.Circle[];
+
+  // add all new schools
+  relatedSchoolMarkers.forEach((marker) => {
+    if (!selectedSchools.has(marker)) {
+      selectSchool(marker);
+    }
+  });
+
+  // remove all selected schools that are no longer hovered over
+  selectedSchools.forEach((marker) => {
+    if (!relatedSchoolMarkers.includes(marker)) {
+      deselectSchool(marker);
+    }
+  });
 };
