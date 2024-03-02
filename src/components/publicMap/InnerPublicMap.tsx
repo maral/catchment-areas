@@ -6,6 +6,8 @@ import Link from "next/link";
 import { memo, useEffect, useRef, useState } from "react";
 import { SearchInput } from "./SearchInput";
 import { SuggestionItem } from "../../types/suggestionTypes";
+import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
+import { Icon } from "@tremor/react";
 
 interface InnerPublicMapProps {
   cities: CityOnMap[];
@@ -79,12 +81,16 @@ const InnerMap = memo(
           </Link>
         </div>
 
-        <div className="absolute bottom-[24px] left-[16px] z-[1000]">
+        <div className="absolute bottom-[8px] left-[8px] z-[1000]">
           <a
             href="#"
             target="_blank"
-            className="px-5 py-4 bg-blue-500 text-white text-lg rounded-md"
+            className="block px-4 py-3 bg-white hover:bg-slate-100 transition-colors border border-gray-300 shadow text-slate-700 hover:text-slate-800 rounded-md"
           >
+            <Icon
+              icon={ExclamationTriangleIcon}
+              className="p-0 pr-2 relative top-[4px] text-yellow-600"
+            />
             Nahlásit chybu
           </a>
         </div>
