@@ -1,13 +1,17 @@
 import { createPublicMap } from "@/components/publicMap/createPublicMap";
 import { CityOnMap } from "@/types/mapTypes";
+import {
+  ExclamationTriangleIcon
+} from "@heroicons/react/24/outline";
 import "leaflet/dist/leaflet.css";
 import Image from "next/image";
 import Link from "next/link";
 import { memo, useEffect, useRef, useState } from "react";
-import { SearchInput } from "./SearchInput";
 import { SuggestionItem } from "../../types/suggestionTypes";
-import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
-import { Icon } from "@tremor/react";
+import { texts } from "../../utils/shared/texts";
+import PublicButton from "../buttons/PublicButton";
+import { SearchInput } from "./SearchInput";
+import { Menu } from "./Menu";
 
 interface InnerPublicMapProps {
   cities: CityOnMap[];
@@ -38,15 +42,17 @@ const InnerMap = memo(
       <>
         <div ref={mapRef} className="h-screen w-screen" />
 
-        <div className="absolute top-[10px] left-[54px] z-[1000] w-[min(450px,calc(100vw-64px))]">
+        <Menu />
+
+        <div className="absolute top-[10px] left-[70px] z-[1000] w-[min(430px,calc(100vw-80px))]">
           <SearchInput onSelect={onSelect} />
         </div>
 
         <div
-          className="absolute z-[1000] bottom-[16px] right-0
+          className="absolute z-[1000] bottom-0 left-0
           flex flex-col gap-1 items-center text-center
-          p-2 bg-gray-50/60 rounded-tl-lg
-          md:top-0 md:bottom-auto md:rounded-bl-lg md:rounded-tl-lg-none
+          p-2 bg-gray-50/60 rounded-tr-lg
+          md:top-0 md:right-0 md:left-auto md:bottom-auto md:rounded-bl-lg md:rounded-tl-none
           md:p-4 md:gap-2"
         >
           <Image
@@ -81,19 +87,15 @@ const InnerMap = memo(
           </Link>
         </div>
 
-        <div className="absolute bottom-[8px] left-[8px] z-[1000]">
-          <a
-            href="#"
-            target="_blank"
-            className="block px-3 py-2 bg-white hover:bg-slate-100 transition-colors border border-gray-300 shadow text-slate-700 hover:text-slate-800 rounded-md"
-          >
-            <Icon
-              icon={ExclamationTriangleIcon}
-              className="p-0 pr-2 relative top-[4px] text-yellow-600"
-            />
-            Nahlásit chybu
-          </a>
-        </div>
+        <PublicButton
+          href="#"
+          target="_blank"
+          className="absolute bottom-[80px] md:bottom-[8px] left-[8px] z-[1000] bg-slate-50"
+          icon={ExclamationTriangleIcon}
+          color="amber"
+        >
+          {texts.reportBug}
+        </PublicButton>
       </>
     );
   },

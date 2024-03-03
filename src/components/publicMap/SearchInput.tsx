@@ -105,11 +105,23 @@ export function SearchInput({ onSelect }: SearchInputProps) {
         Menu,
         MenuList,
       }}
+      classNames={{
+        control() {
+          return "shadow";
+        },
+      }}
       styles={{
         menuList(base) {
           return {
             ...base,
             maxHeight: "400px",
+          };
+        },
+        control(base) {
+          return {
+            ...base,
+            borderRadius: "0.375rem",
+            borderColor: "rgb(209, 213, 219)",
           };
         },
       }}

@@ -42,8 +42,11 @@ export const prepareMap = (
 ): Map => {
   const map = L.map(element, {
     renderer: L.canvas({ padding: 0.5 }),
-    zoomControl: showControls,
+    zoomControl: false,
   });
+  if (showControls) {
+    L.control.zoom({ position: "bottomright" }).addTo(map);
+  }
   L.tileLayer("http://{s}.tile.osm.org/{z}/{x}/{y}.png", {
     attribution:
       '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors',
@@ -167,7 +170,9 @@ export const centerLeafletMapOnMarker = (
       L.polyline([marker.getLatLng(), school.getLatLng()], {
         color: "red",
         dashArray: "10, 10",
-      }).addTo(map)
+      })
+        .addTo(map)
+        .bringToBack()
     );
 
     selectSchool(school);
