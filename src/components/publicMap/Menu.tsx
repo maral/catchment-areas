@@ -6,48 +6,57 @@ import {
   MapIcon,
   QuestionMarkCircleIcon,
   RocketLaunchIcon,
-  WrenchIcon,
 } from "@heroicons/react/24/outline";
 import { Icon } from "@tremor/react";
 import "leaflet/dist/leaflet.css";
-import { Fragment } from "react";
+import { Fragment, useState } from "react";
 import { texts } from "../../utils/shared/texts";
+import Help from "./Help";
 
 export function Menu() {
-  const showHelp = () => {};
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
+
+  const showHelp = () => setIsHelpOpen(true);
+  const hideHelp = () => setIsHelpOpen(false);
 
   return (
-    <HeadlessMenu as="div" className="absolute top-[10px] left-[10px] z-[1001]">
-      <HeadlessMenu.Button
-        className="w-[50px] h-[50px] border rounded-md cursor-pointer bg-white hover:bg-slate-100 border-gray-300
+    <>
+      <HeadlessMenu
+        as="div"
+        className="absolute top-[10px] left-[10px] z-[1001]"
+      >
+        <HeadlessMenu.Button
+          className="w-[50px] h-[50px] border rounded-md cursor-pointer bg-white hover:bg-slate-100 border-gray-300
 block px-3 py-2 transition-colors shadow text-slate-400 hover:text-slate-500 content-center"
-      >
-        <Bars3Icon className="inline-block h-6 w-6" aria-hidden="true" />
-      </HeadlessMenu.Button>
+        >
+          <Bars3Icon className="inline-block h-6 w-6" aria-hidden="true" />
+        </HeadlessMenu.Button>
 
-      <Transition
-        as={Fragment}
-        enter="transition ease-out duration-100"
-        enterFrom="transform opacity-0 scale-95"
-        enterTo="transform opacity-100 scale-100"
-        leave="transition ease-in duration-75"
-        leaveFrom="transform opacity-100 scale-100"
-        leaveTo="transform opacity-0 scale-95"
-      >
-        <HeadlessMenu.Items className="absolute left-0 mt-2 w-60 origin-top-left divide-y divide-gray-100 rounded-md bg-white shadow-lg ring-1 ring-black/5 focus:outline-none">
-          <div className="px-1 py-1 ">
-            <Item icon={ArrowDownTrayIcon}>{texts.dataForDownload}</Item>
-            <Item icon={MapIcon}>{texts.embedMap}</Item>
-            <Item icon={ExclamationTriangleIcon} href="#" target="_blank">
-              {texts.reportBug}
-            </Item>
-            <Item icon={QuestionMarkCircleIcon}>
-              {texts.help}
-            </Item>
-          </div>
-        </HeadlessMenu.Items>
-      </Transition>
-    </HeadlessMenu>
+        <Transition
+          as={Fragment}
+          enter="transition ease-out duration-100"
+          enterFrom="transform opacity-0 scale-95"
+          enterTo="transform opacity-100 scale-100"
+          leave="transition ease-in duration-75"
+          leaveFrom="transform opacity-100 scale-100"
+          leaveTo="transform opacity-0 scale-95"
+        >
+          <HeadlessMenu.Items className="absolute left-0 mt-2 w-60 origin-top-left divide-y divide-gray-100 rounded-md bg-white shadow-lg ring-1 ring-black/5 focus:outline-none">
+            <div className="px-1 py-1 ">
+              <Item icon={ArrowDownTrayIcon}>{texts.dataForDownload}</Item>
+              <Item icon={MapIcon}>{texts.embedMap}</Item>
+              <Item icon={ExclamationTriangleIcon} href="#" target="_blank">
+                {texts.reportBug}
+              </Item>
+              <Item icon={QuestionMarkCircleIcon} onClick={showHelp}>
+                {texts.help}
+              </Item>
+            </div>
+          </HeadlessMenu.Items>
+        </Transition>
+      </HeadlessMenu>
+      <Help isOpen={isHelpOpen} closeModal={hideHelp} />
+    </>
   );
 }
 
@@ -82,9 +91,7 @@ const Item = ({ icon, onClick, href, target, children }: ItemProps) => {
             />
           )}
           {children}
-          {disabled && (
-            <div className="flex-grow"></div>
-          )}
+          {disabled && <div className="flex-grow"></div>}
           {disabled && (
             <Icon
               icon={RocketLaunchIcon}

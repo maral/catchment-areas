@@ -113,10 +113,11 @@ const setUpSchoolMarkersEvents = (
         };
         if (layer.feature.properties?.schoolIzo !== schoolIzo) {
           layer.setStyle({ fillOpacity: 0.1, opacity: 0.3, fillColor: "#888" });
+          layer.bringToBack();
         } else {
           const map = (polygonLayer as any)._map;
-
           map.flyToBounds(layer.getBounds(), { duration: 0.7 });
+          layer.setStyle({ color: layer.options.fillColor }); // "#9b0505"
         }
       });
       selectSchool(marker);
