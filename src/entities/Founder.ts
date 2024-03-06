@@ -9,16 +9,14 @@ import {
 } from "remult";
 import { City } from "./City";
 import { CityDistrict } from "./CityDistrict";
+import { County } from "./County";
 import { Orp } from "./Orp";
 import { Region } from "./Region";
 import { School } from "./School";
 import { SchoolFounder } from "./SchoolFounder";
-import { County } from "./County";
-import { Ordinance } from "./Ordinance";
 
 @Entity("founders", {
   dbName: "founder",
-  allowApiCrud: true,
   allowApiRead: Allow.authenticated,
   backendPrefilter: () => ({ schoolCount: { $gt: 1 } }),
 })

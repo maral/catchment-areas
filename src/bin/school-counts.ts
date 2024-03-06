@@ -1,9 +1,9 @@
-import { getRemultAPI } from "@/app/api/[...remult]/config";
+import { getAdminRemultAPI } from "@/app/api/[...remult]/config";
 import { FounderController } from "@/controllers/FounderController";
 
 const main = async () => {
   console.log("Starting...");
-  const api = getRemultAPI(true);
+  const api = getAdminRemultAPI();
   await api.withRemult(async () =>
     FounderController.recalculateFounderSchoolCounts()
   );

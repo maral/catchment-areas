@@ -1,3 +1,3 @@
-import { getRemultAPI } from "./config";
+import { getNormalRemultAPI } from "./config";
 
-export const api = getRemultAPI();
+export const api = getNormalRemultAPI();

@@ -1,22 +1,14 @@
-import { Ordinance } from "@/entities/Ordinance";
-import { getFilePath } from "@/utils/server/textExtraction";
 import { fileTypeFromFile } from "file-type";
 import { readFileSync } from "fs";
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { remult } from "remult";
-import { api } from "../../../[...remult]/api";
-import { getNotLoggedInResponse, isLoggedIn } from "@/utils/server/auth";
+import { Ordinance } from "../../../../entities/Ordinance";
+import { getFilePath } from "../../../../utils/server/textExtraction";
+import { api } from "../../[...remult]/api";
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { ordinanceId: string } }
-) {
-  if (!(await isLoggedIn())) {
-    return getNotLoggedInResponse();
-  }
-
+export async function downloadOrdinance(ordinanceId: number) {
   const ordinance = await api.withRemult(async () => {
-    return await remult.repo(Ordinance).findId(Number(params.ordinanceId));
+    return await remult.repo(Ordinance).findId(ordinanceId);
   });
 
   const filePath = getFilePath(ordinance.fileName);

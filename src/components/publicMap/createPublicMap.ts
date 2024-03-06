@@ -12,15 +12,12 @@ import debounce from "lodash/debounce";
 import { SuggestionItem, SuggestionPosition } from "@/types/suggestionTypes";
 import { onCitiesLoaded, triggerCityLoaded } from "@/utils/client/events";
 import { Municipality } from "text-to-map";
-import { createSvgIcon } from "@/utils/client/markers";
+import { createCityMarker, createSvgIcon } from "@/utils/client/markers";
 
-let cityMarkers: Record<string, Marker> = {};
-let citiesMap: Record<string, CityOnMap> = {};
+const citiesMap: Record<string, CityOnMap> = {};
 let map: LeafletMap;
 let mapInitialized = false;
 
-const publicIcon = createSvgIcon("#03b703");
-const notReadyIcon = createSvgIcon("#999");
 const tempMarkerIcon = createSvgIcon("#e43f16");
 const loadCitiesDebounceTime = 300;
 
@@ -44,7 +41,11 @@ export const createPublicMap = (
 
   const bounds = L.latLngBounds([]);
 
-  cities.forEach((city) => addCityMarker(city, bounds));
+  const cityMarkers: Record<string, Marker> = {};
+
+  cities.forEach((city) =>
+    createCityMarker(city, cityMarkers, citiesMap, bounds).addTo(map)
+  );
 
   setupPopups(map);
 
@@ -66,18 +67,6 @@ export const createPublicMap = (
     },
     onSuggestionSelect,
   };
-};
-
-const addCityMarker = (city: CityOnMap, bounds: L.LatLngBounds) => {
-  const marker = L.marker([city.lat, city.lng], {
-    icon: city.isPublished ? publicIcon : notReadyIcon,
-  })
-    .bindPopup(city.name + (city.isPublished ? "" : " - zatím není připraveno"))
-    .addTo(map);
-  marker.setZIndexOffset(city.isPublished ? 1000 : 900);
-  cityMarkers[city.code] = marker;
-  citiesMap[city.code] = city;
-  bounds.extend(marker.getLatLng());
 };
 
 const minZoomForLoadingCities = 11;

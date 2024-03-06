@@ -15,3 +15,7 @@
 .leaflet-popup-content-wrapper {
   border-radius: 0.375rem !important;
 }
+
+.leaflet-container a {
+  color: white !important;
+}

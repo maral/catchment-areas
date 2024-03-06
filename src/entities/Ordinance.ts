@@ -1,8 +1,7 @@
-import { Allow, Entity, EntityBase, Field, Fields } from "remult";
-import { Founder } from "./Founder";
-import { OrdinanceMetadata } from "./OrdinanceMetadata";
-import { Municipality } from "text-to-map";
 import { FeatureCollection } from "@turf/helpers";
+import { Allow, Entity, EntityBase, Field, Fields } from "remult";
+import { Municipality } from "text-to-map";
+import { Founder } from "./Founder";
 
 @Entity("ordinances", {
   allowApiCrud: Allow.authenticated,

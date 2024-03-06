@@ -9,9 +9,10 @@ import {
   SchoolLayerGroup,
   SchoolMarkerMap,
   AddressMarkerMap,
+  CityOnMap,
 } from "@/types/mapTypes";
 import { colors, markerRadius, markerWeight } from "./mapUtils";
-import L from "leaflet";
+import L, { Marker } from "leaflet";
 
 const unmappedMarkerColor = "#ff0000";
 
@@ -151,10 +152,7 @@ export const createAddressMarker = (
 
       ${
         schoolMarkers.length > 0
-          ? `
-            <div class="text-center mt-2"><button class="border rounded px-2 py-1 text-xs bg-emerald-500 border-emerald-500 text-white hover:bg-emerald-600 hover:border-emerald-700 marker-button">
-              Zobrazit spádovou školu    
-            </button></div>`
+          ? createAddressMarkerButton()
           : "<br><br><em>Adresní místo bez spádové školy</em>"
       }
     </div>`),
@@ -227,6 +225,33 @@ export const createSvgIcon = (color: string): L.DivIcon => {
   });
 };
 
+const publicIcon = createSvgIcon("#03b703");
+const notReadyIcon = createSvgIcon("#999");
+
+export const createCityMarker = (
+  city: CityOnMap,
+  cityMarkers: Record<string, Marker>,
+  citiesMap: Record<string, CityOnMap>,
+  bounds: L.LatLngBounds
+) => {
+  const marker = L.marker([city.lat, city.lng], {
+    icon: city.isPublished ? publicIcon : notReadyIcon,
+  }).bindPopup(
+    `<div class="text-center"><span class="text-base font-semibold">${
+      city.name
+    }</span><br> ${
+      city.isPublished
+        ? `${createCityMarkerButton(city.code)}`
+        : "zatím není připraveno"
+    }</div>`
+  );
+  marker.setZIndexOffset(city.isPublished ? 1000 : 900);
+  cityMarkers[city.code] = marker;
+  citiesMap[city.code] = city;
+  bounds.extend(marker.getLatLng());
+  return marker;
+};
+
 const rotatePointOnCircle = (
   x: number,
   y: number,
@@ -244,3 +269,22 @@ const rotatePointOnCircle = (
 const flip = ([x, y]: [number, number]): [number, number] => {
   return [y, x];
 };
+
+const createAddressMarkerButton = () => `
+<div class="text-center mt-2"><button class="${getButtonClasses()} marker-button">
+  Zobrazit spádovou školu
+</button></div>`;
+
+const createCityMarkerButton = (cityCode: number) => `
+<div class="text-center mt-3"><a href="/api/ordinances/download/by-city-code/${cityCode}" target="_blank" class="${getButtonClasses()} mt-2">
+  ${getDownloadHeroicon()} Stáhnout vyhlášku
+</a></div>`;
+
+const getButtonClasses = () => {
+  return `border rounded px-2 py-1 text-xs bg-emerald-500 border-emerald-500 text-white hover:bg-emerald-600 hover:border-emerald-700`;
+};
+
+const getDownloadHeroicon =
+  () => `<svg class="inline-block w-4 h-4 relative" style="top: -1px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+<path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+</svg>`;

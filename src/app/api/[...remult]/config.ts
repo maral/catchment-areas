@@ -109,11 +109,16 @@ export function getRemultOptions(
 
 let remultApi: RemultNextAppServer | null = null;
 
-export function getRemultAPI(
-  isBackendOnly: boolean = false
-): RemultNextAppServer {
+export function getNormalRemultAPI(): RemultNextAppServer {
   if (remultApi === null) {
-    remultApi = remultNextApp(getRemultOptions(isBackendOnly));
+    remultApi = remultNextApp(getRemultOptions(false));
+  }
+  return remultApi;
+}
+
+export function getAdminRemultAPI(): RemultNextAppServer {
+  if (remultApi === null) {
+    remultApi = remultNextApp(getRemultOptions(true));
   }
   return remultApi;
 }
@@ -123,7 +128,7 @@ let remult: Remult | null = null;
 export const getRemult = async (): Promise<Remult> => {
   if (remult === null) {
     // @ts-ignore
-    remult = await getRemultAPI().getRemult({});
+    remult = await getNormalRemultAPI().getRemult({});
   }
   return remult;
 };

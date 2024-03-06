@@ -77,7 +77,7 @@ export default function OrdinancesTable({
           </Link>
           <Link
             className="inline-block"
-            href={`/api/ordinances/${item.id}/download`}
+            href={`/api/ordinances/download/by-id/${item.id}`}
             prefetch={false}
             target="_blank"
           >
