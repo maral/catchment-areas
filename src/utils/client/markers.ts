@@ -51,22 +51,14 @@ export const createMarkers = (
 
       // first put the address points' schools together, add them later
       school.addresses.forEach((point) => {
-        if (!point.lat || !point.lng) {
-          return;
-        }
-
-        if (point.address in markersToCreate) {
-          markersToCreate[point.address].schools.push(school);
-          markersToCreate[point.address].point.lineNumbers?.push(
-            ...(point.lineNumbers ?? [])
-          );
-        } else {
-          markersToCreate[point.address] = {
-            point,
-            schools: [school],
-          };
-        }
+        addToMarkersToCreate(point, school, markersToCreate);
       });
+
+      if (school.isWholeMunicipality) {
+        municipality.wholeMunicipalityPoints.forEach((point) => {
+          addToMarkersToCreate(point, school, markersToCreate);
+        });
+      }
 
       colorIndex++;
     });
@@ -102,6 +94,31 @@ export const createMarkers = (
       }
     });
   });
+};
+
+const addToMarkersToCreate = (
+  point: ExportAddressPoint,
+  school: School,
+  markersToCreate: Record<
+    string,
+    { point: ExportAddressPoint; schools: School[] }
+  >
+): void => {
+  if (!point.lat || !point.lng) {
+    return;
+  }
+
+  if (point.address in markersToCreate) {
+    markersToCreate[point.address].schools.push(school);
+    markersToCreate[point.address].point.lineNumbers?.push(
+      ...(point.lineNumbers ?? [])
+    );
+  } else {
+    markersToCreate[point.address] = {
+      point,
+      schools: [school],
+    };
+  }
 };
 
 const defaultPosition = [49.19506, 16.606837];

@@ -49,6 +49,20 @@ export class OrdinanceController {
   }
 
   @BackendMethod({ allowed: true })
+  static async setActiveOrdinance(founderId: number, ordinanceId: number) {
+    const ordinanceRepo = remult.repo(Ordinance);
+    const foundersOrdinances = await ordinanceRepo.find({
+      where: { founder: { $id: founderId } },
+    });
+    foundersOrdinances.forEach(async (ordinance) => {
+      await ordinanceRepo.update(ordinanceId, {
+        ...ordinance,
+        isActive: ordinance.id === ordinanceId,
+      });
+    });
+  }
+
+  @BackendMethod({ allowed: true })
   static async deleteOrdinance(ordinanceId: number) {
     const ordinanceRepo = remult.repo(Ordinance);
     const ordinance = await ordinanceRepo.findId(ordinanceId);
