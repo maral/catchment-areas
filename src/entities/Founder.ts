@@ -17,6 +17,7 @@ import { SchoolFounder } from "./SchoolFounder";
 
 @Entity("founders", {
   dbName: "founder",
+  allowApiCrud: true,
   allowApiRead: Allow.authenticated,
   backendPrefilter: () => ({ schoolCount: { $gt: 1 } }),
 })
