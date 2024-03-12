@@ -32,6 +32,7 @@ export const texts = {
   email: "E-mail",
   emailVerified: "E-mail ověřen",
   embedMap: "Vložit mapu na web",
+  expertsEntrance: "Vstup pro experty",
   featureUnderConstruction: "Přípravovaná funkce",
   fillOutEmail: "Vyplňte e-mail...",
   fillOutFirstName: "Vyplňte jméno...",

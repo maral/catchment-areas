@@ -1,6 +1,7 @@
 import { Menu as HeadlessMenu, Transition } from "@headlessui/react";
 import {
   ArrowDownTrayIcon,
+  ArrowRightOnRectangleIcon,
   Bars3Icon,
   ExclamationTriangleIcon,
   MapIcon,
@@ -44,7 +45,8 @@ block px-3 py-2 transition-colors shadow text-slate-400 hover:text-slate-500 con
           <HeadlessMenu.Items className="absolute left-0 mt-2 w-60 origin-top-left divide-y divide-gray-100 rounded-md bg-white shadow-lg ring-1 ring-black/5 focus:outline-none">
             <div className="px-1 py-1 ">
               <Item icon={ArrowDownTrayIcon}>{texts.dataForDownload}</Item>
-              <Item icon={MapIcon}>{texts.embedMap}</Item>
+              <Item icon={ArrowRightOnRectangleIcon}>{texts.embedMap}</Item>
+              <Item icon={MapIcon}>{texts.expertsEntrance}</Item>
               <Item icon={ExclamationTriangleIcon} href="#" target="_blank">
                 {texts.reportBug}
               </Item>
