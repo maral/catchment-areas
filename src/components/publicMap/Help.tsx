@@ -50,15 +50,63 @@ export default function Help({ isOpen, closeModal }: HelpProps) {
                 </button>
                 <Dialog.Title
                   as="h2"
-                  className="text-3xl font-medium leading-6"
+                  className="text-3xl font-medium leading-6 mb-8"
                 >
                   Nápověda
                 </Dialog.Title>
+                <P>
+                  <strong>
+                    Mapa spádových oblastí vznikla s&nbsp;cílem pomoci rodičům,
+                    pedagogům, zřizovatelům i expertům na vzdělávání
+                    v&nbsp;orientaci v&nbsp;české vzdělávací krajině.
+                  </strong>
+                </P>
+                <P>
+                  Česká republika má přes devět tisíc mateřských a základních
+                  škol, jež zřizují tisíce zřizovatelů. Mapa má pomoci{" "}
+                  <strong>rodičům</strong>
+                  zjistit, kam má jejich dítě přednostně nastoupit k&nbsp;plnění
+                  povinné školní docházky, <strong>ředitelům</strong> pak
+                  komunikovat tento fakt jednoduše prostřednictvím rychlé
+                  vizualizace školského obvodu namísto nutnosti publikovat
+                  mnohdy rozsáhlé texty vyhlášek. Mapa má pomoci také{" "}
+                  <strong>zřizovatelům</strong>, kteří s&nbsp;její pomoci mohou
+                  globálněji nahlédnout model spádovosti, který pro svou městkou
+                  část, město či obec zvolili. V neposlední řadě poslouží
+                  <strong>expertům</strong> pomoci objevit a korigovat
+                  nejasnosti či v&nbsp;zamyšlení se nad vzdělávací politikou
+                  vedoucí k potřebě přespádování nebo třeba stavbě nových škol.
+                </P>
+                <P>
+                  Aktuálně mapa nabízí přehled 300 obcí a měst, které
+                  v&nbsp;České republice zřizují dvě a více základních škol, a
+                  tudíž jsou povinny určit jejich spádovost. V&nbsp;další etapě
+                  budou přidány mateřské školy, a&nbsp;také spádové oblasti
+                  velkých metropolí, které již podobné zobrazení často na svých
+                  webových portálech samy nabízejí a&nbsp;jsou tedy dostupné
+                  jinde.
+                </P>
+                <P>
+                  Za vznikem mapy stojí{" "}
+                  <a href="https://www.npi.cz/">
+                    Národní pedagogický institut ČR
+                  </a>
+                  . Mapa využívá pomoc umělé inteligence při převodu textů
+                  obecních a&nbsp;městských vyhlášek do adresních bodů, jež jsou
+                  následně vykresleny v&nbsp;mapovém podkladu. Soubor adres je
+                  po kontrole zveřejněn a pro snazší orientaci došlo ke
+                  sjednocení spádové oblasti jedné konkrétní školy do barevně
+                  vyznačeného polygonu. Vyhledávací a zobrazovací funkce jsou
+                  založeny na stejných principech ovládání jaké jsou notoricky
+                  známé z&nbsp;internetového prostředí.
+                </P>
                 <H3>Pokrytí obcí a měst</H3>
                 <P>
                   V aplikaci Spádové oblasti jsou zobrazeny všechny obce, které
-                  mají dvě a více škol a mají proto povinnost vydávat spádovou
-                  vyhlášku. Zeleným trojúhelníkem{" "}
+                  mají dvě a&nbsp;více škol a mají proto povinnost vydávat
+                  obecně závaznou vyhlášku se stanovením školských obvodů
+                  spádových mateřských a&nbsp;základních škol. Zeleným
+                  trojúhelníkem{" "}
                   <Image
                     src={"/green_triangle.svg"}
                     alt="zelený trojúhelník"
@@ -72,16 +120,18 @@ export default function Help({ isOpen, closeModal }: HelpProps) {
                 </P>
                 <H3>Vyhledání adresy</H3>
                 <P>
-                  V poli <em>Vyhledat adresu</em> zadejte adresu místa, jehož
-                  spádovou školu chcete zobrazit a vyberte z nabídky.
+                  V poli <em>Vyhledat adresu</em> zadejte adresu místa (např.
+                  Vaši ulici), jehož spádovou školu chcete zobrazit
+                  a&nbsp;vyberte z&nbsp;nabídky konkrétní číslo popisné
+                  i&nbsp;město.
                 </P>
                 <H3>Barevné oblasti a body</H3>
                 <P>
                   Od určitého přiblížení uvidíte barevné oblasti a body
-                  vyznačující školy. Při ještě větším přiblížením se zobrazí i
-                  menší body označující jednotlivá bydliště. Barva oblasti, bodu
-                  a školy se shodují, pokud bod (a tedy i oblast) spadá k dané
-                  škole.
+                  vyznačující školy. Při ještě větším přiblížením se zobrazí
+                  i&nbsp;menší body označující jednotlivá bydliště. Barva
+                  oblasti, bodu a školy se shodují, pokud bod (a&nbsp;tedy
+                  i&nbsp;oblast) spadá k dané škole.
                 </P>
                 <Image
                   src={"/multicolor_markers.png"}
@@ -93,17 +143,17 @@ export default function Help({ isOpen, closeModal }: HelpProps) {
                 <P>
                   Některé adresy ale mohou mít{" "}
                   <strong>více spádových škol</strong>. Častým případem jsou
-                  například obce na Slezsku, které mají školu s polským
-                  vyučovacím jazykem, jejíž spádovou oblastí je celé město. V
-                  tom případě se na dané adrese zobrazí barevných teček několik,
-                  odpovídajících barevně všem spádovým školám.
+                  například obce ve Slezsku, které mají školu s&nbsp;polským
+                  vyučovacím jazykem, jejíž spádovou oblastí je celé město.
+                  V&nbsp;tom případě se na dané adrese zobrazí barevných teček
+                  několik, odpovídajících barevně všem spádovým školám.
                 </P>
                 <H4>Oblasti</H4>
                 <P>
                   Při najetí myší nad barevnou oblast se zvýrazní škola spádová
                   pro danou oblast. Pokud oblast přísluší k více školám, barvy
-                  se překryjí a tím smíchají (obvykle trochu tmavší barva), při
-                  najetí myši se zvýrazní všechny spádové školy najednou.
+                  se překryjí a&nbsp;tím smíchají (obvykle ztmavnou), při najetí
+                  myši se zvýrazní všechny spádové školy najednou.
                 </P>
                 <H4>Body</H4>
                 <P>
@@ -119,14 +169,14 @@ export default function Help({ isOpen, closeModal }: HelpProps) {
                   na bod školy. Poté se zvýrazní spádová oblast školy a ostatní
                   oblasti se skryjí.
                 </P>
-
                 <H3>Chyby ve spádovostech</H3>
                 <P>
                   Spádové vyhlášky jednotlivých měst jsou do mapových dat
-                  převáděny částečně automatizovaným procesem. V některých
+                  převáděny částečně automatizovaným procesem. V&nbsp;některých
                   případech proto mohou být data nepřesná. Pokud si všimnete
                   jakékoliv chyby, nahlašte ji pomocí tlačítka{" "}
-                  <em>Nahlásit chybu</em> a pomožte nám aplikaci vylepšovat.
+                  <em>Nahlásit chybu</em> a&nbsp;pomožte nám tím aplikaci
+                  vylepšovat. Děkujeme!
                 </P>
                 <div className="mt-4 flex justify-end">
                   <PublicButton onClick={closeModal}>Zavřít</PublicButton>
