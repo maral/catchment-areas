@@ -86,7 +86,7 @@ const InnerMap = memo(
         </div>
 
         <PublicButton
-          href="#"
+          href={texts.URL_reportBug}
           target="_blank"
           className="absolute bottom-[80px] md:bottom-[8px] left-[8px] z-[1000] bg-slate-50"
           icon={ExclamationTriangleIcon}

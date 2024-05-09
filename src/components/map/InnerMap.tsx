@@ -1,8 +1,7 @@
-import "leaflet/dist/leaflet.css";
-import { memo, useEffect, useRef } from "react";
 import { createMap } from "@/components/map/createMap";
-import { Municipality } from "text-to-map";
 import { DataForMap } from "@/types/mapTypes";
+import "leaflet/dist/leaflet.css";
+import { useEffect, useRef } from "react";
 
 interface InnerMapProps {
   data: DataForMap;
