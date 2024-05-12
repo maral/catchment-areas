@@ -16,6 +16,6 @@
   border-radius: 0.375rem !important;
 }
 
-.leaflet-container a {
+.leaflet-container a.city-marker {
   color: white !important;
 }

@@ -64,18 +64,18 @@ export default function Help({ isOpen, closeModal }: HelpProps) {
                 <P>
                   Česká republika má přes devět tisíc mateřských a základních
                   škol, jež zřizují tisíce zřizovatelů. Mapa má pomoci{" "}
-                  <strong>rodičům</strong>
-                  zjistit, kam má jejich dítě přednostně nastoupit k&nbsp;plnění
-                  povinné školní docházky, <strong>ředitelům</strong> pak
-                  komunikovat tento fakt jednoduše prostřednictvím rychlé
-                  vizualizace školského obvodu namísto nutnosti publikovat
-                  mnohdy rozsáhlé texty vyhlášek. Mapa má pomoci také{" "}
-                  <strong>zřizovatelům</strong>, kteří s&nbsp;její pomoci mohou
-                  globálněji nahlédnout model spádovosti, který pro svou městkou
-                  část, město či obec zvolili. V neposlední řadě poslouží
-                  <strong>expertům</strong> pomoci objevit a korigovat
-                  nejasnosti či v&nbsp;zamyšlení se nad vzdělávací politikou
-                  vedoucí k potřebě přespádování nebo třeba stavbě nových škol.
+                  <strong>rodičům</strong> zjistit, kam má jejich dítě
+                  přednostně nastoupit k&nbsp;plnění povinné školní docházky,{" "}
+                  <strong>ředitelům</strong> pak komunikovat tento fakt
+                  jednoduše prostřednictvím rychlé vizualizace školského obvodu
+                  namísto nutnosti publikovat mnohdy rozsáhlé texty vyhlášek.
+                  Mapa má pomoci také <strong>zřizovatelům</strong>, kteří
+                  s&nbsp;její pomoci mohou globálněji nahlédnout model
+                  spádovosti, který pro svou městkou část, město či obec
+                  zvolili. V neposlední řadě poslouží <strong>expertům</strong>{" "}
+                  pomoci objevit a korigovat nejasnosti či v&nbsp;zamyšlení se
+                  nad vzdělávací politikou vedoucí k potřebě přespádování nebo
+                  třeba stavbě nových škol.
                 </P>
                 <P>
                   Aktuálně mapa nabízí přehled 300 obcí a měst, které
@@ -88,7 +88,7 @@ export default function Help({ isOpen, closeModal }: HelpProps) {
                 </P>
                 <P>
                   Za vznikem mapy stojí{" "}
-                  <a href="https://www.npi.cz/">
+                  <a href="https://www.npi.cz/" className="text-sky-600">
                     Národní pedagogický institut ČR
                   </a>
                   . Mapa využívá pomoc umělé inteligence při převodu textů

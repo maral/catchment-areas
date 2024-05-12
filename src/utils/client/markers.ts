@@ -293,7 +293,7 @@ const createAddressMarkerButton = () => `
 </button></div>`;
 
 const createCityMarkerButton = (cityCode: number) => `
-<div class="text-center mt-3"><a href="/api/ordinances/download/by-city-code/${cityCode}" target="_blank" class="${getButtonClasses()} mt-2">
+<div class="text-center mt-3"><a href="/api/ordinances/download/by-city-code/${cityCode}" target="_blank" class="city-marker ${getButtonClasses()} mt-2">
   ${getDownloadHeroicon()} Stáhnout vyhlášku
 </a></div>`;
 
