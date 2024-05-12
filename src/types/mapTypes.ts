@@ -57,6 +57,6 @@ export interface CityData {
   data: DataForMap;
   addressesLayerGroup: AddressLayerGroup;
   schoolsLayerGroup: SchoolLayerGroup;
-  polygonLayer: GeoJSON;
+  polygonLayerGroup: FeatureGroup;
   addressMarkers: AddressMarkerMap;
 }

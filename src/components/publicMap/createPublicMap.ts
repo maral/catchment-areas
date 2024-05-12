@@ -70,7 +70,7 @@ export const createPublicMap = (
 };
 
 const minZoomForLoadingCities = 11;
-const minZoomForAddressPoints = 13;
+const minZoomForAddressPoints = 14;
 const loadedCities = new Map<number, CityData>();
 const loadingCities = new Set<number>();
 const citiesWithShownSchools = new Set<number>();
@@ -150,7 +150,7 @@ const showAddresses = (code: number) => {
 const showSchools = (code: number) => {
   if (!citiesWithShownSchools.has(code) && loadedCities.has(code)) {
     citiesWithShownSchools.add(code);
-    map.addLayer(loadedCities.get(code)!.polygonLayer);
+    map.addLayer(loadedCities.get(code)!.polygonLayerGroup);
     map.addLayer(loadedCities.get(code)!.schoolsLayerGroup);
   }
 };
@@ -158,7 +158,7 @@ const showSchools = (code: number) => {
 const hideSchools = (code: number) => {
   if (loadedCities.has(code)) {
     map.removeLayer(loadedCities.get(code)!.schoolsLayerGroup);
-    map.removeLayer(loadedCities.get(code)!.polygonLayer);
+    map.removeLayer(loadedCities.get(code)!.polygonLayerGroup);
     citiesWithShownSchools.delete(code);
   }
 };
@@ -232,7 +232,7 @@ const loadNewCities = async (
         const {
           addressesLayerGroup,
           schoolsLayerGroup,
-          polygonLayer,
+          polygonLayerGroup,
           addressMarkers,
         } = createCityLayers({
           data: result[Number(id)],
@@ -243,7 +243,7 @@ const loadNewCities = async (
           data: result[Number(id)],
           addressesLayerGroup,
           schoolsLayerGroup,
-          polygonLayer,
+          polygonLayerGroup,
           addressMarkers,
         });
 
