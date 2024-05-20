@@ -36,7 +36,7 @@ export const createMap = (
     addressesLayerGroup,
     schoolsLayerGroup,
     unmappedLayerGroup,
-    polygonLayer,
+    polygonLayerGroup,
   } = createCityLayers({
     data,
     showDebugInfo: true,
@@ -46,7 +46,7 @@ export const createMap = (
   const layerGroupsForControl: Record<string, LayerGroup> = {};
 
   layerGroupsForControl[texts.schools] = schoolsLayerGroup;
-  layerGroupsForControl[texts.polygons] = polygonLayer;
+  layerGroupsForControl[texts.polygons] = polygonLayerGroup;
   layerGroupsForControl[texts.addressPoints] = addressesLayerGroup;
   layerGroupsForControl[texts.unmappedAddressPoints] = unmappedLayerGroup;
 
@@ -55,7 +55,7 @@ export const createMap = (
   if (center) {
     map.setView(center, zoom ?? 15);
   } else {
-    map.fitBounds(polygonLayer.getBounds());
+    map.fitBounds(polygonLayerGroup.getBounds());
     if (zoom) {
       map.setZoom(zoom);
     }
@@ -69,13 +69,13 @@ export const createMap = (
   //   map.addLayer(layerGroup);
   // });
 
-  map.addLayer(polygonLayer);
+  map.addLayer(polygonLayerGroup);
   map.addLayer(addressesLayerGroup);
   map.addLayer(schoolsLayerGroup);
   map.addLayer(unmappedLayerGroup);
 
-  polygonLayer.on("add", () => {
-    polygonLayer.bringToBack();
+  polygonLayerGroup.on("add", () => {
+    polygonLayerGroup.bringToBack();
   });
 
   return () => {
