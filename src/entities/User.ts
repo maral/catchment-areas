@@ -1,17 +1,11 @@
+import { Entity, Fields } from "remult";
 import { RemoveIndex } from "@/utils/shared/types";
 import { AdapterUser } from "@auth/core/adapters";
-import { Entity, Fields } from "remult";
-
-export enum Role {
-  Admin = "admin",
-  User = "user",
-}
+import { Role } from "@/utils/shared/permissions";
 
 @Entity("users", {
   dbName: "user",
-  allowApiCrud: Role.Admin.toString(),
-  allowApiRead: true,
-  backendPrefilter: () => ({ isDeleted: false }),
+  allowApiCrud: Role.Admin,
 })
 export class User implements RemoveIndex<AdapterUser> {
   @Fields.uuid()
@@ -19,6 +13,9 @@ export class User implements RemoveIndex<AdapterUser> {
 
   @Fields.string()
   email: string = "";
+
+  @Fields.string()
+  futureEmail: string = "";
 
   @Fields.date()
   emailVerified: Date | null = null;

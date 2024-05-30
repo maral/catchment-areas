@@ -105,9 +105,7 @@ export default function OrdinancesTable({
             tooltip={texts.delete}
             size="sm"
             onClick={() => {
-              console.log("setting the confirm function");
               setConfirmFunction(() => async () => {
-                console.log("running the confirm function");
                 await OrdinanceController.deleteOrdinance(item.id);
                 await fetchData();
               });

@@ -2,15 +2,15 @@
 
 import { texts } from "@/utils/shared/texts";
 import { Button, DatePicker, Subtitle, TextInput } from "@tremor/react";
-import { Formik, Form, Field, ErrorMessage, FieldProps } from "formik";
+import { Formik, Form, Field, FieldProps } from "formik";
 import { cs } from "date-fns/locale";
 import * as Yup from "yup";
 import Header from "../common/Header";
 import { Colors } from "@/styles/Themes";
-import { ComponentProps } from "react";
 import { OrdinanceController } from "@/controllers/OrdinanceController";
 import { useRouter } from "next/navigation";
 import { routes } from "@/utils/shared/constants";
+import { ErrorWrapper, InputSubtitle, StyledErrorMessage, StyledForm } from "../common/Forms";
 
 interface FormValues {
   validFrom: Date | undefined;
@@ -86,7 +86,7 @@ export default function UploadOrdinance({ founderId }: { founderId: string }) {
       onSubmit={onSubmit}
     >
       {({ isSubmitting, setFieldValue }) => (
-        <Form className="flex flex-col gap-8">
+        <StyledForm>
           <Header className="shrink">{texts.addOrdinanceManually}</Header>
 
           <div>
@@ -111,13 +111,13 @@ export default function UploadOrdinance({ founderId }: { founderId: string }) {
               placeholder={texts.ordinanceNumber}
               as={TextInput}
             />
-            <StyledErrorMessage name="serialNumber" component="div" />
+            <StyledErrorMessage name="serialNumber" />
           </div>
 
           <div>
             <InputSubtitle>{texts.ordinanceFile}</InputSubtitle>
             <input
-              className="relative m-0 ml-4 block min-w-0 flex-auto rounded
+              className="relative m-0 block min-w-0 flex-auto rounded
                 border border-solid border-neutral-300 bg-clip-padding px-3
                 py-[0.32rem] text-base font-normal text-neutral-700 transition
                 duration-300 ease-in-out file:-mx-3 file:-my-[0.32rem]
@@ -133,37 +133,21 @@ export default function UploadOrdinance({ founderId }: { founderId: string }) {
                 setFieldValue("file", event.currentTarget.files?.[0]);
               }}
             />
-            <StyledErrorMessage name="file" component="div" />
+            <StyledErrorMessage name="file" />
           </div>
 
           <Button
             disabled={isSubmitting}
             type="submit"
-            className="ml-4 w-64"
+            className="w-64"
             color={Colors.Primary}
           >
             {texts.add}
           </Button>
-        </Form>
+        </StyledForm>
       )}
     </Formik>
   );
-}
-
-function InputSubtitle({ children }: { children: React.ReactNode }) {
-  return <Subtitle className="ml-4 mb-2">{children}</Subtitle>;
-}
-
-function StyledErrorMessage(props: ComponentProps<typeof ErrorMessage>) {
-  return (
-    <ErrorWrapper>
-      <ErrorMessage {...props} />
-    </ErrorWrapper>
-  );
-}
-
-function ErrorWrapper({ children }: { children: React.ReactNode }) {
-  return <div className="text-red-500 text-sm ml-4 mt-2">{children}</div>;
 }
 
 function DatePickerWrapper({

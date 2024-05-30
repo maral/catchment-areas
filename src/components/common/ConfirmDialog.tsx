@@ -3,10 +3,12 @@ import { texts } from "@/utils/shared/texts";
 import { Button, Color, Subtitle } from "@tremor/react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
+export type ConfirmFunction = (() => Promise<void>) | (() => void);
+
 type ConfirmDialogProps = {
   title: string;
   message: string;
-  onConfirm: (() => Promise<void>) | (() => void);
+  onConfirm: ConfirmFunction;
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
   confirmColor?: Color;

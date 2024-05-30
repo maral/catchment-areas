@@ -1,3 +1,5 @@
+"use client";
+
 import { createPublicMap } from "@/components/publicMap/createPublicMap";
 import { CityOnMap } from "@/types/mapTypes";
 import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";

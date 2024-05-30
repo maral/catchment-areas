@@ -8,7 +8,7 @@ import { Orp } from "@/entities/Orp";
 import { Region } from "@/entities/Region";
 import { School } from "@/entities/School";
 import { SchoolFounder } from "@/entities/SchoolFounder";
-import { Role, User } from "@/entities/User";
+import { User } from "@/entities/User";
 import { createKnexDataProvider } from "remult/remult-knex";
 import { RemultNextAppServer, remultNextApp } from "remult/remult-next";
 import { Ordinance } from "@/entities/Ordinance";
@@ -21,6 +21,8 @@ import { Remult } from "remult";
 import { getServerSessionWithOptions } from "../auth/[...nextauth]/config";
 import { StreetController } from "@/controllers/StreetController";
 import { OrdinanceController } from "@/controllers/OrdinanceController";
+import { UserController } from "@/controllers/UserController";
+import { Role } from "@/utils/shared/permissions";
 
 configDotenv({ path: ".env.local" });
 
@@ -53,9 +55,10 @@ export function getRemultOptions(
       ],
       controllers: [
         FounderController,
-        StreetMarkdownController,
-        StreetController,
         OrdinanceController,
+        StreetController,
+        StreetMarkdownController,
+        UserController,
       ],
       dataProvider: createKnexDataProvider({
         client: "mysql",

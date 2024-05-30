@@ -1,5 +1,5 @@
 import { Account } from "@/entities/Account";
-import { Role, User } from "@/entities/User";
+import { User } from "@/entities/User";
 import { Adapter } from "next-auth/adapters";
 import { Repository } from "remult";
 import { getRemult } from "../[...remult]/config";
@@ -28,10 +28,26 @@ export function RemultAdapter(): Adapter {
     },
 
     async createUser(user) {
-      const newUser = await (
+      const preapprovedUser = await (
         await getUserRepo()
-      ).insert({ ...user, isDeleted: false, role: Role.User });
-      return newUser;
+      ).findFirst({
+        futureEmail: user.email,
+        isDeleted: false,
+      });
+
+      if (preapprovedUser) {
+        return await (
+          await getUserRepo()
+        ).save({
+          ...preapprovedUser,
+          email: preapprovedUser.futureEmail,
+          futureEmail: "",
+          name: user.name,
+          image: user.image,
+        });
+      }
+
+      throw new Error("User not found");
     },
 
     async updateUser(user) {

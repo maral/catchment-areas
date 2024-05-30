@@ -15,6 +15,8 @@ import { routes } from "@/utils/shared/constants";
 import { Colors } from "@/styles/Themes";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { Role, isAllowedRoute } from "@/utils/shared/permissions";
 
 const listItemClass =
   "cursor-pointer hover:bg-white rounded-md px-2 justify-start transition-colors";
@@ -35,6 +37,7 @@ export default function Navbar({ className }: { className?: string }) {
               href={routes.founders}
               icon={ShieldCheckIcon}
               text={texts.founders}
+              requiredRole={Role.Editor}
             />
 
             <MenuItem
@@ -51,11 +54,16 @@ export default function Navbar({ className }: { className?: string }) {
 
             <MenuItem href={routes.orps} icon={MapPinIcon} text={texts.orp} />
 
-            <MenuItem href={routes.users} icon={UserIcon} text={texts.users} />
+            <MenuItem
+              href={routes.users}
+              icon={UserIcon}
+              text={texts.users}
+              requiredRole={Role.Admin}
+            />
 
             <hr className="my-4" />
 
-            <Link href={routes.publicMap}>
+            <Link href={routes.publicMap} target="_blank">
               <ListItem className={listItemClass}>
                 <Icon icon={MapIcon} color={Colors.Primary}></Icon>
                 <span className={spanClass}>{texts.mapForPublic}</span>
@@ -86,9 +94,16 @@ function MenuItem({
   icon: React.ElementType;
   text: string;
   href: string;
+  requiredRole?: Role;
 }) {
   const pathname = usePathname();
   const isActive = pathname.includes(href);
+  const session = useSession();
+  const role = session.data?.user.role as Role;
+
+  if (!isAllowedRoute(href, role)) {
+    return null;
+  }
 
   return (
     <Link href={href}>

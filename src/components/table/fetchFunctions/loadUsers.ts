@@ -1,5 +1,6 @@
 import { User } from "@/entities/User";
 import { remult } from "remult";
+import { Role } from "../../../utils/shared/permissions";
 
 const usersRepo = remult.repo(User);
 
@@ -8,6 +9,7 @@ export async function loadUsers(page: number, limit: number): Promise<User[]> {
     limit,
     page,
     orderBy: { name: "asc" },
+    where: { isDeleted: false },
   });
 }
 
