@@ -54,9 +54,9 @@ export function getNextAuthOptions(): NextAuthOptions {
   return authOptions;
 }
 
-let auth: Function;
+let auth: (...args: any) => any;
 
-export function getNextAuth(): Function {
+export function getNextAuth(): (...args: any) => any {
   if (!auth) {
     auth = NextAuth(getNextAuthOptions());
   }
