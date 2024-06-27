@@ -6,7 +6,7 @@ import {
   MapIcon,
   QuestionMarkCircleIcon,
   RocketLaunchIcon,
-  SparklesIcon
+  SparklesIcon,
 } from "@heroicons/react/24/outline";
 import { Icon } from "@tremor/react";
 import "leaflet/dist/leaflet.css";
@@ -44,10 +44,16 @@ block px-3 py-2 transition-colors shadow text-slate-400 hover:text-slate-500 con
         >
           <HeadlessMenu.Items className="absolute left-0 mt-2 w-60 origin-top-left divide-y divide-gray-100 rounded-md bg-white shadow-lg ring-1 ring-black/5 focus:outline-none">
             <div className="px-1 py-1 ">
-              <Item icon={ArrowDownTrayIcon}>{texts.dataForDownload}</Item>
+              <Item icon={ArrowDownTrayIcon} href={"/data"}>
+                {texts.dataForDownload}
+              </Item>
               <Item icon={MapIcon}>{texts.embedMap}</Item>
               <Item icon={SparklesIcon}>{texts.expertsEntrance}</Item>
-              <Item icon={ExclamationTriangleIcon} href={texts.URL_reportBug} target="_blank">
+              <Item
+                icon={ExclamationTriangleIcon}
+                href={texts.URL_reportBug}
+                target="_blank"
+              >
                 {texts.reportBug}
               </Item>
               <Item icon={QuestionMarkCircleIcon} onClick={showHelp}>
