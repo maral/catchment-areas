@@ -41,6 +41,8 @@ export const createMap = (
 
   setupPopups(map);
 
+  map.fitBounds(polygonLayerGroup.getBounds());
+
   if (
     Object.keys(layerGroupsForControl).length > 1 &&
     options.showLayerControls
