@@ -13,6 +13,8 @@ import {
   parseOrdinanceToAddressPoints,
 } from "text-to-map";
 import { TextToMapError } from "../shared/types";
+import { SchoolFounder } from "../../entities/SchoolFounder";
+import { FounderController } from "../../controllers/FounderController";
 
 export async function validateStreetMarkdown(
   lines: string[],
@@ -128,6 +130,57 @@ export async function getOrCreateDataForMapByCityCodes(
   }
 
   return municipalitiesByCityCodes;
+}
+
+export async function getOrCreateDataForMapBySchoolIzo(
+  schoolIzo: string
+): Promise<DataForMap | null> {
+  const founder = await api.withRemult(async () => {
+    const founderId = await FounderController.findFounderIdBySchoolIzo(
+      schoolIzo
+    );
+
+    if (founderId) {
+      return await remult.repo(Founder).findFirst({ id: founderId });
+    }
+  });
+
+  if (!founder) {
+    return null;
+  }
+
+  const founderData = await getOrCreateDataForMap(founder);
+  if (!founderData) {
+    return null;
+  }
+
+  const municipality = founderData.municipalities.find((municipality) =>
+    municipality.schools.some((school) => school.izo === schoolIzo)
+  );
+  if (!municipality) {
+    return null;
+  }
+
+  const school = municipality.schools.find(
+    (school) => school.izo === schoolIzo
+  );
+  municipality.schools = [school!];
+
+  const collection = founderData.polygons.find((collection) =>
+    collection.features.some(
+      (feature) => feature.properties?.schoolIzo === schoolIzo
+    )
+  );
+
+  if (!collection) {
+    return null;
+  }
+
+  collection.features = collection.features.filter(
+    (feature) => feature.properties?.schoolIzo === schoolIzo
+  );
+
+  return { municipalities: [municipality], polygons: [collection] };
 }
 
 export async function getStreetMarkdownSourceText(

@@ -10,6 +10,7 @@ import {
   SchoolMarkerMap,
   AddressMarkerMap,
   CityOnMap,
+  MapOptions,
 } from "@/types/mapTypes";
 import { colors, markerRadius, markerWeight } from "./mapUtils";
 import L, { Marker } from "leaflet";
@@ -25,7 +26,7 @@ export const createMarkers = (
   schoolMarkers: SchoolMarkerMap,
   addressMarkers: AddressMarkerMap,
   schoolColorIndicesMap: Record<string, number>,
-  showDebugInfo: boolean,
+  options: MapOptions,
   lines?: string[]
 ) => {
   let colorIndex = 0;
@@ -41,7 +42,7 @@ export const createMarkers = (
     municipalityLayerGroups.push(layerGroup);
     addressesLayerGroup.addLayer(layerGroup);
     municipality.schools.forEach((school) => {
-      const color = colors[colorIndex % colors.length];
+      const color = options.color ?? colors[colorIndex % colors.length];
       schoolColorIndicesMap[school.izo] = colorIndex;
       const schoolMarker = createSchoolMarker(school, color).addTo(
         schoolsLayerGroup
@@ -65,7 +66,7 @@ export const createMarkers = (
       colorIndex++;
     });
 
-    if (showDebugInfo) {
+    if (options.showDebugInfo) {
       municipality.unmappedPoints.forEach((point) => {
         markersToCreate[point.address] = {
           point,
@@ -84,7 +85,7 @@ export const createMarkers = (
       point,
       colors,
       schools.map((s) => schoolMarkers[s.izo]) as SchoolMarker[],
-      showDebugInfo && schools.length > 0,
+      Boolean(options.showDebugInfo) && schools.length > 0,
       lines
     );
     addressMarkers[point.address] = newMarkers;

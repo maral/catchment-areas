@@ -85,6 +85,7 @@ export const texts = {
   saved: "Uloženo",
   saving: "Ukládání...",
   schoolEditorLabel: "škola",
+  school: "Škola",
   schools: "Školy",
   selectDate: "Vyberte datum...",
   setAsInProgress: 'Označit jako "Rozpracováno"',

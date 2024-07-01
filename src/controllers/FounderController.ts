@@ -1,7 +1,8 @@
-import { Founder, FounderStatus } from "@/entities/Founder";
+import { Founder, FounderStatus, FounderType } from "@/entities/Founder";
 import { SchoolFounder } from "@/entities/SchoolFounder";
 import { BackendMethod, dbNamesOf } from "remult";
 import { KnexDataProvider } from "remult/remult-knex";
+import { City, CitySchools, School } from "../app/embed/Embed";
 
 type SimpleFounder = {
   id: number;
@@ -41,7 +42,7 @@ export class FounderController {
     }
   }
 
-  static async loadFounders(
+  static async loadPublishedFounders(
     page: number,
     limit: number
   ): Promise<SimpleFounder[]> {
@@ -53,7 +54,7 @@ export class FounderController {
         FROM founder f
         JOIN city c ON f.city_code = c.code
         JOIN region r ON c.region_code = r.code
-        WHERE f.school_count > 1
+        WHERE f.school_count > 1 AND f.status = ${FounderStatus.Published}
         ORDER BY f.short_name ASC
         LIMIT ${limit}
         OFFSET ${page * limit}`
@@ -90,5 +91,62 @@ export class FounderController {
         },
       ])
     );
+  }
+
+  static async findFounderIdBySchoolIzo(schoolIzo: string): Promise<number> {
+    const knex = KnexDataProvider.getDb();
+    return (
+      await knex.raw(
+        `SELECT f.id
+      FROM founder f
+      JOIN school_founder sf ON f.id = sf.founder_id
+      WHERE sf.school_izo = '${schoolIzo}'`
+      )
+    )[0]?.[0]?.id;
+  }
+
+  static async loadPublishedCities(): Promise<City[]> {
+    const knex = KnexDataProvider.getDb();
+    const founders = await knex.raw(
+      `SELECT city_code, short_name
+      FROM founder f
+      WHERE status = ${FounderStatus.Published} AND founder_type_code = ${FounderType.City}
+      ORDER BY short_name ASC`
+    );
+    return founders[0].map((f: any) => ({
+      code: f.city_code,
+      name: f.short_name,
+    }));
+  }
+
+  static async loadPublishedSchools(): Promise<CitySchools[]> {
+    const knex = KnexDataProvider.getDb();
+    const schools = await knex.raw(
+      `SELECT f.short_name, s.izo, s.name
+      FROM founder f
+      JOIN school_founder sf ON f.id = sf.founder_id
+      JOIN school s ON s.izo = sf.school_izo
+      WHERE f.status = ${FounderStatus.Published}
+      ORDER BY f.short_name ASC, s.name ASC`
+    );
+
+    const schoolsByCity = new Map<string, School[]>();
+    for (const school of schools[0]) {
+      const city = school.short_name;
+      if (!schoolsByCity.has(city)) {
+        schoolsByCity.set(city, []);
+      }
+      schoolsByCity.get(city)!.push({
+        izo: school.izo,
+        name: school.name,
+      });
+    }
+
+    const result: CitySchools[] = [];
+    schoolsByCity.forEach((schools, cityName) => {
+      result.push({ cityName, schools });
+    });
+
+    return result;
   }
 }

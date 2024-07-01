@@ -28,5 +28,15 @@ export default async function MapPage({
     notFound();
   }
 
-  return <CatchmentMap data={data} text={smdText} />;
+  return (
+    <CatchmentMap
+      data={data}
+      text={smdText}
+      mapOptions={{
+        showControls: true,
+        showLayerControls: true,
+        showDebugInfo: true,
+      }}
+    />
+  );
 }

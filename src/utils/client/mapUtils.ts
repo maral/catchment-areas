@@ -4,6 +4,7 @@ import {
   AddressesLayerGroup,
   DataForMap,
   DataForMapByCityCodes,
+  MapOptions,
   MarkerWithSchools,
   SchoolLayerGroup,
   SchoolMarker,
@@ -11,7 +12,12 @@ import {
   isPopupWithMarker,
 } from "@/types/mapTypes";
 import booleanPointInPolygon from "@turf/boolean-point-in-polygon";
-import { Feature, FeatureCollection, MultiPolygon, Polygon } from "@turf/helpers";
+import {
+  Feature,
+  FeatureCollection,
+  MultiPolygon,
+  Polygon,
+} from "@turf/helpers";
 import L, { Circle, FeatureGroup, Map, Polyline, PopupEvent } from "leaflet";
 import { createMarkers } from "./markers";
 
@@ -232,11 +238,11 @@ export const createCityLayers = ({
   data,
   cityCode,
   lines,
-  showDebugInfo = false,
+  options = {},
 }: {
   data: DataForMap;
   lines?: string[];
-  showDebugInfo?: boolean;
+  options?: MapOptions;
   cityCode?: string;
 }): {
   addressesLayerGroup: AddressLayerGroup;
@@ -271,7 +277,7 @@ export const createCityLayers = ({
     schoolMarkers,
     addressMarkers,
     schoolColorIndicesMap,
-    showDebugInfo,
+    options,
     lines
   );
 
@@ -283,13 +289,12 @@ export const createCityLayers = ({
     features: allFeatures,
   };
   const polygonLayers = [monsterCollection].map((polygon) =>
-    createPolygonLayer(polygon, schoolMarkers, schoolColorIndicesMap)
+    createPolygonLayer(polygon, schoolMarkers, schoolColorIndicesMap, options)
   );
 
   setUpSchoolMarkersEvents(schoolMarkers, polygonLayers);
 
   const polygonLayerGroup = L.featureGroup(polygonLayers);
-
 
   return {
     addressesLayerGroup,
@@ -304,7 +309,8 @@ export const createCityLayers = ({
 const createPolygonLayer = (
   polygon: FeatureCollection,
   schoolMarkers: SchoolMarkerMap,
-  schoolColorIndicesMap: Record<string, number>
+  schoolColorIndicesMap: Record<string, number>,
+  options: MapOptions
 ) => {
   const geoJsonLayer: L.GeoJSON = L.geoJSON(polygon, {
     pane: "overlayPane",
@@ -312,12 +318,13 @@ const createPolygonLayer = (
       return feature
         ? {
             fillColor:
-              feature?.properties.colorIndex === -1
+              options.color ??
+              (feature?.properties.colorIndex === -1
                 ? unmappedPolygonColor
                 : colors[
                     schoolColorIndicesMap[feature.properties.schoolIzo] %
                       colors.length
-                  ],
+                  ]),
             color: "#777",
             weight: 2,
             fillOpacity: 0.4,

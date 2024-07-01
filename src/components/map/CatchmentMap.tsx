@@ -3,14 +3,24 @@
 import Spinner from "@/components/common/Spinner";
 import dynamic from "next/dynamic";
 import { useMemo } from "react";
-import { DataForMap } from "@/types/mapTypes";
+import { DataForMap, MapOptions } from "@/types/mapTypes";
+import useQueryParams from "../../utils/client/useQueryParams";
 
 export interface CatchmentMapProps {
   data: DataForMap;
-  text: string;
+  mapOptions: MapOptions;
+  text?: string;
 }
 
-export default function CatchmentMap({ data, text }: CatchmentMapProps) {
+export default function CatchmentMap({
+  data,
+  text,
+  mapOptions,
+}: CatchmentMapProps) {
+  const queryParams = useQueryParams(mapOptions.pageType);
+
+  const options = queryParams ? { ...mapOptions, ...queryParams } : mapOptions;
+
   const Map = useMemo(
     () =>
       dynamic(() => import("@/components/map/InnerMap"), {
@@ -20,5 +30,5 @@ export default function CatchmentMap({ data, text }: CatchmentMapProps) {
     []
   );
 
-  return <Map data={data} text={text} />;
+  return <Map data={data} text={text} mapOptions={options} />;
 }

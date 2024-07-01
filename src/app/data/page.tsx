@@ -19,14 +19,14 @@ import { api } from "../api/[...remult]/api";
 
 export default async function DataPage() {
   const { founders, ordinances } = await api.withRemult(async () => {
-    const founders = await FounderController.loadFounders(0, 1000);
+    const founders = await FounderController.loadPublishedFounders(0, 1000);
     const ordinances = await FounderController.loadActiveOrdinancesByFounderIds(
       founders.map((f) => f.id)
     );
     return { founders, ordinances };
   });
   return (
-    <div className="container mx-auto py-12">
+    <div className="container mx-auto py-12 px-4">
       <div className="mb-8">
         <Button variant="outline" size="sm" asChild>
           <Link href={"/"}>
@@ -82,7 +82,7 @@ export default async function DataPage() {
                           href={`/api/ordinances/download/by-id/${ordinance.id}`}
                           target="_blank"
                         >
-                          <ArrowDownTrayIcon className="w-4 text-black mr-1" />
+                          <ArrowDownTrayIcon className="w-4 text-white mr-1" />
                           Text vyhlášky
                         </Link>
                       </Button>

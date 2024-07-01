@@ -1,4 +1,4 @@
-import { DataForMap } from "@/types/mapTypes";
+import { DataForMap, MapOptions } from "@/types/mapTypes";
 import {
   createCityLayers,
   prepareMap,
@@ -12,25 +12,14 @@ let map: LeafletMap;
 export const createMap = (
   element: HTMLElement,
   data: DataForMap,
-  text: string,
-  center?: [number, number],
-  zoom?: number,
-  showControls: boolean = true
+  text?: string,
+  options: MapOptions = {}
 ): (() => void) => {
   if (!element || map) {
     return () => null;
   }
 
-  map = prepareMap(element, showControls);
-
-  L.circle([52, 12], {
-    radius: 8,
-    weight: 8,
-    fill: true,
-    fillColor: "red",
-    fillOpacity: 1,
-    color: "red",
-  });
+  map = prepareMap(element, options.showControls ?? false);
 
   const {
     addressesLayerGroup,
@@ -39,8 +28,8 @@ export const createMap = (
     polygonLayerGroup,
   } = createCityLayers({
     data,
-    showDebugInfo: true,
-    lines: text.split("\n"),
+    lines: text?.split("\n"),
+    options,
   });
 
   const layerGroupsForControl: Record<string, LayerGroup> = {};
@@ -52,22 +41,12 @@ export const createMap = (
 
   setupPopups(map);
 
-  if (center) {
-    map.setView(center, zoom ?? 15);
-  } else {
-    map.fitBounds(polygonLayerGroup.getBounds());
-    if (zoom) {
-      map.setZoom(zoom);
-    }
-  }
-
-  if (Object.keys(layerGroupsForControl).length > 1 && showControls) {
+  if (
+    Object.keys(layerGroupsForControl).length > 1 &&
+    options.showLayerControls
+  ) {
     L.control.layers(undefined, layerGroupsForControl).addTo(map);
   }
-
-  // Object.values(layerGroupsForControl).forEach((layerGroup) => {
-  //   map.addLayer(layerGroup);
-  // });
 
   map.addLayer(polygonLayerGroup);
   map.addLayer(addressesLayerGroup);

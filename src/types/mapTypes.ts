@@ -60,3 +60,21 @@ export interface CityData {
   polygonLayerGroup: FeatureGroup;
   addressMarkers: AddressMarkerMap;
 }
+
+export type MapOptions = {
+  fullHeight?: boolean;
+  useQueryParams?: boolean;
+  pageType?: PageType;
+  color?: string;
+  showControls?: boolean;
+  showLayerControls?: boolean;
+  showDebugInfo?: boolean;
+};
+
+export type PageType = "city" | "school";
+
+export interface EmbedQueryParams {
+  color?: string;
+  showSearch: boolean;
+  showControls: boolean;
+}
