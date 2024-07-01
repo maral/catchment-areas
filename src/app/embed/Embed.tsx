@@ -227,7 +227,7 @@ const createUrl = (
 ): string => {
   const baseUrl =
     process.env.NEXT_PUBLIC_BASE_URL ??
-    "https://mapaspadovosti.softresource.cz/";
+    "https://mapaspadovosti.softresource.cz";
 
   const path = pageType === "school" ? `/s/${schoolIzo}` : `/m/${cityCode}`;
 

@@ -47,7 +47,9 @@ block px-3 py-2 transition-colors shadow text-slate-400 hover:text-slate-500 con
               <Item icon={ArrowDownTrayIcon} href={"/data"}>
                 {texts.dataForDownload}
               </Item>
-              <Item icon={MapIcon}>{texts.embedMap}</Item>
+              <Item icon={MapIcon} href={"/embed"}>
+                {texts.embedMap}
+              </Item>
               <Item icon={SparklesIcon}>{texts.expertsEntrance}</Item>
               <Item
                 icon={ExclamationTriangleIcon}
