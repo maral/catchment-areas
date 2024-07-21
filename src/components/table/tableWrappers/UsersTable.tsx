@@ -45,7 +45,7 @@ export default function UsersTable({
         icon={TrashIcon}
         onClick={() => {
           setConfirmFunction(() => async () => {
-            await UserController.deleteOrdinance(item.id);
+            await UserController.deleteUser(item.id);
             await fetchData();
           });
           setIsConfirmOpen(true);

@@ -23,6 +23,7 @@ import { StreetController } from "@/controllers/StreetController";
 import { OrdinanceController } from "@/controllers/OrdinanceController";
 import { UserController } from "@/controllers/UserController";
 import { Role } from "@/utils/shared/permissions";
+import { Meta } from "@/entities/Meta";
 
 configDotenv({ path: ".env.local" });
 
@@ -44,6 +45,7 @@ export function getRemultOptions(
         CityDistrict,
         County,
         Founder,
+        Meta,
         Ordinance,
         OrdinanceMetadata,
         Orp,

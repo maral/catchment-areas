@@ -4,7 +4,7 @@ import { Role } from "@/utils/shared/permissions";
 
 export class UserController {
   @BackendMethod({ allowed: Role.Admin })
-  static async deleteOrdinance(userId: string) {
+  static async deleteUser(userId: string) {
     const userRepo = remult.repo(User);
     const user = await userRepo.findId(userId);
     if (user) {
