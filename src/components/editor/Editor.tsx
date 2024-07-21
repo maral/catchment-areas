@@ -190,7 +190,7 @@ export default function Editor({
               icon: ArrowDownTrayIcon,
             }}
             prefetch={false}
-            href={`/api/ordinances/${ordinance.id}/download`}
+            href={`/api/ordinances/download/by-id/${ordinance.id}`}
             target="_blank"
           >
             {texts.ordinanceDocument}

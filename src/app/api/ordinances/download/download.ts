@@ -12,9 +12,9 @@ export async function downloadOrdinance(ordinanceId: number) {
   });
 
   const filePath = getFilePath(ordinance.fileName);
-  const type = await fileTypeFromFile(filePath);
 
   try {
+    const type = await fileTypeFromFile(filePath);
     const data = readFileSync(filePath);
 
     return new Response(data, {
@@ -24,6 +24,6 @@ export async function downloadOrdinance(ordinanceId: number) {
       },
     });
   } catch (err) {
-    return NextResponse.json({ success: false }, { status: 400 });
+    return NextResponse.json({ success: false }, { status: 404 });
   }
 }
