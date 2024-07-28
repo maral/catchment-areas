@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { api } from "../../../[...remult]/api";
 import { remult } from "remult";
 import { Ordinance } from "../../../../../entities/Ordinance";
+import { featureCollection } from "@turf/helpers";
 import slugify from "slugify";
 
 export async function GET(
@@ -17,7 +18,10 @@ export async function GET(
   }
 
   const geojson = JSON.stringify(
-    ordinance.polygons.length === 1 ? ordinance.polygons[0] : ordinance.polygons
+    ordinance.polygons.reduce((acc, featureCollection) => {
+      acc.features.push(...featureCollection.features);
+      return acc;
+    }, featureCollection([]))
   );
 
   return new Response(geojson, {
