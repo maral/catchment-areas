@@ -16,6 +16,7 @@ import { colors, markerRadius, markerWeight } from "./mapUtils";
 import L, { Marker } from "leaflet";
 
 const unmappedMarkerColor = "#ff0000";
+export const wholeMunicipalityColor = "#6416e1";
 
 export const createMarkers = (
   data: DataForMap,
@@ -77,13 +78,9 @@ export const createMarkers = (
   });
 
   Object.values(markersToCreate).forEach(({ point, schools }) => {
-    const colors =
-      schools.length === 0
-        ? [unmappedMarkerColor]
-        : schools.map((school) => schoolColors[school.izo]);
     const newMarkers = createAddressMarker(
       point,
-      colors,
+      getMarkerColors(schools, schoolColors),
       schools.map((s) => schoolMarkers[s.izo]) as SchoolMarker[],
       Boolean(options.showDebugInfo) && schools.length > 0,
       lines
@@ -97,6 +94,26 @@ export const createMarkers = (
       }
     });
   });
+};
+
+const getMarkerColors = (
+  schools: School[],
+  schoolColors: Record<string, string>
+) => {
+  if (schools.length === 0) {
+    return [unmappedMarkerColor];
+  }
+
+  const colors = schools
+    .filter((school) => !school.isWholeMunicipality)
+    .map((school) => schoolColors[school.izo]);
+
+  // if there's at least one whole municipality school, we use the wholeMunicipalityColor for it
+  if (colors.length < schools.length) {
+    colors.push(wholeMunicipalityColor);
+  }
+
+  return colors;
 };
 
 const addToMarkersToCreate = (
@@ -130,6 +147,7 @@ export const createSchoolMarker = (school: School, color: string) => {
   const schoolTooltip = L.tooltip({
     direction: "top",
     content: `<div style="text-align: center;">${school.name}</div>`,
+    opacity: 1,
   });
   return L.circle(
     [
@@ -164,9 +182,11 @@ export const createAddressMarker = (
 
       ${
         showDebugInfo
-          ? `<br><br><em>${point.lineNumbers
-              ?.map((line) => `řádek ${line + 1}: ${lines?.[line]}`)
-              .join("<br>")}</em>`
+          ? `<br><br><em>${
+              point.lineNumbers
+                ?.map((line) => `řádek ${line + 1}: ${lines?.[line]}`)
+                .join("<br>") ?? ""
+            }</em>`
           : ""
       }
 

@@ -18,8 +18,15 @@ import {
   MultiPolygon,
   Polygon,
 } from "@turf/helpers";
-import L, { Circle, FeatureGroup, Map, Polyline, PopupEvent } from "leaflet";
-import { createMarkers } from "./markers";
+import L, {
+  Circle,
+  FeatureGroup,
+  Map as LeafletMap,
+  Polyline,
+  PopupEvent,
+} from "leaflet";
+import { createMarkers, wholeMunicipalityColor } from "./markers";
+import { data } from "cheerio/lib/api/attributes";
 
 export const colors = [
   "#d33d81",
@@ -45,7 +52,7 @@ export const selectedMarkerColor = "#ffff00";
 export const prepareMap = (
   element: HTMLElement,
   showControls: boolean
-): Map => {
+): LeafletMap => {
   const map = L.map(element, {
     renderer: L.canvas({ padding: 0.5 }),
     zoomControl: false,
@@ -63,7 +70,7 @@ export const prepareMap = (
 
 let lastListener: () => void;
 
-export const setupPopups = (map: Map): void => {
+export const setupPopups = (map: LeafletMap): void => {
   map.on("popupopen", function (e: PopupEvent) {
     resetAllHighlights();
     const popup = e.popup;
@@ -164,7 +171,7 @@ export const resetAllHighlights = (exceptPolygonHighlights = false) => {
 };
 
 export const centerLeafletMapOnMarker = (
-  map: Map,
+  map: LeafletMap,
   marker: MarkerWithSchools
 ) => {
   if (map === null || !marker.schools || marker.schools.length === 0) {
@@ -281,15 +288,27 @@ export const createCityLayers = ({
     lines
   );
 
-  const allFeatures = Object.values(data.polygons).flatMap(
-    (polygon) => polygon.features
-  );
+  const wholeMunicipalityInfo = getWholeMunicipalityInfo(data);
+  const allFeatures = Object.values(data.polygons)
+    .flatMap((polygon) => polygon.features)
+    .filter(
+      (feature) =>
+        !wholeMunicipalityInfo.ignoredSchoolIzos.has(
+          feature.properties?.schoolIzo
+        )
+    );
   const monsterCollection: FeatureCollection = {
     type: "FeatureCollection",
     features: allFeatures,
   };
   const polygonLayers = [monsterCollection].map((polygon) =>
-    createPolygonLayer(polygon, schoolMarkers, schoolColorIndicesMap, options)
+    createPolygonLayer(
+      polygon,
+      schoolMarkers,
+      schoolColorIndicesMap,
+      wholeMunicipalityInfo,
+      options
+    )
   );
 
   setUpSchoolMarkersEvents(schoolMarkers, polygonLayers);
@@ -306,40 +325,85 @@ export const createCityLayers = ({
   };
 };
 
+type WholeMunicipalityInfo = {
+  wholeMunicipalitySchoolIzos: Map<string, string[]>;
+  ignoredSchoolIzos: Set<string>;
+};
+
+const getWholeMunicipalityInfo = (data: DataForMap): WholeMunicipalityInfo => {
+  const info = {
+    wholeMunicipalitySchoolIzos: new Map<string, string[]>(),
+    ignoredSchoolIzos: new Set<string>(),
+  };
+
+  for (const municipality of data.municipalities) {
+    const wholeMunicipalitySchools = municipality.schools.filter(
+      (school) => school.isWholeMunicipality
+    );
+
+    if (wholeMunicipalitySchools.length > 0) {
+      const ignoredIzos = wholeMunicipalitySchools
+        .slice(1)
+        .map((school) => school.izo);
+      info.wholeMunicipalitySchoolIzos.set(
+        wholeMunicipalitySchools[0].izo,
+        ignoredIzos
+      );
+      ignoredIzos.forEach((izo) => {
+        info.ignoredSchoolIzos.add(izo);
+      });
+    }
+  }
+
+  return info;
+};
+
 const createPolygonLayer = (
   polygon: FeatureCollection,
   schoolMarkers: SchoolMarkerMap,
   schoolColorIndicesMap: Record<string, number>,
+  wholeMunicipalityInfo: WholeMunicipalityInfo,
   options: MapOptions
 ) => {
   const geoJsonLayer: L.GeoJSON = L.geoJSON(polygon, {
     pane: "overlayPane",
     style: (feature) => {
+      const isWholeMunicipality =
+        feature &&
+        wholeMunicipalityInfo.wholeMunicipalitySchoolIzos.has(
+          feature.properties.schoolIzo
+        );
       return feature
         ? {
             fillColor:
-              options.color ??
-              (feature?.properties.colorIndex === -1
+              options.color ?? isWholeMunicipality
+                ? wholeMunicipalityColor
+                : feature?.properties.colorIndex === -1
                 ? unmappedPolygonColor
                 : colors[
                     schoolColorIndicesMap[feature.properties.schoolIzo] %
                       colors.length
-                  ]),
+                  ],
             color: "#777",
             weight: 2,
-            fillOpacity: 0.4,
+            fillOpacity: isWholeMunicipality ? 0.15 : 0.4,
           }
         : {};
     },
     bubblingMouseEvents: false,
   })
-    .on("mouseout", (e) => handleMouseMove(schoolMarkers, geoJsonLayer, e))
-    .on("mousemove", (e) => handleMouseMove(schoolMarkers, geoJsonLayer, e));
+    .on("mouseout", (e) =>
+      handleMouseMove(schoolMarkers, wholeMunicipalityInfo, geoJsonLayer, e)
+    )
+    .on("mousemove", (e) =>
+      handleMouseMove(schoolMarkers, wholeMunicipalityInfo, geoJsonLayer, e)
+    );
   return geoJsonLayer;
 };
 
 const handleMouseMove = (
   schoolMarkers: SchoolMarkerMap,
+  wholeMunicipalityInfo: WholeMunicipalityInfo,
   geoJsonLayer: L.GeoJSON,
   e: L.LeafletMouseEvent
 ) => {
@@ -349,10 +413,22 @@ const handleMouseMove = (
 
   const relatedSchoolMarkers = geoJsonLayer
     .getLayers()
-    .map((layer) => {
+    .flatMap((layer) => {
       const feature: Feature<Polygon | MultiPolygon> = (layer as any).feature;
       if (booleanPointInPolygon([e.latlng.lng, e.latlng.lat], feature)) {
-        return schoolMarkers[feature.properties?.schoolIzo];
+        const markers = [schoolMarkers[feature.properties?.schoolIzo]];
+        if (
+          wholeMunicipalityInfo.wholeMunicipalitySchoolIzos.has(
+            feature.properties?.schoolIzo
+          )
+        ) {
+          markers.push(
+            ...(wholeMunicipalityInfo.wholeMunicipalitySchoolIzos
+              .get(feature.properties?.schoolIzo)
+              ?.map((izo) => schoolMarkers[izo]) ?? [])
+          );
+        }
+        return markers;
       }
     })
     .filter((marker) => marker !== undefined) as L.Circle[];

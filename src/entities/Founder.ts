@@ -19,7 +19,12 @@ import { SchoolFounder } from "./SchoolFounder";
   dbName: "founder",
   allowApiCrud: true,
   allowApiRead: Allow.authenticated,
-  backendPrefilter: () => ({ schoolCount: { $gt: 1 } }),
+  backendPrefilter: () => ({
+    $or: [
+      { schoolCount: { $gt: 1 } },
+      { founderType: FounderType.District, schoolCount: { $gt: 0 } },
+    ],
+  }),
 })
 export class Founder extends EntityBase {
   @Fields.autoIncrement()

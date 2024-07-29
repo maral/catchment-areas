@@ -1,5 +1,6 @@
+import "@/app/globals.css";
+import "@/app/otherGlobals.css";
 import { Inter } from "next/font/google";
-import "./globals.css";
 
 export const dynamic = "force-dynamic";
 

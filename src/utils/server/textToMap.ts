@@ -9,11 +9,10 @@ import {
   ErrorCallbackParams,
   Municipality,
   getNewMunicipalityByFounderId,
-  municipalityToPolygons,
+  municipalitiesToPolygons,
   parseOrdinanceToAddressPoints,
 } from "text-to-map";
 import { TextToMapError } from "../shared/types";
-import { SchoolFounder } from "../../entities/SchoolFounder";
 import { FounderController } from "../../controllers/FounderController";
 
 export async function validateStreetMarkdown(
@@ -34,6 +33,8 @@ export async function validateStreetMarkdown(
   };
 
   const currentMunicipality = await getNewMunicipalityByFounderId(founderId);
+
+  console.log(currentMunicipality);
 
   if (currentMunicipality.errors.length > 0) {
     return null;
@@ -252,13 +253,11 @@ export async function getOrCreateDataForMap(
     }
 
     if (!polygons) {
-      polygons = [];
-      for (const municipality of municipalities) {
-        polygons.push(await municipalityToPolygons(municipality));
-      }
+      console.log(municipalities[0].schools.length);
+      polygons = Object.values(await municipalitiesToPolygons(municipalities));
       if (!polygons || polygons.length === 0) {
         console.log(
-          `Could not retrieve any polygons for founder.id = '${ordinanceId}' and ordinance.id = '${ordinance.id}'.`
+          `Could not retrieve any polygons for founder.id = '${founder.id}' and ordinance.id = '${ordinance.id}'.`
         );
         return null;
       }
