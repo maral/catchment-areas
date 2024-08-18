@@ -1,6 +1,7 @@
 import { getOrCreateDataForMapByCityCodes } from "@/utils/server/textToMap";
 import { texts } from "@/utils/shared/texts";
 import { NextRequest, NextResponse } from "next/server";
+import { api } from "../../[...remult]/api";
 
 interface RequestBody {
   cityCodes: number[];
@@ -8,8 +9,8 @@ interface RequestBody {
 
 export async function POST(request: NextRequest) {
   const { cityCodes }: RequestBody = await request.json();
-  const dataForMapByCityCodes = await getOrCreateDataForMapByCityCodes(
-    cityCodes
+  const dataForMapByCityCodes = await api.withRemult(async () =>
+    getOrCreateDataForMapByCityCodes(cityCodes)
   );
 
   if (dataForMapByCityCodes === null) {
