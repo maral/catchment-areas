@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { texts } from "@/utils/shared/texts";
 import { PlusIcon } from "@heroicons/react/24/solid";
@@ -8,10 +8,10 @@ import { routes } from "@/utils/shared/constants";
 import { Colors } from "@/styles/Themes";
 
 export default function OrdinanceHeader({
-  founderId,
+  cityCode,
   urlFrom,
 }: {
-  founderId: string;
+  cityCode: string;
   urlFrom?: string[];
 }) {
   return (
@@ -19,11 +19,12 @@ export default function OrdinanceHeader({
       <HeaderBox title={texts.ordinances} />
       <LinkButton
         className="m-2"
-        href={(urlFrom && urlFrom.length >= 2)
-          ? `${routes.founders}/${founderId}${routes.addOrdinance}/${urlFrom[0]}/${urlFrom[1]}`
-          : `${routes.founders}/${founderId}${routes.addOrdinance}`
+        href={
+          urlFrom && urlFrom.length >= 2
+            ? `${routes.cities}/${cityCode}${routes.addOrdinance}/${urlFrom[0]}/${urlFrom[1]}`
+            : `${routes.cities}/${cityCode}${routes.addOrdinance}`
         }
-        buttonProps={{ color: Colors.Primary, icon: PlusIcon}}
+        buttonProps={{ color: Colors.Primary, icon: PlusIcon }}
       >
         {texts.addOrdinance}
       </LinkButton>

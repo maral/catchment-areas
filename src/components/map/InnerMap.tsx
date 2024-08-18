@@ -6,17 +6,16 @@ import { useEffect, useRef } from "react";
 interface InnerMapProps {
   data: DataForMap;
   mapOptions: MapOptions;
-  text?: string;
 }
 
-const InnerMap = ({ data, text, mapOptions = {} }: InnerMapProps) => {
+const InnerMap = ({ data, mapOptions = {} }: InnerMapProps) => {
   const mapRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (mapRef.current) {
-      createMap(mapRef.current, data, text, mapOptions);
+      createMap(mapRef.current, data, mapOptions);
     }
-  }, [data, text, mapOptions, mapRef]);
+  }, [data, mapOptions, mapRef]);
 
   return (
     <>

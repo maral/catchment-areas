@@ -9,12 +9,10 @@ import useQueryParams from "../../utils/client/useQueryParams";
 export interface CatchmentMapProps {
   data: DataForMap;
   mapOptions: MapOptions;
-  text?: string;
 }
 
 export default function CatchmentMap({
   data,
-  text,
   mapOptions,
 }: CatchmentMapProps) {
   const queryParams = useQueryParams(mapOptions.pageType);
@@ -30,5 +28,5 @@ export default function CatchmentMap({
     []
   );
 
-  return <Map data={data} text={text} mapOptions={options} />;
+  return <Map data={data} mapOptions={options} />;
 }

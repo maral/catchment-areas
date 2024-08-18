@@ -8,6 +8,7 @@ import {
   FeatureGroup,
 } from "leaflet";
 import { Municipality } from "text-to-map";
+import { FounderType } from "../entities/Founder";
 
 export type SchoolMarker = Circle;
 
@@ -43,9 +44,17 @@ export interface CityOnMap {
   lng: number;
 }
 
+export type SmdText = {
+  founderId: number;
+  founderName: string;
+  founderType: FounderType;
+  sourceText: string;
+};
+
 export type DataForMap = {
   municipalities: Municipality[];
   polygons: FeatureCollection[];
+  text: string;
 };
 
 export type DataForMapByCityCodes = Record<number, DataForMap>;

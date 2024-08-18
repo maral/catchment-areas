@@ -1,6 +1,7 @@
 import { Allow, Entity, EntityBase, Field, Fields } from "remult";
 import { Ordinance } from "./Ordinance";
 import { User } from "./User";
+import { Founder } from "./Founder";
 
 @Entity("street-markdowns", {
   allowApiCrud: Allow.authenticated,
@@ -15,6 +16,9 @@ export class StreetMarkdown extends EntityBase {
 
   @Field(() => Ordinance, { dbName: "ordinance_id" })
   ordinance!: Ordinance;
+
+  @Field(() => Founder, { dbName: "founder_id" })
+  founder!: Founder;
 
   @Fields.object({ dbName: "state" })
   state = StreetMarkdownState.Initial;

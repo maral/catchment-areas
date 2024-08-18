@@ -26,7 +26,6 @@ import L, {
   PopupEvent,
 } from "leaflet";
 import { createMarkers, wholeMunicipalityColor } from "./markers";
-import { data } from "cheerio/lib/api/attributes";
 
 export const colors = [
   "#d33d81",
@@ -244,11 +243,9 @@ export const loadMunicipalitiesByCityCodes = async (
 export const createCityLayers = ({
   data,
   cityCode,
-  lines,
   options = {},
 }: {
   data: DataForMap;
-  lines?: string[];
   options?: MapOptions;
   cityCode?: string;
 }): {
@@ -284,8 +281,7 @@ export const createCityLayers = ({
     schoolMarkers,
     addressMarkers,
     schoolColorIndicesMap,
-    options,
-    lines
+    options
   );
 
   const wholeMunicipalityInfo = getWholeMunicipalityInfo(data);

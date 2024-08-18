@@ -3,7 +3,13 @@ import { Entity, Field, Fields } from "remult";
 import { County } from "./County";
 import { Orp } from "./Orp";
 
-@Entity("cities", { allowApiCrud: false, allowApiRead: true, dbName: "city" })
+@Entity("cities", {
+  allowApiCrud: true,
+  dbName: "city",
+  backendPrefilter: () => ({
+    schoolCount: { $gt: 1 },
+  }),
+})
 export class City {
   @Fields.autoIncrement()
   code = 0;
@@ -25,4 +31,17 @@ export class City {
 
   @Fields.number({ dbName: "wgs84_longitude" })
   longitude = 0.0;
+
+  @Fields.integer({ dbName: "school_count" })
+  schoolCount = 0;
+
+  @Fields.integer()
+  status = 0;
+}
+
+export enum CityStatus {
+  NoOrdinance,
+  NoActiveOrdinance,
+  InProgress,
+  Published,
 }

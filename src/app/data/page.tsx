@@ -9,21 +9,20 @@ import {
 } from "@/components/shadcn/Table";
 import {
   ArrowDownTrayIcon,
-  ArrowLeftIcon,
   ChevronLeftIcon,
 } from "@heroicons/react/24/outline";
 import Link from "next/link";
-import { FounderController } from "../../controllers/FounderController";
 import { texts } from "../../utils/shared/texts";
 import { api } from "../api/[...remult]/api";
+import { CityController } from "../../controllers/CityController";
 
 export default async function DataPage() {
   const { founders, ordinances } = await api.withRemult(async () => {
-    const founders = await FounderController.loadPublishedFounders(0, 1000);
-    const ordinances = await FounderController.loadActiveOrdinancesByFounderIds(
-      founders.map((f) => f.id)
+    const cities = await CityController.loadPublishedCities();
+    const ordinances = await CityController.loadActiveOrdinancesByCityCodes(
+      cities.map((f) => f.code)
     );
-    return { founders, ordinances };
+    return { founders: cities, ordinances };
   });
   return (
     <div className="container mx-auto py-12 px-4">
@@ -63,18 +62,16 @@ export default async function DataPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {founders.map((founder) => {
-              const ordinance = ordinances.get(founder.id);
+            {founders.map((city) => {
+              const ordinance = ordinances[city.code];
 
               if (!ordinance) {
                 return null;
               }
               return (
-                <TableRow key={founder.id}>
-                  <TableCell className="font-medium">
-                    {founder.shortName}
-                  </TableCell>
-                  <TableCell>{founder.regionName}</TableCell>
+                <TableRow key={city.code}>
+                  <TableCell className="font-medium">{city.name}</TableCell>
+                  <TableCell>{city.regionName}</TableCell>
                   <TableCell>
                     {ordinance.fileName && (
                       <Button variant="default" size="sm" asChild>

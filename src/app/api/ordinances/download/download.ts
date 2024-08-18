@@ -2,8 +2,8 @@ import { fileTypeFromFile } from "file-type";
 import { readFileSync } from "fs";
 import { NextResponse } from "next/server";
 import { remult } from "remult";
-import { Ordinance } from "../../../../entities/Ordinance";
-import { getFilePath } from "../../../../utils/server/textExtraction";
+import { Ordinance } from "@/entities/Ordinance";
+import { getFilePath } from "@/utils/server/textExtraction";
 import { api } from "../../[...remult]/api";
 
 export async function downloadOrdinance(ordinanceId: number) {

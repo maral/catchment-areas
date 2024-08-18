@@ -34,9 +34,9 @@ export default function Navbar({ className }: { className?: string }) {
         <div className="flex-grow flex flex-col justify-between">
           <List className="mt-6">
             <MenuItem
-              href={routes.founders}
+              href={routes.cities}
               icon={ShieldCheckIcon}
-              text={texts.founders}
+              text={texts.cities}
               requiredRole={Role.Editor}
             />
 

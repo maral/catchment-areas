@@ -13,6 +13,7 @@ export const texts = {
   cancel: "Zrušit",
   catchmentAreas: "Spádové oblasti",
   city: "Město",
+  cities: "Města",
   comment: "Komentář",
   confirm: "Potvrdit",
   counties: "Okresy",
@@ -44,7 +45,6 @@ export const texts = {
   fillOutName: "Vyplňte název...",
   fillValidEmail: "Vyplňte platný e-mail.",
   founderNotFound: "Zřizovatel nenalezen.",
-  founders: "Zřizovatelé",
   fullName: "Jméno a příjmení",
   gpt: "GPT",
   help: "Nápověda",
@@ -87,6 +87,12 @@ export const texts = {
   schoolEditorLabel: "škola",
   school: "Škola",
   schools: "Školy",
+  schoolsDeclined: (schoolsCount: number) =>
+    schoolsCount === 1
+      ? "škola"
+      : 2 <= schoolsCount && schoolsCount <= 4
+      ? "školy"
+      : "škol",
   selectDate: "Vyberte datum...",
   setAsInProgress: 'Označit jako "Rozpracováno"',
   setAsPublished: 'Označit jako "Zveřejněno"',
@@ -106,6 +112,7 @@ export const texts = {
   users: "Uživatelé",
   valid: "Platná",
   validFrom: "Platnost od",
+  validity: "Platnost",
   validTo: "Platnost do",
   version: "Verze",
   viewOnMap: "Zobrazit na mapě",

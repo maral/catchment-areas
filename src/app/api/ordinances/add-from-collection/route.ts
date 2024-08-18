@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
     return getNotLoggedInResponse();
   }
 
-  const { founderId, ordinanceMetadataId } = await request.json();
+  const { cityCode, ordinanceMetadataId } = await request.json();
 
   const documentUrl = getOrdinanceDocumentDownloadLink(ordinanceMetadataId);
 
@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json(
     await insertOrdinanceAndGetResponse(
-      founderId,
+      cityCode,
       ordinanceMetadata.validFrom,
       ordinanceMetadata.validTo,
       ordinanceMetadata.number,

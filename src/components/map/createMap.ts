@@ -12,7 +12,6 @@ let map: LeafletMap;
 export const createMap = (
   element: HTMLElement,
   data: DataForMap,
-  text?: string,
   options: MapOptions = {}
 ): (() => void) => {
   if (!element || map) {
@@ -28,7 +27,6 @@ export const createMap = (
     polygonLayerGroup,
   } = createCityLayers({
     data,
-    lines: text?.split("\n"),
     options,
   });
 

@@ -1,29 +1,35 @@
 import { api } from "@/app/api/[...remult]/api";
 import HeaderBox from "@/components/common/HeaderBox";
 import {
-  loadFoundersByRegion,
-  getFoundersCountByRegion,
-  serializeFounders,
-} from "@/components/table/fetchFunctions/loadFounders";
-import RegionFoundersTable from "@/components/table/tableWrappers/foundersTableWrappers/RegionFoundersTable";
+  loadCitiesByRegion,
+  getCitiesCountByRegion,
+  serializeCities,
+} from "@/components/table/fetchFunctions/loadCities";
+import RegionCitiesTable from "@/components/table/tableWrappers/citiesTableWrappers/RegionCitiesTable";
 import { Region } from "@/entities/Region";
 import { Card } from "@tremor/react";
 import { remult } from "remult";
+import { CityController } from "@/controllers/CityController";
 
 export default async function RegionDetailPage({
   params: { code },
 }: {
   params: { code: string };
 }) {
-  const { serializedFounders, count, region } = await api.withRemult(
+  const regionCode = Number(code);
+  const { serializedCities, ordinances, count, region } = await api.withRemult(
     async () => {
-      const region = await remult.repo(Region).findId(Number(code));
+      const region = await remult.repo(Region).findId(regionCode);
+      const cities = await loadCitiesByRegion(regionCode, 1, 50);
+      const cityCodes = cities.map((city) => city.code);
+      const ordinances = await CityController.loadActiveOrdinancesByCityCodes(
+        cityCodes
+      );
       return {
         region,
-        serializedFounders: serializeFounders(
-          await loadFoundersByRegion(code, 1, 50)
-        ),
-        count: await getFoundersCountByRegion(code),
+        ordinances,
+        serializedCities: serializeCities(cities),
+        count: await getCitiesCountByRegion(regionCode),
       };
     }
   );
@@ -31,9 +37,10 @@ export default async function RegionDetailPage({
   return (
     <Card>
       <HeaderBox title={region?.name} />
-      <RegionFoundersTable
-        regionCode={code}
-        initialData={serializedFounders}
+      <RegionCitiesTable
+        regionCode={regionCode}
+        initialData={serializedCities}
+        simpleOrdinances={ordinances}
         count={count}
       />
     </Card>

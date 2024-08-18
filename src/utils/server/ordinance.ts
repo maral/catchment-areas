@@ -1,13 +1,13 @@
 import { api } from "@/app/api/[...remult]/api";
-import { Founder } from "@/entities/Founder";
 import { Ordinance } from "@/entities/Ordinance";
 import { revalidatePath } from "next/cache";
 import { remult } from "remult";
 import { routes } from "../shared/constants";
 import { TextExtractionResult } from "../shared/types";
+import { City } from "@/entities/City";
 
 async function insertOrdinance(
-  founderId: number,
+  cityCode: number,
   validFrom: Date,
   validTo: Date | undefined,
   serialNumber: string,
@@ -18,11 +18,11 @@ async function insertOrdinance(
   }
 
   const ordinanceRepo = remult.repo(Ordinance);
-  const founderRepo = remult.repo(Founder);
+  const citiesRepo = remult.repo(City);
 
   const ordinance = await api.withRemult(async () => {
     const isActive = !validTo || validTo > new Date();
-    const founder = await founderRepo.findId(founderId);
+    const city = await citiesRepo.findId(cityCode);
     return ordinanceRepo.insert({
       number: serialNumber,
       originalText: result.text ?? undefined,
@@ -30,7 +30,7 @@ async function insertOrdinance(
       validTo: validTo,
       fileName: result.fileName ?? "",
       isActive,
-      founder,
+      city,
     });
   });
 
@@ -47,22 +47,22 @@ export interface AddOrdinanceResponse {
 }
 
 export async function insertOrdinanceAndGetResponse(
-  founderId: number,
+  cityCode: number,
   validFrom: Date,
   validTo: Date | undefined,
   serialNumber: string,
   result: TextExtractionResult
 ): Promise<AddOrdinanceResponse> {
   const ordinanceId = await insertOrdinance(
-    founderId,
+    cityCode,
     validFrom,
     validTo,
     serialNumber,
-    result,
+    result
   );
 
   if (ordinanceId) {
-    revalidatePath(`${routes.founders}/[id]${routes.detail}/[[...from]]`);
+    revalidatePath(`${routes.cities}/[id]${routes.detail}/[[...from]]`);
     return {
       success: true,
       ordinanceId,

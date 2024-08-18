@@ -43,7 +43,7 @@ export default function UploadOrdinance({ founderId }: { founderId: string }) {
           Number(founderId)
         );
         router.push(
-          `${routes.founders}/${founderId}${routes.editOrdinance}/${result.ordinanceId}`
+          `${routes.cities}/${founderId}${routes.editOrdinance}/${result.ordinanceId}`
         );
         return;
       }

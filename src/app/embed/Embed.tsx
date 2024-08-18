@@ -21,7 +21,7 @@ export type CitySchools = {
 
 export type School = { izo: string; name: string };
 
-export type City = { code: string; name: string };
+export type City = { code: number; name: string };
 
 export type MunicipalityPageProps = {
   schools: CitySchools[];
@@ -125,7 +125,7 @@ export default function Embed({ schools, cities }: MunicipalityPageProps) {
             <Label htmlFor="municipality">Vyberte město</Label>
             <select
               value={cityCode}
-              onChange={(e) => setCityCode(e.target.value)}
+              onChange={(e) => setCityCode(Number(e.target.value))}
               className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1"
             >
               {cities.map(({ code, name }) => (
@@ -219,7 +219,7 @@ const EmbedCode = ({ url }: { url: string }) => {
 const createUrl = (
   pageType: PageType,
   schoolIzo: string,
-  cityCode: string,
+  cityCode: number,
   // showSearch: boolean,
   showControls: boolean,
   fixedColor: boolean,

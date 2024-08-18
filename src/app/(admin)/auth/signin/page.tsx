@@ -1,6 +1,7 @@
 "use client";
 
 import MicrosoftButton from "@/components/buttons/MicrosoftButton";
+import { routes } from "@/utils/shared/constants";
 import { Card } from "@tremor/react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -12,7 +13,7 @@ export default function Login() {
   const router = useRouter();
   useEffect(() => {
     if (session && session.status === "authenticated") {
-      router.push("/founders");
+      router.push(routes.cities);
     }
   }, [session, router]);
 

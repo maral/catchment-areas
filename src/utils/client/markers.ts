@@ -27,8 +27,7 @@ export const createMarkers = (
   schoolMarkers: SchoolMarkerMap,
   addressMarkers: AddressMarkerMap,
   schoolColorIndicesMap: Record<string, number>,
-  options: MapOptions,
-  lines?: string[]
+  options: MapOptions
 ) => {
   let colorIndex = 0;
   const markersToCreate: Record<
@@ -77,6 +76,7 @@ export const createMarkers = (
     }
   });
 
+  const lines = data.text.split("\n");
   Object.values(markersToCreate).forEach(({ point, schools }) => {
     const newMarkers = createAddressMarker(
       point,

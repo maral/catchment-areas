@@ -9,9 +9,6 @@ export class Account implements RemoveIndex<AdapterAccount> {
   @Fields.uuid()
   id: string = "";
 
-  @Field(() => User)
-  user!: User;
-
   @Fields.string({ dbName: "user_id" })
   userId: string = "";
 

@@ -12,6 +12,7 @@
     "cities": "tsx src/bin/cities.ts",
     "streets": "tsx src/bin/streets.ts",
     "init-db": "tsx src/bin/init-db.ts",
+    "generate-missing": "tsx src/bin/generate-missing.ts",
     "ocr": "tsx src/bin/ocr.ts",
     "build-css": "tailwindcss build src/app/globals.css -o public/styles.css"
   },

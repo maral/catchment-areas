@@ -1,14 +1,14 @@
 import { getAdminRemultAPI } from "@/app/api/[...remult]/config";
 import { OrdinanceMetadata } from "@/entities/OrdinanceMetadata";
 import { load } from "cheerio";
-import { Workbook } from "exceljs";
+import { Cell, Workbook } from "exceljs";
 import chunk from "lodash/chunk";
 import fetch from "node-fetch";
 import { dbNamesOf, remult } from "remult";
 import { KnexDataProvider } from "remult/remult-knex";
 
 const XLSX_EXPORT_URL =
-  "https://sbirkapp.gov.cz/vyhledavani/vysledek?format_exportu=xlsx&nazev=&number=&ovm=&platnost=&typ=ozv&ucinnost_do=&ucinnost_od=&znacka=&oblast=skolske-obvody-zakladni-skoly";
+  "https://sbirkapp.gov.cz/vyhledavani/vysledek?format_exportu=xlsx&hlavni_typ=pp&nazev=&number=&oblast=skolske-obvody-zakladni-skoly&ovm=&platnost=&typ=ozv&ucinnost_do=&ucinnost_od=&vydano_do=&vydano_od=&zverejneno_do=&zverejneno_od=";
 
 export interface ParsedOrdinanceMetadata {
   id: string;
@@ -16,10 +16,10 @@ export interface ParsedOrdinanceMetadata {
   number: string;
   city: string;
   region: string;
-  publishedAt: string;
-  validFrom: string;
+  publishedAt?: string;
+  validFrom?: string;
   validTo?: string;
-  approvedAt: string;
+  approvedAt?: string;
   version: number;
   isValid: boolean;
 }
@@ -54,6 +54,11 @@ async function findLink(
   return null;
 }
 
+type ExcelLink = {
+  text: string;
+  hyperlink: string;
+};
+
 async function downloadAndReadXLSX(
   url: string
 ): Promise<ParsedOrdinanceMetadata[] | null> {
@@ -67,22 +72,21 @@ async function downloadAndReadXLSX(
   if (workbook && workbook.worksheets && workbook.worksheets[0]) {
     const worksheet = workbook.worksheets[0];
     const rows = worksheet.getRows(2, worksheet.rowCount - 1);
+
     return (
       rows?.map((row) => {
         return {
-          id: row.getCell(1).value as string,
-          name: row.getCell(2).value as string,
-          number: row.getCell(4).value as string,
-          city: row.getCell(5).value as string,
-          region: row.getCell(8).value as string,
-          publishedAt: row.getCell(9).value as string,
-          validFrom: row.getCell(10).value as string,
-          approvedAt: row.getCell(11).value as string,
-          version: row.getCell(16).value as number,
-          isValid: row.getCell(17).value as boolean,
-          validTo: row.getCell(18).value
-            ? (row.getCell(18).value as string)
-            : undefined,
+          id: getCodeFromUrl(row.getCell(21).value as ExcelLink),
+          name: row.getCell(7).value as string,
+          number: row.getCell(5).value as string,
+          city: row.getCell(1).value as string,
+          region: row.getCell(4).value as string,
+          publishedAt: stringOrUndefined(row.getCell(12)),
+          validFrom: stringOrUndefined(row.getCell(10)),
+          approvedAt: stringOrUndefined(row.getCell(8)),
+          version: row.getCell(23).value as number,
+          isValid: row.getCell(19).value as boolean,
+          validTo: stringOrUndefined(row.getCell(20)),
         };
       }) ?? null
     );
@@ -90,11 +94,39 @@ async function downloadAndReadXLSX(
   return null;
 }
 
+function stringOrUndefined(cell: Cell): string | undefined {
+  return cell.value ? (cell.value as string) : undefined;
+}
+
+function getCodeFromUrl(url: ExcelLink): string {
+  const regex = /\/detail\/([A-Z0-9]+)$/;
+  const match = url.hyperlink.match(regex);
+
+  if (!match) {
+    throw new Error("Invalid URL format.");
+  }
+
+  return match[1];
+}
+
 function convertDate(dateString?: string) {
   if (!dateString) {
     return undefined;
   }
-  return new Date(dateString);
+  const timestamp = Date.parse(dateString);
+
+  if (isNaN(timestamp) === false) {
+    return new Date(timestamp);
+  }
+
+  if (dateString.includes(";")) {
+    const timestamp2 = Date.parse(dateString.split(";")[0]);
+    if (isNaN(timestamp2) === false) {
+      return new Date(timestamp2);
+    }
+  }
+
+  return undefined;
 }
 
 export async function syncOrdinancesToDb() {

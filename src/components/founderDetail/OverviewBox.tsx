@@ -1,33 +1,32 @@
-'use client';
+"use client";
 
 import { Card, Subtitle, Title } from "@tremor/react";
 import OverviewBoxButtons from "@/components/founderDetail/OverviewBoxButtons";
 import { texts } from "@/utils/shared/texts";
-import { Founder,  } from "@/entities/Founder";
+import { Founder } from "@/entities/Founder";
 import { useState } from "react";
 import { remult } from "remult";
-import FounderStatusChip from "../FounderStatusChip";
+import CityStatusChip from "../CityStatusChip";
 import { useRouter } from "next/navigation";
+import { City } from "../../entities/City";
 
 export default function OverviewBox({
-  founderProp,
+  cityProp,
   activeOrdinanceId,
   urlFrom,
   className,
 }: {
-  founderProp: any;
+  cityProp: any;
   activeOrdinanceId?: number;
   urlFrom?: string[];
   className?: string;
 }) {
-  const [founder, setFounder] = useState<Founder>(
-    remult.repo(Founder).fromJson(founderProp)
-  );
+  const [city, setCity] = useState<City>(remult.repo(City).fromJson(cityProp));
 
   const router = useRouter();
 
   const fetchFounder = async () => {
-    setFounder(await remult.repo(Founder).findId(founder.id, { useCache: false }));
+    setCity(await remult.repo(City).findId(city.code, { useCache: false }));
     router.refresh();
   };
 
@@ -36,16 +35,18 @@ export default function OverviewBox({
       <div className="mb-4">
         <div className="flex justify-between w-60 my-1">
           <Subtitle className="text-tremor-content">{texts.status}:</Subtitle>
-          <FounderStatusChip founderStatus={founder.status} />
+          <CityStatusChip cityStatus={city.status} />
         </div>
         <div className="flex justify-between w-60 my-1">
-          <Subtitle className="text-tremor-content">{texts.numberOfSchools}:</Subtitle>
-          <Title className="mr-2">{founder.schoolCount}</Title>
+          <Subtitle className="text-tremor-content">
+            {texts.numberOfSchools}:
+          </Subtitle>
+          <Title className="mr-2">{city.schoolCount}</Title>
         </div>
       </div>
       <OverviewBoxButtons
-        founder={founder}
-        fetchFounder={fetchFounder}
+        city={city}
+        fetchCity={fetchFounder}
         activeOrdinanceId={activeOrdinanceId}
         urlFrom={urlFrom}
       />

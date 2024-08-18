@@ -21,7 +21,7 @@ export default function CatchmentTable<T>({
   showPagination = true,
   noDataText = texts.noData,
 }: {
-  fetchItems: (page: number, limit: number) => Promise<T[]>;
+  fetchItems?: (page: number, limit: number) => Promise<T[]>;
   columnDefinitions: ColumnDefinition<T>[];
   initialData?: T[];
   count?: number;
@@ -36,10 +36,12 @@ export default function CatchmentTable<T>({
   });
 
   const fetchData = useCallback(async () => {
-    setIsLoading(true);
-    const response = await fetchItems(tableState.page, tableState.pageSize);
-    setItems(response);
-    setIsLoading(false);
+    if (fetchItems) {
+      setIsLoading(true);
+      const response = await fetchItems(tableState.page, tableState.pageSize);
+      setItems(response);
+      setIsLoading(false);
+    }
   }, [
     fetchItems,
     setIsLoading,
@@ -68,11 +70,16 @@ export default function CatchmentTable<T>({
         </TableHead>
 
         <TableBody className={`${isLoading ? "text-slate-500" : ""}`}>
-          {items.length === 0 && (<TableRow>
-            <TableCell colSpan={columnDefinitions.length} className="p-2 italic">
-              {isLoading ? "" : noDataText}
-            </TableCell>
-          </TableRow>)}
+          {items.length === 0 && (
+            <TableRow>
+              <TableCell
+                colSpan={columnDefinitions.length}
+                className="p-2 italic"
+              >
+                {isLoading ? "" : noDataText}
+              </TableCell>
+            </TableRow>
+          )}
           {items.map((item, i) => (
             <TableRow key={i}>
               {columnDefinitions.map((column, index) => (

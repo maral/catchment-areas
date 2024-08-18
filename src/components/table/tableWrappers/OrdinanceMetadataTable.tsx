@@ -2,7 +2,7 @@
 
 import CatchmentTable from "@/components/table/CatchmentTable";
 import { OrdinanceController } from "@/controllers/OrdinanceController";
-import { Founder } from "@/entities/Founder";
+import { City } from "@/entities/City";
 import { OrdinanceMetadata } from "@/entities/OrdinanceMetadata";
 import { Colors } from "@/styles/Themes";
 import type { ColumnDefinition } from "@/types/tableTypes";
@@ -15,17 +15,18 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { remult } from "remult";
+import { loadOrdinanceMetadata } from "../fetchFunctions/loadOrdinanceMetadata";
 
 const ordinanceMetadataRepo = remult.repo(OrdinanceMetadata);
-const foundersRepo = remult.repo(Founder);
+const citiesRepo = remult.repo(City);
 
 export default function OrdinanceMetadataTable({
-  founderId,
+  cityCode,
   cityName,
   count,
   initialData,
 }: {
-  founderId: string;
+  cityCode: string;
   cityName: string;
   count: number;
   initialData: any[];
@@ -41,7 +42,7 @@ export default function OrdinanceMetadataTable({
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        founderId,
+        cityCode,
         ordinanceMetadataId,
       }),
     });
@@ -50,10 +51,10 @@ export default function OrdinanceMetadataTable({
       const result = await response.json();
       if (result.success) {
         OrdinanceController.determineActiveOrdinanceByFounderId(
-          Number(founderId)
+          Number(cityCode)
         );
         router.push(
-          `${routes.founders}/${founderId}${routes.editOrdinance}/${result.ordinanceId}`
+          `${routes.cities}/${cityCode}${routes.editOrdinance}/${result.ordinanceId}`
         );
       }
     } else {
@@ -111,12 +112,8 @@ export default function OrdinanceMetadataTable({
   ];
 
   const fetchItems = async () => {
-    const founder = await foundersRepo.findId(Number(founderId));
-
-    return ordinanceMetadataRepo.find({
-      where: { $or: [{ city: founder.name }, { city: founder.shortName }] },
-      orderBy: { validFrom: "asc" },
-    });
+    const city = await citiesRepo.findId(Number(cityCode));
+    return await loadOrdinanceMetadata(city, 1, 50);
   };
 
   return (

@@ -1,16 +1,16 @@
-import { Founder } from "@/entities/Founder";
+import { City } from "@/entities/City";
 import { OrdinanceMetadata } from "@/entities/OrdinanceMetadata";
 import { remult } from "remult";
 
 const ordinancesMetadataRepo = remult.repo(OrdinanceMetadata);
 
 export async function loadOrdinanceMetadata(
-  founder: Founder,
+  city: City,
   page: number,
   limit: number
 ): Promise<OrdinanceMetadata[]> {
   return await ordinancesMetadataRepo.find({
-    where: { $or: [{ city: founder.name }, { city: founder.shortName }] },
+    where: { city: city.name },
     limit,
     page,
     orderBy: { validFrom: "asc" },
@@ -29,10 +29,6 @@ export function deserializeOrdinancesMetadata(
   return ordinancesMetadataRepo.fromJson(ordinancesMetadata);
 }
 
-export async function getOrdinanceMetadataCount(
-  founder: Founder,
-): Promise<number> {
-  return await ordinancesMetadataRepo.count({
-    $or: [{ city: founder.name }, { city: founder.shortName }],
-  });
+export async function getOrdinanceMetadataCount(city: City): Promise<number> {
+  return await ordinancesMetadataRepo.count({ city: city.name });
 }

@@ -11,7 +11,7 @@ export default function NotFoundPage() {
           Tato stránka si s námi hraje na schovávanou. A vyhrává.
         </p>
         <div className="mt-12 mb-40 text-center">
-          <CatchmentLink href={routes.founders}>
+          <CatchmentLink href={routes.cities}>
             Zpět na seznam zřizovatelů
           </CatchmentLink>
         </div>

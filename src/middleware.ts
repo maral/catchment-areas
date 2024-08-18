@@ -1,7 +1,7 @@
 import {
   Role,
   getRedirectForRoute,
-  isAllowedRoute
+  isAllowedRoute,
 } from "@/utils/shared/permissions";
 import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
@@ -19,7 +19,7 @@ export default withAuth(async function middleware(req, res) {
 
 export const config = {
   matcher: [
-    "/founders(.*)",
+    "/cities(.*)",
     "/regions(.*)",
     "/counties(.*)",
     "/orps(.*)",

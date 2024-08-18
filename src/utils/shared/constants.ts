@@ -1,6 +1,4 @@
-import {
-  OpenDataSyncOptionsPartial
-} from "text-to-map/dist/utils/helpers";
+import { OpenDataSyncOptionsPartial } from "text-to-map/dist/utils/helpers";
 
 const constants = {
   localStorageKey: {
@@ -9,26 +7,25 @@ const constants = {
 };
 
 export const routes = {
-  founders: '/founders',
-  regions: '/regions',
-  counties: '/counties',
-  orps: '/orps',
-  users: '/users',
-  detail: '/detail',
-  addOrdinance: '/add-ordinance',
-  editOrdinance: '/edit-ordinance',
-  map: '/map',
-  publicMap: '/',
-  download: '/download',
-  new: '/new',
+  cities: "/cities",
+  regions: "/regions",
+  counties: "/counties",
+  orps: "/orps",
+  users: "/users",
+  detail: "/detail",
+  addOrdinance: "/add-ordinance",
+  editOrdinance: "/edit-ordinance",
+  map: "/map",
+  publicMap: "/",
+  download: "/download",
+  new: "/new",
 };
 
 export const modules = {
-  founders: 'founders',
-  regions: 'regions',
-  counties: 'counties',
-  orps: 'orps',
-  users: 'users',
+  regions: "regions",
+  counties: "counties",
+  orps: "orps",
+  users: "users",
 };
 
 export const textToMapOptions: OpenDataSyncOptionsPartial = {

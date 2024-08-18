@@ -1,6 +1,7 @@
 "use client";
 
 import { StreetMarkdownController } from "@/controllers/StreetMarkdownController";
+import { Founder, FounderType } from "@/entities/Founder";
 import { Ordinance } from "@/entities/Ordinance";
 import { StreetMarkdown } from "@/entities/StreetMarkdown";
 import { Colors } from "@/styles/Themes";
@@ -43,10 +44,12 @@ export default function Editor({
   suggestions,
   streetMarkdownJson,
   ordinanceJson,
+  founderJson,
 }: {
   suggestions: SuggestionList[];
   streetMarkdownJson: any | null;
   ordinanceJson: any;
+  founderJson: any;
 }) {
   const [streetMarkdown, setStreetMarkdown] = useState<StreetMarkdown | null>(
     streetMarkdownJson ? streetMarkdownRepo.fromJson(streetMarkdownJson) : null
@@ -63,6 +66,10 @@ export default function Editor({
     return ordinanceRepo.fromJson(ordinanceJson);
   }, [ordinanceJson]);
 
+  const founder = useMemo(() => {
+    return remult.repo(Founder).fromJson(founderJson);
+  }, [founderJson]);
+
   const monacoInstance = useMonaco();
 
   // debounced validation function
@@ -78,7 +85,7 @@ export default function Editor({
       } else {
         isValidating.current = true;
         const lines = monacoInstance.editor.getModels()[0].getLinesContent();
-        setMarkers(await getMarkersFromLines(lines, ordinance.founder.id));
+        setMarkers(await getMarkersFromLines(lines, founder.id));
         isValidating.current = false;
         if (shouldValidate.current) {
           shouldValidate.current = false;
@@ -132,11 +139,12 @@ export default function Editor({
     setIsPreprocessing(true);
     getPreprocessedText(
       ordinance,
+      founder,
       setPreprocessedText,
       setStreetMarkdown,
       setIsPreprocessing
     );
-  }, [ordinance]);
+  }, [ordinance, founder]);
 
   // preprocess the original text if no text is provided
   useEffect(() => {
@@ -172,7 +180,7 @@ export default function Editor({
               color: Colors.Primary,
               icon: MapIcon,
             }}
-            href={`${routes.founders}/${ordinance.founder.id}${routes.map}/${ordinance.id}`}
+            href={`${routes.cities}/${ordinance.city.code}${routes.map}/${ordinance.id}`}
           >
             {texts.map}
           </LinkButton>
@@ -270,40 +278,45 @@ function Saved() {
 
 async function getPreprocessedText(
   ordinance: Ordinance,
+  founder: Founder,
   setPreprocessedText: Dispatch<SetStateAction<string | null>>,
   setStreetMarkdown: Dispatch<SetStateAction<StreetMarkdown | null>>,
   setIsPreprocessing: Dispatch<SetStateAction<boolean>>
 ) {
-  const response = await fetch("/api/text-to-map/preprocess-text", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ ordinanceId: ordinance.id }),
-  });
+  if (founder.founderType === FounderType.City) {
+    const response = await fetch("/api/text-to-map/preprocess-text", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ ordinanceId: ordinance.id }),
+    });
 
-  if (response.ok) {
-    const json = (await response.json()) as {
-      processedText: string;
-      autosaveStreetMarkdownId: number;
-    };
+    if (response.ok) {
+      const json = (await response.json()) as {
+        processedText: string;
+        autosaveStreetMarkdownId: number;
+      };
 
-    setPreprocessedText(json.processedText);
-    setStreetMarkdown(
-      await streetMarkdownRepo.findId(json.autosaveStreetMarkdownId)
-    );
-  } else {
-    console.error("Error while preprocessing text");
-
-    setStreetMarkdown(
-      await StreetMarkdownController.insertAutoSaveStreetMarkdown(
-        ordinance,
-        ordinance.originalText
-      )
-    );
-
-    setPreprocessedText(ordinance.originalText);
+      setPreprocessedText(json.processedText);
+      setStreetMarkdown(
+        await streetMarkdownRepo.findId(json.autosaveStreetMarkdownId)
+      );
+      setIsPreprocessing(false);
+      return;
+    } else {
+      console.error("Error while preprocessing text");
+    }
   }
+  setStreetMarkdown(
+    await StreetMarkdownController.insertAutoSaveStreetMarkdown(
+      ordinance,
+      founder,
+      ordinance.originalText
+    )
+  );
+
+  setPreprocessedText(ordinance.originalText);
   setIsPreprocessing(false);
 }
 

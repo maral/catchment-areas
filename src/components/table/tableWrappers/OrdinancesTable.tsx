@@ -13,22 +13,24 @@ import {
   TrashIcon,
 } from "@heroicons/react/24/solid";
 import Link from "next/link";
-import { remult } from "remult";
-import { deserializeOrdinances } from "../fetchFunctions/loadOrdinances";
+import {
+  deserializeOrdinances,
+  loadOrdinancesByCityCode,
+} from "../fetchFunctions/loadOrdinances";
 import { routes } from "@/utils/shared/constants";
 import { OrdinanceController } from "@/controllers/OrdinanceController";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import { useState } from "react";
 
-const ordinancesRepo = remult.repo(Ordinance);
-
 export default function OrdinancesTable({
+  cityCode,
   founderId,
   initialData,
   count,
   urlFrom,
 }: {
-  founderId: string;
+  cityCode: number;
+  founderId: number;
   initialData: any[];
   count?: number;
   urlFrom?: string[];
@@ -63,8 +65,8 @@ export default function OrdinancesTable({
             className="inline-block"
             href={
               urlFrom && urlFrom.length >= 2
-                ? `${routes.founders}/${founderId}${routes.editOrdinance}/${urlFrom[0]}/${urlFrom[1]}/${item.id}`
-                : `${routes.founders}/${founderId}${routes.editOrdinance}/${item.id}`
+                ? `${routes.cities}/${cityCode}${routes.editOrdinance}/${founderId}/${urlFrom[0]}/${urlFrom[1]}/${item.id}`
+                : `${routes.cities}/${cityCode}${routes.editOrdinance}/${founderId}/${item.id}`
             }
             prefetch={false}
           >
@@ -89,7 +91,7 @@ export default function OrdinancesTable({
           </Link>
           <Link
             className="inline-block"
-            href={`${routes.founders}/${founderId}${routes.map}/${item.id}`}
+            href={`${routes.cities}/${cityCode}${routes.map}/${item.id}`}
             target="_blank"
           >
             <IconButton
@@ -118,12 +120,7 @@ export default function OrdinancesTable({
   ];
 
   const fetchItems = async (page: number, limit: number) => {
-    return ordinancesRepo.find({
-      where: { founder: { $id: founderId } },
-      limit,
-      page,
-      orderBy: { validFrom: "desc" },
-    });
+    return loadOrdinancesByCityCode(cityCode);
   };
 
   return (
