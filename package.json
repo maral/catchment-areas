@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "cross-env NODE_OPTIONS=\"--max-http-header-size=12800000 \" next dev -p 3000",
     "build": "next build",
-    "start": "next start -p 3003",
+    "start": "cross-env NODE_OPTIONS=\"--max-http-header-size=12800000 \" next start -p 3003",
     "lint": "next lint",
     "school-counts": "tsx src/bin/school-counts.ts",
     "sync-ordinances": "tsx src/bin/sync-ordinances.ts",
