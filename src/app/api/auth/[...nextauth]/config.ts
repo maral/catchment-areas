@@ -35,6 +35,7 @@ export function getNextAuthOptions(): NextAuthOptions {
             session.user.id = token.id ?? "";
             session.user.role = token.role ?? "";
           }
+          delete session.user.image;
           return session;
         },
         async jwt({ token, user }) {
