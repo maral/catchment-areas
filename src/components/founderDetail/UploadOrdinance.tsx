@@ -10,7 +10,12 @@ import { Colors } from "@/styles/Themes";
 import { OrdinanceController } from "@/controllers/OrdinanceController";
 import { useRouter } from "next/navigation";
 import { routes } from "@/utils/shared/constants";
-import { ErrorWrapper, InputSubtitle, StyledErrorMessage, StyledForm } from "../common/Forms";
+import {
+  ErrorWrapper,
+  InputSubtitle,
+  StyledErrorMessage,
+  StyledForm,
+} from "../common/Forms";
 
 interface FormValues {
   validFrom: Date | undefined;
@@ -19,7 +24,7 @@ interface FormValues {
   file: File | null;
 }
 
-export default function UploadOrdinance({ founderId }: { founderId: string }) {
+export default function UploadOrdinance({ cityCode }: { cityCode: string }) {
   const router = useRouter();
 
   const onSubmit = async (values: FormValues) => {
@@ -29,7 +34,7 @@ export default function UploadOrdinance({ founderId }: { founderId: string }) {
     data.set("validFrom", values.validFrom!.toISOString());
     data.set("validTo", values.validTo ? values.validTo.toISOString() : "");
     data.set("serialNumber", values.serialNumber);
-    data.set("founderId", founderId);
+    data.set("cityCode", cityCode);
 
     const res = await fetch("/api/ordinances/add-from-upload", {
       method: "POST",
@@ -39,12 +44,10 @@ export default function UploadOrdinance({ founderId }: { founderId: string }) {
     if (res.ok) {
       const result = await res.json();
       if (result.success) {
-        OrdinanceController.determineActiveOrdinanceByFounderId(
-          Number(founderId)
+        OrdinanceController.determineActiveOrdinanceByCityCode(
+          Number(cityCode)
         );
-        router.push(
-          `${routes.cities}/${founderId}${routes.editOrdinance}/${result.ordinanceId}`
-        );
+        router.push(`${routes.cities}/${cityCode}${routes.detail}`);
         return;
       }
     } else {

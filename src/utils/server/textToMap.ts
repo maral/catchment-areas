@@ -164,7 +164,7 @@ export async function getOrCreateDataForMapByCityCode(
       console.log(`No street markdowns found for city code = '${cityCode}'.`);
       return null;
     }
-    jsonData = await getAddressPointsByCityCode(smdTexts);
+    jsonData = await getAddressPointsBySmdTexts(smdTexts);
     if (jsonData === null) {
       return null;
     }
@@ -353,7 +353,7 @@ export async function getOrCreateDataForMap(
   return { municipalities, polygons, text: "" };
 }
 
-async function getAddressPointsByCityCode(
+async function getAddressPointsBySmdTexts(
   smdTexts: SmdText[]
 ): Promise<Municipality[] | null> {
   const text = getSmdText(smdTexts);

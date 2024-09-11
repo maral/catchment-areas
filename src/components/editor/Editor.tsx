@@ -289,7 +289,10 @@ async function getPreprocessedText(
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ ordinanceId: ordinance.id }),
+      body: JSON.stringify({
+        ordinanceId: ordinance.id,
+        founderId: founder.id,
+      }),
     });
 
     if (response.ok) {

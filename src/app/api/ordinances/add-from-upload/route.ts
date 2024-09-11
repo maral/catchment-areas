@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
   const validFrom = data.get("validFrom") as string;
   const validTo = data.get("validTo") as string;
   const serialNumber = data.get("serialNumber") as string;
-  const founderId = Number(data.get("founderId"));
+  const cityCode = Number(data.get("cityCode"));
 
   if (!file) {
     return NextResponse.json({ success: false }, { status: 400 });
@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json(
     await insertOrdinanceAndGetResponse(
-      founderId,
+      cityCode,
       new Date(validFrom),
       validTo.length > 0 ? new Date(validTo) : undefined,
       serialNumber,

@@ -62,7 +62,7 @@ export async function insertOrdinanceAndGetResponse(
   );
 
   if (ordinanceId) {
-    revalidatePath(`${routes.cities}/[id]${routes.detail}/[[...from]]`);
+    revalidatePath(`${routes.cities}/[id]${routes.detail}/[[...from]]`, "page");
     return {
       success: true,
       ordinanceId,

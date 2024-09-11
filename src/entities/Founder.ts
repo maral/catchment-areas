@@ -20,10 +20,7 @@ import { SchoolFounder } from "./SchoolFounder";
   allowApiCrud: true,
   allowApiRead: Allow.authenticated,
   backendPrefilter: () => ({
-    $or: [
-      { schoolCount: { $gt: 1 } },
-      { founderType: FounderType.District, schoolCount: { $gt: 0 } },
-    ],
+    $or: [{ schoolCount: { $gt: 1 } }, { founderType: FounderType.District }],
   }),
 })
 export class Founder extends EntityBase {

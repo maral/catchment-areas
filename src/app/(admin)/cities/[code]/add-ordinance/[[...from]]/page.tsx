@@ -48,7 +48,7 @@ export default async function AddOrdinance({
       </Card>
       {/* BOTTOM PART OF THE VIEW */}
       <Card>
-        <UploadOrdinance founderId={code} />
+        <UploadOrdinance cityCode={code} />
       </Card>
     </>
   );

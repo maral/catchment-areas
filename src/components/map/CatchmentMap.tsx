@@ -11,10 +11,7 @@ export interface CatchmentMapProps {
   mapOptions: MapOptions;
 }
 
-export default function CatchmentMap({
-  data,
-  mapOptions,
-}: CatchmentMapProps) {
+export default function CatchmentMap({ data, mapOptions }: CatchmentMapProps) {
   const queryParams = useQueryParams(mapOptions.pageType);
 
   const options = queryParams ? { ...mapOptions, ...queryParams } : mapOptions;

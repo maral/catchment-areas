@@ -6,6 +6,7 @@ import { ChatCompletionRequestMessage, Configuration, OpenAIApi } from "openai";
 import { remult } from "remult";
 import { api } from "@/app/api/[...remult]/api";
 import { getNotLoggedInResponse, isLoggedIn } from "@/utils/server/auth";
+import { Founder } from "../../../../entities/Founder";
 
 interface SchoolResult {
   school: string;
@@ -36,14 +37,11 @@ const getGptAnswer = async (
 };
 
 export async function POST(request: NextRequest) {
-  // if (!await isLoggedIn()) {
-  //   return getNotLoggedInResponse();
-  // }
   if (!(await isLoggedIn())) {
     return getNotLoggedInResponse();
   }
 
-  const { ordinanceId } = await request.json();
+  const { ordinanceId, founderId } = await request.json();
 
   const ordinanceRepo = remult.repo(Ordinance);
   const ordinance = await api.withRemult(async () => {
@@ -87,6 +85,7 @@ export async function POST(request: NextRequest) {
   const streetMarkdownRepo = remult.repo(StreetMarkdown);
   const streetMarkdown = await api.withRemult(async () => {
     const user = await remult.repo(User).findId(remult.user!.id);
+    const founder = await remult.repo(Founder).findId(founderId);
 
     // initial version
     await streetMarkdownRepo.insert({
@@ -96,6 +95,7 @@ export async function POST(request: NextRequest) {
       comment: "Automaticky zpracovaný text z vyhlášky.",
       state: StreetMarkdownState.Initial,
       user,
+      founder,
     });
 
     // insert autosave to write over immediately
@@ -105,6 +105,7 @@ export async function POST(request: NextRequest) {
       comment: "Automatická záloha",
       state: StreetMarkdownState.AutoSave,
       user,
+      founder,
     });
   });
 

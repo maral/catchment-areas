@@ -50,7 +50,7 @@ export default function OrdinanceMetadataTable({
     if (response.ok) {
       const result = await response.json();
       if (result.success) {
-        OrdinanceController.determineActiveOrdinanceByFounderId(
+        OrdinanceController.determineActiveOrdinanceByCityCode(
           Number(cityCode)
         );
         router.push(
