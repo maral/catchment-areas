@@ -35,7 +35,6 @@ export function getNextAuthOptions(): NextAuthOptions {
             session.user.id = token.id ?? "";
             session.user.role = token.role ?? "";
           }
-          delete session.user.image;
           return session;
         },
         async jwt({ token, user }) {
@@ -47,6 +46,11 @@ export function getNextAuthOptions(): NextAuthOptions {
             token.id = dbUser?.id;
             token.role = dbUser?.role;
           }
+
+          if (token.picture) {
+            delete token.picture;
+          }
+
           return token;
         },
       },

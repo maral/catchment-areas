@@ -43,7 +43,6 @@ export function RemultAdapter(): Adapter {
           email: preapprovedUser.futureEmail,
           futureEmail: "",
           name: user.name,
-          image: user.image,
         });
       }
 
