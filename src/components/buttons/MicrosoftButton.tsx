@@ -11,7 +11,7 @@ export default function MicrosoftButton() {
       color={Colors.Primary}
       onClick={() => signIn("azure-ad")}
     >
-      Přihlásit se účtem Microsoft
+      Přihlásit se účtem Microsoft 🪟
     </Button>
   );
 }
