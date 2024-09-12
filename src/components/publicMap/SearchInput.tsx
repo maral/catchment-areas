@@ -9,8 +9,7 @@ import {
   InputProps,
   MenuListProps,
   MenuProps,
-  NoticeProps,
-  OptionProps,
+  OptionProps
 } from "react-select";
 import AsyncSelect from "react-select/async";
 import {

@@ -21,25 +21,23 @@ import {
 import L, {
   Circle,
   FeatureGroup,
+  LatLngBounds,
   Map as LeafletMap,
   Polyline,
   PopupEvent,
 } from "leaflet";
-import { createMarkers, wholeMunicipalityColor } from "./markers";
+import shuffleSeed from "shuffle-seed";
+import { createMarkers } from "./markers";
 
 export const colors = [
-  "#d33d81",
-  "#0ea13b",
-  "#0082ad",
-  "#f17b5a",
-  "#c45a18",
-  "#2bc6d9",
-  "#c686d0",
-  "#81b2e9",
-  "#6279bd",
+  "#d33d81", // pink
+  "#0ea13b", // green
+  "#0082ad", // blue
+  "#f17b5a", // orange
+  "#2bc6d9", // turquoise
+  "#8335ff", // purple
+  "#ad9a0b", // gold
 ];
-
-const unmappedPolygonColor = "#888888";
 
 export const markerRadius = 4;
 export const markerWeight = 2;
@@ -117,6 +115,7 @@ const setUpSchoolMarkersEvents = (
       resetAllHighlights();
       schoolHighlighted = true;
       lastPolygonLayers = polygonLayers;
+      let bounds: LatLngBounds | null = null;
       for (const polygonLayer of polygonLayers) {
         // when we click on a school marker, we want to hide all other polygons
         // leave only the one that is related to the school
@@ -124,19 +123,26 @@ const setUpSchoolMarkersEvents = (
           const layer = _layer as L.Polygon & {
             feature: Feature<Polygon | MultiPolygon>;
           };
-          if (layer.feature.properties?.schoolIzo !== schoolIzo) {
+          if (layer.feature.properties?.schoolIzos.includes(schoolIzo)) {
+            if (bounds === null) {
+              bounds = layer.getBounds();
+            } else {
+              bounds.extend(layer.getBounds());
+            }
+            layer.setStyle({ color: layer.options.fillColor });
+          } else {
             layer.setStyle({
               fillOpacity: 0.1,
               opacity: 0.3,
               fillColor: "#888",
             });
             layer.bringToBack();
-          } else {
-            const map = (polygonLayer as any)._map;
-            map.flyToBounds(layer.getBounds(), { duration: 0.7 });
-            layer.setStyle({ color: layer.options.fillColor });
           }
         });
+      }
+      const map = (polygonLayers[0] as any)._map;
+      if (bounds !== null) {
+        map.flyToBounds(bounds, { duration: 0.7 });
       }
       selectSchool(marker);
     });
@@ -263,7 +269,7 @@ export const createCityLayers = ({
   const municipalityLayerGroups: AddressLayerGroup[] = [];
   const schoolMarkers: SchoolMarkerMap = {};
   const addressMarkers: AddressMarkerMap = {};
-  const schoolColorIndicesMap: Record<string, number> = {};
+  const areaColorIndicesMap: Record<string, number> = {};
 
   addressesLayerGroup.cityCode = cityCode;
   addressesLayerGroup.type = "addresses";
@@ -271,6 +277,18 @@ export const createCityLayers = ({
   schoolsLayerGroup.type = "schools";
 
   const unmappedLayerGroup: AddressLayerGroup = L.layerGroup();
+
+  const allFeatures = Object.values(data.polygons).flatMap(
+    (polygon) => polygon.features
+  );
+  const monsterCollection: FeatureCollection = {
+    type: "FeatureCollection",
+    features: allFeatures,
+  };
+
+  const polygonLayers = [monsterCollection].map((polygon) =>
+    createPolygonLayer(polygon, schoolMarkers, areaColorIndicesMap, options)
+  );
 
   createMarkers(
     data,
@@ -280,31 +298,8 @@ export const createCityLayers = ({
     unmappedLayerGroup,
     schoolMarkers,
     addressMarkers,
-    schoolColorIndicesMap,
+    areaColorIndicesMap,
     options
-  );
-
-  const wholeMunicipalityInfo = getWholeMunicipalityInfo(data);
-  const allFeatures = Object.values(data.polygons)
-    .flatMap((polygon) => polygon.features)
-    .filter(
-      (feature) =>
-        !wholeMunicipalityInfo.ignoredSchoolIzos.has(
-          feature.properties?.schoolIzo
-        )
-    );
-  const monsterCollection: FeatureCollection = {
-    type: "FeatureCollection",
-    features: allFeatures,
-  };
-  const polygonLayers = [monsterCollection].map((polygon) =>
-    createPolygonLayer(
-      polygon,
-      schoolMarkers,
-      schoolColorIndicesMap,
-      wholeMunicipalityInfo,
-      options
-    )
   );
 
   setUpSchoolMarkersEvents(schoolMarkers, polygonLayers);
@@ -321,85 +316,41 @@ export const createCityLayers = ({
   };
 };
 
-type WholeMunicipalityInfo = {
-  wholeMunicipalitySchoolIzos: Map<string, string[]>;
-  ignoredSchoolIzos: Set<string>;
-};
-
-const getWholeMunicipalityInfo = (data: DataForMap): WholeMunicipalityInfo => {
-  const info = {
-    wholeMunicipalitySchoolIzos: new Map<string, string[]>(),
-    ignoredSchoolIzos: new Set<string>(),
-  };
-
-  for (const municipality of data.municipalities) {
-    const wholeMunicipalitySchools = municipality.schools.filter(
-      (school) => school.isWholeMunicipality
-    );
-
-    if (wholeMunicipalitySchools.length > 0) {
-      const ignoredIzos = wholeMunicipalitySchools
-        .slice(1)
-        .map((school) => school.izo);
-      info.wholeMunicipalitySchoolIzos.set(
-        wholeMunicipalitySchools[0].izo,
-        ignoredIzos
-      );
-      ignoredIzos.forEach((izo) => {
-        info.ignoredSchoolIzos.add(izo);
-      });
-    }
-  }
-
-  return info;
-};
-
 const createPolygonLayer = (
   polygon: FeatureCollection,
   schoolMarkers: SchoolMarkerMap,
-  schoolColorIndicesMap: Record<string, number>,
-  wholeMunicipalityInfo: WholeMunicipalityInfo,
+  areaColorIndicesMap: Record<string, number>,
   options: MapOptions
 ) => {
+  const colorMapping = shuffleSeed.shuffle(
+    colors.map((_, index) => index),
+    polygon.features[0].properties?.schoolIzos[0]
+  );
   const geoJsonLayer: L.GeoJSON = L.geoJSON(polygon, {
     pane: "overlayPane",
     style: (feature) => {
-      const isWholeMunicipality =
-        feature &&
-        wholeMunicipalityInfo.wholeMunicipalitySchoolIzos.has(
-          feature.properties.schoolIzo
-        );
+      const remappedColorIndex =
+        colorMapping[feature?.properties.colorIndex % colors.length];
+      areaColorIndicesMap[feature?.properties?.areaIndex] = remappedColorIndex;
+
       return feature
         ? {
-            fillColor:
-              options.color ?? isWholeMunicipality
-                ? wholeMunicipalityColor
-                : feature?.properties.colorIndex === -1
-                ? unmappedPolygonColor
-                : colors[
-                    schoolColorIndicesMap[feature.properties.schoolIzo] %
-                      colors.length
-                  ],
+            fillColor: options.color ?? colors[remappedColorIndex],
             color: "#777",
             weight: 2,
-            fillOpacity: isWholeMunicipality ? 0.15 : 0.4,
+            fillOpacity: 0.4,
           }
         : {};
     },
     bubblingMouseEvents: false,
   })
-    .on("mouseout", (e) =>
-      handleMouseMove(schoolMarkers, wholeMunicipalityInfo, geoJsonLayer, e)
-    )
-    .on("mousemove", (e) =>
-      handleMouseMove(schoolMarkers, wholeMunicipalityInfo, geoJsonLayer, e)
-    );
+    .on("mouseout", (e) => handleMouseMove(schoolMarkers, geoJsonLayer, e))
+    .on("mousemove", (e) => handleMouseMove(schoolMarkers, geoJsonLayer, e));
   return geoJsonLayer;
 };
 
 const handleMouseMove = (
   schoolMarkers: SchoolMarkerMap,
-  wholeMunicipalityInfo: WholeMunicipalityInfo,
   geoJsonLayer: L.GeoJSON,
   e: L.LeafletMouseEvent
 ) => {
@@ -412,19 +363,9 @@ const handleMouseMove = (
     .flatMap((layer) => {
       const feature: Feature<Polygon | MultiPolygon> = (layer as any).feature;
       if (booleanPointInPolygon([e.latlng.lng, e.latlng.lat], feature)) {
-        const markers = [schoolMarkers[feature.properties?.schoolIzo]];
-        if (
-          wholeMunicipalityInfo.wholeMunicipalitySchoolIzos.has(
-            feature.properties?.schoolIzo
-          )
-        ) {
-          markers.push(
-            ...(wholeMunicipalityInfo.wholeMunicipalitySchoolIzos
-              .get(feature.properties?.schoolIzo)
-              ?.map((izo) => schoolMarkers[izo]) ?? [])
-          );
-        }
-        return markers;
+        return feature.properties?.schoolIzos.map(
+          (izo: string) => schoolMarkers[izo]
+        );
       }
     })
     .filter((marker) => marker !== undefined) as L.Circle[];

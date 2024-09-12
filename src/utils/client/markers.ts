@@ -1,4 +1,4 @@
-import { School, ExportAddressPoint } from "text-to-map";
+import { School, ExportAddressPoint, Area } from "text-to-map";
 import {
   SchoolMarker,
   PopupWithMarker,
@@ -16,7 +16,11 @@ import { colors, markerRadius, markerWeight } from "./mapUtils";
 import L, { Marker } from "leaflet";
 
 const unmappedMarkerColor = "#ff0000";
-export const wholeMunicipalityColor = "#6416e1";
+
+type MarkersToCreate = Record<
+  string,
+  { point: ExportAddressPoint; areas: Area[] }
+>;
 
 export const createMarkers = (
   data: DataForMap,
@@ -26,14 +30,10 @@ export const createMarkers = (
   unmappedLayerGroup: AddressLayerGroup,
   schoolMarkers: SchoolMarkerMap,
   addressMarkers: AddressMarkerMap,
-  schoolColorIndicesMap: Record<string, number>,
+  areaColorIndicesMap: Record<string, number>,
   options: MapOptions
 ) => {
-  let colorIndex = 0;
-  const markersToCreate: Record<
-    string,
-    { point: ExportAddressPoint; schools: School[] }
-  > = {};
+  const markersToCreate: MarkersToCreate = {};
   const schoolColors: Record<string, string> = {};
   const addressLayerGroupsMap: Record<string, AddressLayerGroup> = {};
 
@@ -41,46 +41,40 @@ export const createMarkers = (
     const layerGroup: AddressLayerGroup = L.layerGroup();
     municipalityLayerGroups.push(layerGroup);
     addressesLayerGroup.addLayer(layerGroup);
-    municipality.schools.forEach((school) => {
-      const color = options.color ?? colors[colorIndex % colors.length];
-      schoolColorIndicesMap[school.izo] = colorIndex;
-      const schoolMarker = createSchoolMarker(school, color).addTo(
-        schoolsLayerGroup
-      );
+    municipality.areas.forEach((area) => {
+      area.schools.forEach((school) => {
+        const schoolColor =
+          options.color ?? colors[areaColorIndicesMap[area.index]];
+        const schoolMarker = createSchoolMarker(school, schoolColor).addTo(
+          schoolsLayerGroup
+        );
 
-      schoolColors[school.izo] = color;
-      addressLayerGroupsMap[school.izo] = layerGroup;
-      schoolMarkers[school.izo] = schoolMarker;
-
-      // first put the address points' schools together, add them later
-      school.addresses.forEach((point) => {
-        addToMarkersToCreate(point, school, markersToCreate);
+        schoolColors[school.izo] = schoolColor;
+        addressLayerGroupsMap[school.izo] = layerGroup;
+        schoolMarkers[school.izo] = schoolMarker;
       });
-
-      if (school.isWholeMunicipality) {
-        municipality.wholeMunicipalityPoints.forEach((point) => {
-          addToMarkersToCreate(point, school, markersToCreate);
-        });
-      }
-
-      colorIndex++;
+      area.addresses.forEach((point) => {
+        addToMarkersToCreate(point, markersToCreate, area);
+      });
     });
 
     if (options.showDebugInfo) {
       municipality.unmappedPoints.forEach((point) => {
-        markersToCreate[point.address] = {
-          point,
-          schools: [],
-        };
+        addToMarkersToCreate(point, markersToCreate);
       });
     }
   });
 
   const lines = data.text.split("\n");
-  Object.values(markersToCreate).forEach(({ point, schools }) => {
+  Object.values(markersToCreate).forEach(({ point, areas }) => {
+    const areaColors =
+      areas.length === 0
+        ? [unmappedMarkerColor]
+        : areas.map((area) => colors[areaColorIndicesMap[area.index]]);
+    const schools = areas.flatMap((area) => area.schools);
     const newMarkers = createAddressMarker(
       point,
-      getMarkerColors(schools, schoolColors),
+      areaColors,
       schools.map((s) => schoolMarkers[s.izo]) as SchoolMarker[],
       Boolean(options.showDebugInfo) && schools.length > 0,
       lines
@@ -96,47 +90,26 @@ export const createMarkers = (
   });
 };
 
-const getMarkerColors = (
-  schools: School[],
-  schoolColors: Record<string, string>
-) => {
-  if (schools.length === 0) {
-    return [unmappedMarkerColor];
-  }
-
-  const colors = schools
-    .filter((school) => !school.isWholeMunicipality)
-    .map((school) => schoolColors[school.izo]);
-
-  // if there's at least one whole municipality school, we use the wholeMunicipalityColor for it
-  if (colors.length < schools.length) {
-    colors.push(wholeMunicipalityColor);
-  }
-
-  return colors;
-};
-
 const addToMarkersToCreate = (
   point: ExportAddressPoint,
-  school: School,
-  markersToCreate: Record<
-    string,
-    { point: ExportAddressPoint; schools: School[] }
-  >
+  markersToCreate: MarkersToCreate,
+  area?: Area
 ): void => {
   if (!point.lat || !point.lng) {
     return;
   }
 
   if (point.address in markersToCreate) {
-    markersToCreate[point.address].schools.push(school);
+    if (area) {
+      markersToCreate[point.address].areas.push(area);
+    }
     markersToCreate[point.address].point.lineNumbers?.push(
       ...(point.lineNumbers ?? [])
     );
   } else {
     markersToCreate[point.address] = {
       point,
-      schools: [school],
+      areas: area ? [area] : [],
     };
   }
 };
@@ -183,7 +156,7 @@ export const createAddressMarker = (
       ${
         showDebugInfo
           ? `<br><br><em>${
-              point.lineNumbers
+              Array.from(new Set(point.lineNumbers))
                 ?.map((line) => `řádek ${line + 1}: ${lines?.[line]}`)
                 .join("<br>") ?? ""
             }</em>`

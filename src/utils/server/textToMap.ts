@@ -1,4 +1,3 @@
-import { api } from "@/app/api/[...remult]/api";
 import { Founder, FounderType } from "@/entities/Founder";
 import { Ordinance } from "@/entities/Ordinance";
 import { StreetMarkdown } from "@/entities/StreetMarkdown";
@@ -208,17 +207,29 @@ async function filterSchoolData(
   schoolIzo: string
 ): Promise<DataForMap | null> {
   // filter municipalities
-  const municipality = data.municipalities.find((municipality) =>
-    municipality.schools.some((school) => school.izo === schoolIzo)
-  );
-  if (!municipality) {
+  const municipalities = data.municipalities
+    .filter((municipality) =>
+      municipality.areas.some((area) =>
+        area.schools.some((school) => school.izo === schoolIzo)
+      )
+    )
+    .map((municipality) => {
+      municipality.areas = municipality.areas
+        .filter((area) =>
+          area.schools.some((school) => school.izo === schoolIzo)
+        )
+        .map((area) => {
+          area.schools = area.schools.filter(
+            (school) => school.izo === schoolIzo
+          );
+          return area;
+        });
+      return municipality;
+    });
+
+  if (municipalities.length === 0) {
     return null;
   }
-
-  const school = municipality.schools.find(
-    (school) => school.izo === schoolIzo
-  );
-  municipality.schools = [school!];
 
   // filter polygons
   const collection = data.polygons.find((collection) =>
@@ -231,12 +242,12 @@ async function filterSchoolData(
     return null;
   }
 
-  collection.features = collection.features.filter(
-    (feature) => feature.properties?.schoolIzo === schoolIzo
+  collection.features = collection.features.filter((feature) =>
+    feature.properties?.schoolIzos.includes(schoolIzo)
   );
 
   return {
-    municipalities: [municipality],
+    municipalities,
     polygons: [collection],
     text: data.text,
   };
@@ -334,7 +345,6 @@ export async function getOrCreateDataForMap(
   }
 
   if (!polygons) {
-    console.log(municipalities[0].schools.length);
     polygons = Object.values(await municipalitiesToPolygons(municipalities));
     if (!polygons || polygons.length === 0) {
       console.log(
