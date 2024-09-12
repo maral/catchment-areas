@@ -28,13 +28,13 @@ export class CityController {
     const knex = KnexDataProvider.getDb();
     await knex.raw(
       `UPDATE city c
-        SET school_count = (
-          SELECT COUNT(*)
+        SET school_count = IFNULL((
+          SELECT COUNT(DISTINCT sf.school_izo)
           FROM founder f
           JOIN school_founder sf ON sf.founder_id = f.id
           WHERE f.city_code = c.code
           GROUP BY f.city_code
-        )`
+        ), 0)`
     );
     if (destroyKnex) {
       await knex.destroy();

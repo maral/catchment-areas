@@ -15,7 +15,7 @@ export class FounderController {
   static async recalculateFounderSchoolCounts(destroyKnex = true) {
     const knex = KnexDataProvider.getDb();
     await knex.raw(
-      `UPDATE founder 
+      `UPDATE founder f
         SET school_count = (
           SELECT COUNT(*)
           FROM school_founder sf
