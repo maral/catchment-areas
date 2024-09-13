@@ -1,9 +1,7 @@
-import { Founder, FounderStatus } from "@/entities/Founder";
+import { Founder } from "@/entities/Founder";
 import { Ordinance } from "@/entities/Ordinance";
 import { BackendMethod, remult } from "remult";
-import { City } from "../entities/City";
-import { revalidatePath } from "next/cache";
-import { routes } from "../utils/shared/constants";
+import { City, CityStatus } from "../entities/City";
 
 export class OrdinanceController {
   @BackendMethod({ allowed: true })
@@ -35,34 +33,20 @@ export class OrdinanceController {
         // activate the first valid ordinance
         await ordinanceRepo.save({ ...validOrdinances[0], isActive: true });
         // set founder status to InProgress
-        if (city && city.status !== FounderStatus.InProgress) {
+        if (city && city.status !== CityStatus.InProgress) {
           await remult
             .repo(City)
-            .save({ ...city, status: FounderStatus.InProgress });
+            .save({ ...city, status: CityStatus.InProgress });
         }
       } else {
         // set founder status to NoActiveOrdinance
-        if (city && city.status !== FounderStatus.NoActiveOrdinance) {
+        if (city && city.status !== CityStatus.NoActiveOrdinance) {
           await remult
             .repo(Founder)
-            .save({ ...city, status: FounderStatus.NoActiveOrdinance });
+            .save({ ...city, status: CityStatus.NoActiveOrdinance });
         }
       }
     }
-  }
-
-  @BackendMethod({ allowed: true })
-  static async setActiveOrdinance(founderId: number, ordinanceId: number) {
-    const ordinanceRepo = remult.repo(Ordinance);
-    const foundersOrdinances = await ordinanceRepo.find({
-      where: { founder: { $id: founderId } },
-    });
-    foundersOrdinances.forEach(async (ordinance) => {
-      await ordinanceRepo.update(ordinanceId, {
-        ...ordinance,
-        isActive: ordinance.id === ordinanceId,
-      });
-    });
   }
 
   @BackendMethod({ allowed: true })

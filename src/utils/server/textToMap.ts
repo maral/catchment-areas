@@ -147,7 +147,15 @@ export async function getOrCreateDataForMapByCityCode(
   const mapData = await remult.repo(MapData).findFirst({
     cityCode,
     ordinanceId,
+    // TODO check also that founderId is NULL
   });
+
+  if (!mapData) {
+    await remult.repo(MapData).insert({
+      cityCode,
+      ordinanceId,
+    });
+  }
 
   const smdTexts = await StreetMarkdownControllerServer.getStreetMarkdownTexts(
     cityCode,
@@ -167,7 +175,8 @@ export async function getOrCreateDataForMapByCityCode(
     if (jsonData === null) {
       return null;
     }
-    hasChanged = true;
+
+    OrdinanceControllerServer.setJsonData(cityCode, ordinanceId, jsonData);
   }
 
   if (polygons === null) {
@@ -179,24 +188,7 @@ export async function getOrCreateDataForMapByCityCode(
       );
       return null;
     }
-    hasChanged = true;
-  }
-
-  if (hasChanged) {
-    if (mapData) {
-      await remult.repo(MapData).update(mapData.id, {
-        ...mapData,
-        jsonData,
-        polygons,
-      });
-    } else {
-      await remult.repo(MapData).insert({
-        cityCode,
-        ordinanceId,
-        jsonData,
-        polygons,
-      });
-    }
+    OrdinanceControllerServer.setPolygons(cityCode, ordinanceId, polygons);
   }
 
   return { municipalities: jsonData, polygons, text: getSmdText(smdTexts) };

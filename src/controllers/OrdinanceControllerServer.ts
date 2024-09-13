@@ -1,6 +1,13 @@
 import { syncOrdinancesToDb } from "@/utils/server/ordinanceMetadataSync";
+import {
+  FeatureCollection,
+  Geometry,
+  GeometryCollection,
+  Properties,
+} from "@turf/helpers";
 import { BackendMethod } from "remult";
 import { KnexDataProvider } from "remult/remult-knex";
+import { Municipality } from "text-to-map";
 
 export class OrdinanceControllerServer {
   @BackendMethod({ allowed: true })
@@ -45,5 +52,29 @@ export class OrdinanceControllerServer {
       cityCode: row.city_code,
       ordinanceId: row.id,
     }));
+  }
+
+  static async setJsonData(
+    cityCode: number,
+    ordinanceId: number,
+    jsonData: Municipality[]
+  ) {
+    const knex = KnexDataProvider.getDb();
+    await knex.raw(
+      `UPDATE map_data SET json_data = ? WHERE city_code = ? AND ordinance_id = ? AND founder_id IS NULL`,
+      [JSON.stringify(jsonData), cityCode, ordinanceId]
+    );
+  }
+
+  static async setPolygons(
+    cityCode: number,
+    ordinanceId: number,
+    polygons: FeatureCollection<Geometry | GeometryCollection, Properties>[]
+  ) {
+    const knex = KnexDataProvider.getDb();
+    await knex.raw(
+      `UPDATE map_data SET polygons = ? WHERE city_code = ? AND ordinance_id = ? AND founder_id IS NULL`,
+      [JSON.stringify(polygons), cityCode, ordinanceId]
+    );
   }
 }

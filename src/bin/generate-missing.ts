@@ -31,6 +31,7 @@ const main = async () => {
         continue;
       }
 
+      console.log(`Processing ${city.name}...`);
       await getOrCreateDataForMapByCityCode(city.code, ordinance.id);
       processed += 1;
       console.log(`Processed ${processed}/${total} - ${city.name}`);

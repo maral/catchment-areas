@@ -24,7 +24,8 @@ import { OrdinanceController } from "@/controllers/OrdinanceController";
 import { UserController } from "@/controllers/UserController";
 import { Role } from "@/utils/shared/permissions";
 import { Meta } from "@/entities/Meta";
-import { MapData } from "../../../entities/MapData";
+import { MapData } from "@/entities/MapData";
+import { MapDataController } from "@/controllers/MapDataController";
 
 configDotenv({ path: ".env.local" });
 
@@ -59,6 +60,7 @@ export function getRemultOptions(
       ],
       controllers: [
         FounderController,
+        MapDataController,
         OrdinanceController,
         StreetController,
         StreetMarkdownController,

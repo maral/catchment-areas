@@ -34,6 +34,8 @@ import Spinner from "../common/Spinner";
 import { Monaco, configureMonaco } from "./configureMonaco";
 import LinkButton from "../buttons/LinkButton";
 import { routes } from "@/utils/shared/constants";
+import { MapData } from "../../entities/MapData";
+import { MapDataController } from "../../controllers/MapDataController";
 
 const owner = "street-markdown";
 
@@ -110,11 +112,7 @@ export default function Editor({
           await streetMarkdownRepo.update(streetMarkdown.id, {
             ...streetMarkdown,
           });
-          await ordinanceRepo.update(ordinance.id, {
-            ...ordinance,
-            jsonData: null,
-            polygons: null,
-          });
+          await MapDataController.deleteMapData(ordinance);
           setIsSaving(false);
         };
         saveToSmd();

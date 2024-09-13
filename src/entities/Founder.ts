@@ -101,10 +101,3 @@ export enum FounderType {
   City = 261,
   District = 263,
 }
-
-export enum FounderStatus {
-  NoOrdinance,
-  NoActiveOrdinance,
-  InProgress,
-  Published,
-}

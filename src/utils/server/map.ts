@@ -1,23 +1,20 @@
 import { api } from "@/app/api/[...remult]/api";
-import { Founder, FounderStatus } from "@/entities/Founder";
 import { CityOnMap } from "@/types/mapTypes";
 import { remult } from "remult";
+import { City, CityStatus } from "../../entities/City";
 
 export async function getCitiesForMap(): Promise<CityOnMap[] | null> {
   return await api.withRemult(async () => {
-    const founders = await remult.repo(Founder).find({
-      load: (f) => [f.city!],
-    });
+    const cities = await remult.repo(City).find();
 
     return Object.values(
       // reduce to unique cities
-      founders.reduce((acc, founder) => {
-        const city = founder.city;
+      cities.reduce((acc, city) => {
         acc[city.code] = {
           code: city.code,
           name: city.name,
           isPublished:
-            founder.status === FounderStatus.Published ||
+            city.status === CityStatus.Published ||
             (acc[city.code] && acc[city.code].isPublished),
           lat: city.latitude,
           lng: city.longitude,

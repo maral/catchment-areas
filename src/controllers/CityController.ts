@@ -1,16 +1,6 @@
-import { FounderStatus, FounderType } from "@/entities/Founder";
 import { KnexDataProvider } from "remult/remult-knex";
 import { City, CitySchools, School } from "../app/embed/Embed";
 import { CityStatus } from "../entities/City";
-
-type SimpleFounder = {
-  id: number;
-  name: string;
-  shortName: string;
-  regionName: string;
-  status: FounderStatus;
-  schoolCount: number;
-};
 
 export type SimpleOrdinance = {
   id: number;
