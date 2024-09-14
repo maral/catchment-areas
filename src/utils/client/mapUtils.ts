@@ -276,6 +276,7 @@ export const createCityLayers = ({
   schoolsLayerGroup: SchoolLayerGroup;
   polygonLayerGroup: FeatureGroup;
   unmappedLayerGroup: AddressLayerGroup;
+  unmappedRegistrationNumberLayerGroup: AddressLayerGroup;
   municipalityLayerGroups: AddressLayerGroup[];
   addressMarkers: AddressMarkerMap;
 } => {
@@ -294,6 +295,8 @@ export const createCityLayers = ({
   schoolsLayerGroup.type = "schools";
 
   const unmappedLayerGroup: AddressLayerGroup = L.layerGroup();
+  const unmappedRegistrationNumberLayerGroup: AddressLayerGroup =
+    L.layerGroup();
 
   const allFeatures = Object.values(data.polygons).flatMap(
     (polygon) => polygon.features
@@ -307,17 +310,18 @@ export const createCityLayers = ({
     createPolygonLayer(polygon, schoolMarkers, areaColorIndicesMap, options)
   );
 
-  createMarkers(
+  createMarkers({
     data,
     municipalityLayerGroups,
     addressesLayerGroup,
     schoolsLayerGroup,
     unmappedLayerGroup,
+    unmappedRegistrationNumberLayerGroup,
     schoolMarkers,
     addressMarkers,
     areaColorIndicesMap,
-    options
-  );
+    options,
+  });
 
   setUpSchoolMarkersEvents(schoolMarkers, polygonLayers);
 
@@ -328,6 +332,7 @@ export const createCityLayers = ({
     schoolsLayerGroup,
     polygonLayerGroup,
     unmappedLayerGroup,
+    unmappedRegistrationNumberLayerGroup,
     municipalityLayerGroups,
     addressMarkers,
   };

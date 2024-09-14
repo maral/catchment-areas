@@ -107,6 +107,7 @@ export const texts = {
   url: "URL",
   unknownStatus: "Neznámý stav",
   unmappedAddressPoints: "Neurčená adresní místa",
+  unmappedRegistrationNumberAddressPoints: "Neurčená adresní místa s č.ev.",
   user: "Uživatel",
   userName: "Jméno",
   users: "Uživatelé",

@@ -24,6 +24,7 @@ export const createMap = (
     addressesLayerGroup,
     schoolsLayerGroup,
     unmappedLayerGroup,
+    unmappedRegistrationNumberLayerGroup,
     polygonLayerGroup,
   } = createCityLayers({
     data,
@@ -36,6 +37,8 @@ export const createMap = (
   layerGroupsForControl[texts.polygons] = polygonLayerGroup;
   layerGroupsForControl[texts.addressPoints] = addressesLayerGroup;
   layerGroupsForControl[texts.unmappedAddressPoints] = unmappedLayerGroup;
+  layerGroupsForControl[texts.unmappedRegistrationNumberAddressPoints] =
+    unmappedRegistrationNumberLayerGroup;
 
   setupPopups(map);
 
@@ -52,6 +55,7 @@ export const createMap = (
   map.addLayer(addressesLayerGroup);
   map.addLayer(schoolsLayerGroup);
   map.addLayer(unmappedLayerGroup);
+  map.addLayer(unmappedRegistrationNumberLayerGroup);
 
   polygonLayerGroup.on("add", () => {
     polygonLayerGroup.bringToBack();

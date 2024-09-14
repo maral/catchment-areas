@@ -22,17 +22,29 @@ type MarkersToCreate = Record<
   { point: ExportAddressPoint; areas: Area[] }
 >;
 
-export const createMarkers = (
-  data: DataForMap,
-  municipalityLayerGroups: AddressLayerGroup[],
-  addressesLayerGroup: AddressesLayerGroup,
-  schoolsLayerGroup: SchoolLayerGroup,
-  unmappedLayerGroup: AddressLayerGroup,
-  schoolMarkers: SchoolMarkerMap,
-  addressMarkers: AddressMarkerMap,
-  areaColorIndicesMap: Record<string, number>,
-  options: MapOptions
-) => {
+export const createMarkers = ({
+  data,
+  municipalityLayerGroups,
+  addressesLayerGroup,
+  schoolsLayerGroup,
+  unmappedLayerGroup,
+  unmappedRegistrationNumberLayerGroup,
+  schoolMarkers,
+  addressMarkers,
+  areaColorIndicesMap,
+  options,
+}: {
+  data: DataForMap;
+  municipalityLayerGroups: AddressLayerGroup[];
+  addressesLayerGroup: AddressesLayerGroup;
+  schoolsLayerGroup: SchoolLayerGroup;
+  unmappedLayerGroup: AddressLayerGroup;
+  unmappedRegistrationNumberLayerGroup: AddressLayerGroup;
+  schoolMarkers: SchoolMarkerMap;
+  addressMarkers: AddressMarkerMap;
+  areaColorIndicesMap: Record<string, number>;
+  options: MapOptions;
+}) => {
   const markersToCreate: MarkersToCreate = {};
   const schoolColors: Record<string, string> = {};
   const addressLayerGroupsMap: Record<string, AddressLayerGroup> = {};
@@ -82,7 +94,11 @@ export const createMarkers = (
     addressMarkers[point.address] = newMarkers;
     newMarkers.forEach((marker) => {
       if (schools.length === 0) {
-        unmappedLayerGroup.addLayer(marker);
+        if (point.address.includes("č.ev.")) {
+          unmappedRegistrationNumberLayerGroup.addLayer(marker);
+        } else {
+          unmappedLayerGroup.addLayer(marker);
+        }
       } else {
         addressLayerGroupsMap[schools[0].izo].addLayer(marker);
       }
