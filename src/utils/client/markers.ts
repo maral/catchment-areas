@@ -82,7 +82,9 @@ export const createMarkers = ({
     const areaColors =
       areas.length === 0
         ? [unmappedMarkerColor]
-        : areas.map((area) => colors[areaColorIndicesMap[area.index]]);
+        : areas.map(
+            (area) => options.color ?? colors[areaColorIndicesMap[area.index]]
+          );
     const schools = areas.flatMap((area) => area.schools);
     const newMarkers = createAddressMarker(
       point,

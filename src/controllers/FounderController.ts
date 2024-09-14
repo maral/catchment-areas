@@ -74,7 +74,7 @@ export class FounderController {
 
     const schoolsByCity = new Map<string, School[]>();
     for (const school of schools[0]) {
-      const city = school.short_name;
+      const city = school.city_name;
       if (!schoolsByCity.has(city)) {
         schoolsByCity.set(city, []);
       }

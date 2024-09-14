@@ -138,20 +138,6 @@ export default function Embed({ schools, cities }: MunicipalityPageProps) {
         )}
 
         <div className="grid gap-4">
-          {/* <div className="flex items-center space-x-2">
-            <Checkbox
-              id="showSearch"
-              checked={showSearch}
-              onCheckedChange={(value) => setShowSearch(Boolean(value))}
-            />
-            <label
-              htmlFor="showSearch"
-              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-            >
-              Zobrazit vyhledávání
-            </label>
-          </div> */}
-
           <div className="flex items-center space-x-2">
             <Checkbox
               id="showControls"

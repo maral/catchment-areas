@@ -309,8 +309,8 @@ async function filterSchoolData(
 
   // filter polygons
   const collection = data.polygons.find((collection) =>
-    collection.features.some(
-      (feature) => feature.properties?.schoolIzo === schoolIzo
+    collection.features.some((feature) =>
+      feature.properties?.schoolIzos.includes(schoolIzo)
     )
   );
 
