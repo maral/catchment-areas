@@ -272,7 +272,7 @@ export const createCityMarker = (
       city.name
     }</span><br> ${
       city.isPublished
-        ? `${createCityMarkerButton(city.code)}`
+        ? `${createCityMarkerButtons(city.code)}`
         : "zatím není připraveno"
     }</div>`
   );
@@ -306,16 +306,25 @@ const createAddressMarkerButton = () => `
   Zobrazit spádovou školu
 </button></div>`;
 
-const createCityMarkerButton = (cityCode: number) => `
-<div class="text-center mt-3"><a href="/api/ordinances/download/by-city-code/${cityCode}" target="_blank" class="city-marker ${getButtonClasses()} mt-2">
+const createCityMarkerButtons = (cityCode: number) => `
+<div class="text-center mt-3"><a href="/m/${cityCode}?controls=1" target="_blank" class="city-marker block ${getButtonClasses()} mt-2">
+  ${getNewWindowHeroicon()} Zobrazit v novém okně
+</a><a href="/api/ordinances/download/by-city-code/${cityCode}" target="_blank" class="city-marker block ${getButtonClasses(
+  "slate"
+)} mt-2">
   ${getDownloadHeroicon()} Stáhnout vyhlášku
 </a></div>`;
 
-const getButtonClasses = () => {
-  return `border rounded px-2 py-1 text-xs bg-emerald-500 border-emerald-500 text-white hover:bg-emerald-600 hover:border-emerald-700`;
+const getButtonClasses = (color = "emerald") => {
+  return `border rounded px-2 py-1 text-xs bg-${color}-500 border-${color}-500 text-white hover:bg-${color}-600 hover:border-${color}-700`;
 };
 
 const getDownloadHeroicon =
-  () => `<svg class="inline-block w-4 h-4 relative" style="top: -1px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+  () => `<svg class="inline-block w-4 h-4 relative" style="top: -1px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
 <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+</svg>`;
+
+const getNewWindowHeroicon =
+  () => `<svg class="inline-block w-4 h-4 relative" style="top: -1px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+  <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
 </svg>`;
