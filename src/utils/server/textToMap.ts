@@ -234,11 +234,17 @@ export async function getOrCreateDataForMapByFounderId(
   let jsonData = mapData?.jsonData ?? null;
   let polygons = mapData?.polygons ?? null;
 
-  const streetMarkdown = await remult
-    .repo(StreetMarkdown)
-    .findFirst({ ordinance }, { orderBy: { id: "desc" } });
+  const text = await getStreetMarkdownSourceText(founderId, ordinanceId);
+
+  if (text === null) {
+    console.log(
+      `Could not retrieve street markdown text for founder with ID = '${founderId}' and ordinance with ID = '${ordinanceId}'.`
+    );
+    return null;
+  }
+
   if (jsonData === null) {
-    jsonData = await parseStreetMarkdown(founderId, streetMarkdown.sourceText);
+    jsonData = await parseStreetMarkdown(founderId, text);
     if (jsonData === null) {
       return null;
     }
@@ -268,7 +274,7 @@ export async function getOrCreateDataForMapByFounderId(
   return {
     municipalities: jsonData,
     polygons,
-    text: streetMarkdown.sourceText,
+    text,
   };
 }
 
