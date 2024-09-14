@@ -98,7 +98,7 @@ export const setupPopups = (map: LeafletMap): void => {
   });
 
   map.on("click", function () {
-    resetAllHighlights(true);
+    resetAllHighlights();
   });
 };
 
@@ -154,24 +154,35 @@ let selectedSchools = new Set<Circle>();
 let lastPolygonLayers: L.GeoJSON[] | undefined;
 let schoolHighlighted = false;
 let addressHighlighted = false;
+let markerClone: Circle | undefined;
 
 const isSomethingHighlighted = () => {
   return schoolHighlighted || addressHighlighted;
 };
 
-export const resetAllHighlights = (exceptPolygonHighlights = false) => {
-  if (!isSomethingHighlighted() && exceptPolygonHighlights) {
-    return;
-  }
+export const resetAllHighlights = (options?: {
+  exceptAddressHighlights?: boolean;
+}) => {
+  // reset selected school
   if (lastPolygonLayers) {
     lastPolygonLayers.forEach((l) => l.resetStyle());
     lastPolygonLayers = undefined;
   }
+  selectedSchools.forEach(deselectSchool);
+  schoolHighlighted = false;
+
+  if (options?.exceptAddressHighlights) {
+    return;
+  }
+
+  // reset highlighted address point
+  if (markerClone) {
+    markerClone.remove();
+    markerClone = undefined;
+  }
   if (polylines) {
     polylines.forEach((p) => p.remove());
   }
-  selectedSchools.forEach(deselectSchool);
-  schoolHighlighted = false;
   addressHighlighted = false;
 };
 
@@ -182,6 +193,11 @@ export const centerLeafletMapOnMarker = (
   if (map === null || !marker.schools || marker.schools.length === 0) {
     return;
   }
+  const newMarker = L.circle(marker.getLatLng(), marker.options)
+    .bindPopup(marker.getPopup()!.getContent()!)
+    .addTo(map)
+    .openPopup();
+
   const latLngs = [
     marker.getLatLng(),
     ...marker.schools.map((m) => m.getLatLng()),
@@ -202,6 +218,7 @@ export const centerLeafletMapOnMarker = (
 
     selectSchool(school);
   });
+  markerClone = newMarker;
   map.once("moveend", function () {});
   map.flyToBounds(markerBounds, { padding: [150, 150], duration: 0.7 });
 };

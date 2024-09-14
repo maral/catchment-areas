@@ -4,7 +4,7 @@ import { MapData } from "../entities/MapData";
 
 export class MapDataController {
   @BackendMethod({ allowed: true })
-  static async deleteMapData(ordinance: Ordinance) {
+  static async deleteMapData(ordinance: Ordinance, founderId: number) {
     const mapDataRepo = remult.repo(MapData);
 
     if (!remult.user) {
@@ -14,7 +14,12 @@ export class MapDataController {
     const mapData = await mapDataRepo.find({
       where: {
         ordinanceId: ordinance.id,
-        cityCode: ordinance.city.code,
+        $or: [
+          {
+            cityCode: ordinance.city.code,
+          },
+          { founderId },
+        ],
       },
     });
     for (const row of mapData) {

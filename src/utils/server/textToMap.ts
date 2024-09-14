@@ -72,16 +72,14 @@ export async function validateStreetMarkdown(
 }
 
 export async function parseStreetMarkdown(
-  ordinance: Ordinance,
+  founderId: number,
   text: string
 ): Promise<Municipality[] | null> {
-  const currentMunicipality = await getNewMunicipalityByFounderId(
-    ordinance.founder.id
-  );
+  const currentMunicipality = await getNewMunicipalityByFounderId(founderId);
 
   if (currentMunicipality.errors.length > 0) {
     console.log(
-      `Could not find municipality's founder with ID = '${ordinance.founder.id}'.`
+      `Could not find municipality's founder with ID = '${founderId}'.`
     );
     return null;
   }
@@ -147,7 +145,8 @@ export async function getOrCreateDataForMapByCityCode(
   const mapData = await remult.repo(MapData).findFirst({
     cityCode,
     ordinanceId,
-    // TODO check also that founderId is NULL
+    // // @ts-ignore
+    // founderId: null,
   });
 
   if (!mapData) {
@@ -162,7 +161,6 @@ export async function getOrCreateDataForMapByCityCode(
     ordinanceId
   );
 
-  let hasChanged = false;
   let jsonData = mapData?.jsonData ?? null;
   let polygons = mapData?.polygons ?? null;
 
@@ -176,7 +174,12 @@ export async function getOrCreateDataForMapByCityCode(
       return null;
     }
 
-    OrdinanceControllerServer.setJsonData(cityCode, ordinanceId, jsonData);
+    OrdinanceControllerServer.setJsonData(
+      ordinanceId,
+      jsonData,
+      cityCode,
+      undefined
+    );
   }
 
   if (polygons === null) {
@@ -188,10 +191,85 @@ export async function getOrCreateDataForMapByCityCode(
       );
       return null;
     }
-    OrdinanceControllerServer.setPolygons(cityCode, ordinanceId, polygons);
+    OrdinanceControllerServer.setPolygons(
+      ordinanceId,
+      polygons,
+      cityCode,
+      undefined
+    );
   }
 
   return { municipalities: jsonData, polygons, text: getSmdText(smdTexts) };
+}
+
+export async function getOrCreateDataForMapByFounderId(
+  founderId: number,
+  ordinanceId: number
+): Promise<DataForMap | null> {
+  const mapData = await remult.repo(MapData).findFirst({
+    founderId,
+    ordinanceId,
+  });
+
+  if (!mapData) {
+    await remult.repo(MapData).insert({
+      founderId,
+      ordinanceId,
+    });
+  }
+
+  const founder = await remult.repo(Founder).findId(founderId);
+
+  if (!founder) {
+    console.log(`Could not find founder with ID = '${founderId}'.`);
+    return null;
+  }
+
+  const ordinance = await remult.repo(Ordinance).findId(ordinanceId);
+  if (!ordinance) {
+    console.log(`Could not find ordinance with ID = '${ordinanceId}'.`);
+    return null;
+  }
+
+  let jsonData = mapData?.jsonData ?? null;
+  let polygons = mapData?.polygons ?? null;
+
+  const streetMarkdown = await remult
+    .repo(StreetMarkdown)
+    .findFirst({ ordinance }, { orderBy: { id: "desc" } });
+  if (jsonData === null) {
+    jsonData = await parseStreetMarkdown(founderId, streetMarkdown.sourceText);
+    if (jsonData === null) {
+      return null;
+    }
+
+    OrdinanceControllerServer.setJsonData(
+      ordinanceId,
+      jsonData,
+      undefined,
+      founderId
+    );
+  }
+
+  if (polygons === null) {
+    polygons = Object.values(await municipalitiesToPolygons(jsonData));
+
+    if (!polygons || polygons.length === 0) {
+      return null;
+    }
+    OrdinanceControllerServer.setPolygons(
+      ordinanceId,
+      polygons,
+      undefined,
+      founderId
+    );
+  }
+
+  return {
+    municipalities: jsonData,
+    polygons,
+    text: streetMarkdown.sourceText,
+  };
 }
 
 async function filterSchoolData(
@@ -270,89 +348,6 @@ export function getSmdText(smdTexts: SmdText[]) {
   return smdTexts
     .map((smd) => `# ${smd.founderName}\n\n${smd.sourceText}`)
     .join("\n\n");
-}
-
-// @deprecated
-async function _getOrdinance(
-  founder: Founder,
-  ordinanceId?: number
-): Promise<Ordinance | null> {
-  if (ordinanceId) {
-    return await remult.repo(Ordinance).findId(ordinanceId);
-  } else {
-    return await remult
-      .repo(Ordinance)
-      .findFirst({ founder }, { where: { isActive: true } });
-  }
-}
-
-// @deprecated
-export async function getOrCreateDataForMapByFounderId(
-  founderId: number,
-  ordinanceId: number
-): Promise<DataForMap | null> {
-  const founder = await remult.repo(Founder).findId(founderId);
-
-  if (!founder) {
-    console.log(`Could not find founder with ID = '${founderId}'.`);
-    return null;
-  }
-
-  return await getOrCreateDataForMap(founder, ordinanceId);
-}
-
-// @deprecated
-export async function getOrCreateDataForMap(
-  founder: Founder,
-  ordinanceId?: number
-): Promise<DataForMap | null> {
-  const ordinance = await _getOrdinance(founder, ordinanceId);
-  if (!ordinance) {
-    console.log(`Could not find ordinance with ID = '${ordinanceId}'.`);
-    return null;
-  }
-
-  let municipalities = ordinance.jsonData;
-  let polygons = ordinance.polygons;
-  // get municipalities JSON or parse latest street markdown
-  if (!municipalities || municipalities.length === 0) {
-    const streetMarkdown = await remult
-      .repo(StreetMarkdown)
-      .findFirst({ ordinance }, { orderBy: { id: "desc" } });
-    municipalities = await parseStreetMarkdown(
-      ordinance,
-      streetMarkdown.sourceText
-    );
-    if (!municipalities || municipalities.length === 0) {
-      console.log(
-        `No municipalities found for founder.id = '${founder.id}' and ordinance.id = '${ordinance.id}'.`
-      );
-      return null;
-    }
-
-    await remult.repo(Ordinance).update(ordinance.id, {
-      ...ordinance,
-      jsonData: municipalities,
-    });
-  }
-
-  if (!polygons) {
-    polygons = Object.values(await municipalitiesToPolygons(municipalities));
-    if (!polygons || polygons.length === 0) {
-      console.log(
-        `Could not retrieve any polygons for founder.id = '${founder.id}' and ordinance.id = '${ordinance.id}'.`
-      );
-      return null;
-    }
-
-    await remult.repo(Ordinance).update(ordinance.id, {
-      ...ordinance,
-      jsonData: municipalities,
-      polygons,
-    });
-  }
-
-  return { municipalities, polygons, text: "" };
 }
 
 async function getAddressPointsBySmdTexts(

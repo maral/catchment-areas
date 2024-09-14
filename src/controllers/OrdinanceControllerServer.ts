@@ -55,26 +55,32 @@ export class OrdinanceControllerServer {
   }
 
   static async setJsonData(
-    cityCode: number,
     ordinanceId: number,
-    jsonData: Municipality[]
+    jsonData: Municipality[],
+    cityCode?: number,
+    founderId?: number
   ) {
     const knex = KnexDataProvider.getDb();
     await knex.raw(
-      `UPDATE map_data SET json_data = ? WHERE city_code = ? AND ordinance_id = ? AND founder_id IS NULL`,
-      [JSON.stringify(jsonData), cityCode, ordinanceId]
+      `UPDATE map_data SET json_data = ? WHERE ${
+        cityCode ? "city_code" : "founder_id"
+      } = ? AND ordinance_id = ?`,
+      [JSON.stringify(jsonData), cityCode ?? founderId, ordinanceId]
     );
   }
 
   static async setPolygons(
-    cityCode: number,
     ordinanceId: number,
-    polygons: FeatureCollection<Geometry | GeometryCollection, Properties>[]
+    polygons: FeatureCollection<Geometry | GeometryCollection, Properties>[],
+    cityCode?: number,
+    founderId?: number
   ) {
     const knex = KnexDataProvider.getDb();
     await knex.raw(
-      `UPDATE map_data SET polygons = ? WHERE city_code = ? AND ordinance_id = ? AND founder_id IS NULL`,
-      [JSON.stringify(polygons), cityCode, ordinanceId]
+      `UPDATE map_data SET polygons = ? WHERE ${
+        cityCode ? "city_code" : "founder_id"
+      } = ? AND ordinance_id = ?`,
+      [JSON.stringify(polygons), cityCode ?? founderId, ordinanceId]
     );
   }
 }

@@ -112,7 +112,7 @@ export default function Editor({
           await streetMarkdownRepo.update(streetMarkdown.id, {
             ...streetMarkdown,
           });
-          await MapDataController.deleteMapData(ordinance);
+          await MapDataController.deleteMapData(ordinance, founder.id);
           setIsSaving(false);
         };
         saveToSmd();

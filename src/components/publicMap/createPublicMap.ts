@@ -120,7 +120,7 @@ const createPublicMoveAndZoomEndHandler = (
       citiesWithShownSchools.forEach((code) => {
         hideSchools(code);
       });
-      resetAllHighlights();
+      resetAllHighlights({ exceptAddressHighlights: true });
     }
 
     if (map.getZoom() < minZoomForAddressPoints) {
@@ -357,20 +357,18 @@ const findPointByGPS = (
 
   for (const municipality of municipalities) {
     for (const area of municipality.areas) {
-      for (const school of area.schools) {
-        for (const point of school.addresses) {
-          if (!point.lat || !point.lng) {
-            continue;
-          }
-          const distance =
-            Math.abs(point.lat - position.lat) +
-            Math.abs(point.lng - position.lon);
-          if (distance < 0.00001) {
-            return point;
-          } else if (distance < 0.0001 && distance < minDistance) {
-            minDistance = distance;
-            minDistancePoint = point;
-          }
+      for (const point of area.addresses) {
+        if (!point.lat || !point.lng) {
+          continue;
+        }
+        const distance =
+          Math.abs(point.lat - position.lat) +
+          Math.abs(point.lng - position.lon);
+        if (distance < 0.00001) {
+          return point;
+        } else if (distance < 0.0001 && distance < minDistance) {
+          minDistance = distance;
+          minDistancePoint = point;
         }
       }
     }
