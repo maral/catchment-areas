@@ -142,19 +142,10 @@ export async function getOrCreateDataForMapByCityCode(
   cityCode: number,
   ordinanceId: number
 ): Promise<DataForMap | null> {
-  const mapData = await remult.repo(MapData).findFirst({
+  let mapData = await remult.repo(MapData).findFirst({
     cityCode,
     ordinanceId,
-    // // @ts-ignore
-    // founderId: null,
   });
-
-  if (!mapData) {
-    await remult.repo(MapData).insert({
-      cityCode,
-      ordinanceId,
-    });
-  }
 
   const smdTexts = await StreetMarkdownControllerServer.getStreetMarkdownTexts(
     cityCode,
@@ -174,6 +165,13 @@ export async function getOrCreateDataForMapByCityCode(
       return null;
     }
 
+    if (!mapData) {
+      mapData = await remult.repo(MapData).insert({
+        cityCode,
+        ordinanceId,
+      });
+    }
+
     OrdinanceControllerServer.setJsonData(
       ordinanceId,
       jsonData,
@@ -189,6 +187,8 @@ export async function getOrCreateDataForMapByCityCode(
       console.log(
         `Could not retrieve any polygons for city_code = '${cityCode}' and ordinance_id = '${ordinanceId}'.`
       );
+
+      await remult.repo(MapData).delete(mapData.id);
       return null;
     }
     OrdinanceControllerServer.setPolygons(
