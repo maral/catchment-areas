@@ -2,7 +2,8 @@ import BreadcrumbNav from "@/components/BreadcrumbNav";
 import {
   cityDetailBreadcrumb,
   citiesBreadcrumb,
-  mapBreadcrumb,
+  founderMapBreadcrumb,
+  editOrdinanceBreadcrumb,
 } from "@/utils/breadcrumbItems";
 
 export default async function MapBreadcrumb({
@@ -13,8 +14,12 @@ export default async function MapBreadcrumb({
   const breadcrumbItems = await Promise.all([
     citiesBreadcrumb,
     cityDetailBreadcrumb(params.code),
-    // @todo finish this using founderId
-    mapBreadcrumb(params.code, params.ordinanceId),
+    editOrdinanceBreadcrumb(
+      Number(params.code),
+      Number(params.id),
+      Number(params.ordinanceId)
+    ),
+    founderMapBreadcrumb(params.code, params.ordinanceId),
   ]);
 
   return <BreadcrumbNav items={breadcrumbItems} />;

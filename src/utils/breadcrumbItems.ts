@@ -83,6 +83,16 @@ export const mapBreadcrumb: BreadcrumbItemFunction = async (
   };
 };
 
+export const founderMapBreadcrumb = async (
+  cityCode: string,
+  ordinanceId: string
+) => {
+  return {
+    href: `${routes.cities}/${cityCode}${routes.map}/${ordinanceId}`,
+    title: texts.map,
+  };
+};
+
 // REGIONS
 export const regionsBreadcrumb: BreadcrumbItem = {
   href: routes.regions,

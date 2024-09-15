@@ -9,18 +9,22 @@ import { getOrdinanceIdFromFrom } from "@/utils/breadcrumbItems";
 import { isPrefetch } from "@/utils/server/headers";
 import { notFound } from "next/navigation";
 import { remult } from "remult";
+import { City } from "@/entities/City";
 
 export const dynamic = "force-dynamic";
 
 export default async function EditorPage({
-  params: { founderId, from },
+  params: { code, founderId, from },
 }: {
   params: { code: string; founderId: string; from?: string[] };
 }) {
   const ordinanceId = getOrdinanceIdFromFrom(from);
 
-  const { ordinanceJson, founderJson, streetMarkdownJson, suggestions } =
+  const { ordinanceJson, founderJson, streetMarkdownJson, suggestions, founderCount } =
     await api.withRemult(async () => {
+      const city = await remult.repo(City).findFirst({ code: Number(code) });
+      const founderCount = await remult.repo(Founder).count({ city });
+
       const ordinanceRepo = remult.repo(Ordinance);
       const streetMarkdownRepo = remult.repo(StreetMarkdown);
 
@@ -57,6 +61,7 @@ export default async function EditorPage({
         suggestions: await StreetController.getAutocompleteSuggestions(
           Number(founderId)
         ),
+        founderCount,
       };
     });
 
@@ -67,6 +72,7 @@ export default async function EditorPage({
         ordinanceJson={ordinanceJson}
         founderJson={founderJson}
         streetMarkdownJson={streetMarkdownJson}
+        founderCount={founderCount}
       />
     </div>
   );

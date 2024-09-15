@@ -5,6 +5,7 @@ import { Founder, FounderType } from "@/entities/Founder";
 import { Ordinance } from "@/entities/Ordinance";
 import { StreetMarkdown } from "@/entities/StreetMarkdown";
 import { Colors } from "@/styles/Themes";
+import { routes } from "@/utils/shared/constants";
 import { texts } from "@/utils/shared/texts";
 import { SuggestionList, TextToMapError } from "@/utils/shared/types";
 import {
@@ -29,13 +30,11 @@ import {
   useState,
 } from "react";
 import { remult } from "remult";
+import { MapDataController } from "../../controllers/MapDataController";
+import LinkButton from "../buttons/LinkButton";
 import HeaderBox from "../common/HeaderBox";
 import Spinner from "../common/Spinner";
 import { Monaco, configureMonaco } from "./configureMonaco";
-import LinkButton from "../buttons/LinkButton";
-import { routes } from "@/utils/shared/constants";
-import { MapData } from "../../entities/MapData";
-import { MapDataController } from "../../controllers/MapDataController";
 
 const owner = "street-markdown";
 
@@ -47,11 +46,13 @@ export default function Editor({
   streetMarkdownJson,
   ordinanceJson,
   founderJson,
+  founderCount,
 }: {
   suggestions: SuggestionList[];
   streetMarkdownJson: any | null;
   ordinanceJson: any;
   founderJson: any;
+  founderCount: number;
 }) {
   const [streetMarkdown, setStreetMarkdown] = useState<StreetMarkdown | null>(
     streetMarkdownJson ? streetMarkdownRepo.fromJson(streetMarkdownJson) : null
@@ -178,7 +179,9 @@ export default function Editor({
               color: Colors.Primary,
               icon: MapIcon,
             }}
-            href={`${routes.cities}/${ordinance.city.code}${routes.map}/${ordinance.id}`}
+            href={`${routes.cities}/${ordinance.city.code}${routes.map}/${
+              founderCount > 1 ? `founder/${founder.id}/` : ""
+            }${ordinance.id}`}
           >
             {texts.map}
           </LinkButton>
