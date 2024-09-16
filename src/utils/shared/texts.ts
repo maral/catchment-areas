@@ -26,6 +26,7 @@ export const texts = {
   deleteUserMessage: "Opravdu chcete smazat uživatele?",
   downloadJson: "Stáhnout JSON",
   downloadOrdinanceDocument: "Stáhnout dokument vyhlášky",
+  downloadSmd: "Stáhnout SMD",
   edit: "Upravit",
   editedAt: "Datum úpravy",
   editHistory: "Historie úprav",

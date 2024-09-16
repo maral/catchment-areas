@@ -20,6 +20,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { remult } from "remult";
 import { deserializeOrdinances } from "../fetchFunctions/loadOrdinances";
+import { DocumentTextIcon } from "@heroicons/react/24/outline";
 
 type Row = {
   founder: Founder | null;
@@ -106,18 +107,32 @@ export default function OrdinanceFoundersTable({
           )}
 
           {item.founder === null && (
-            <Link
-              className="inline-block"
-              href={`/api/ordinances/download/by-id/${item.ordinance.id}`}
-              prefetch={false}
-              target="_blank"
-            >
-              <IconButton
-                icon={ArrowDownTrayIcon}
-                tooltip={texts.downloadOrdinanceDocument}
-                size="sm"
-              />
-            </Link>
+            <>
+              <Link
+                className="inline-block"
+                href={`/api/ordinances/download/by-id/${item.ordinance.id}`}
+                prefetch={false}
+                target="_blank"
+              >
+                <IconButton
+                  icon={ArrowDownTrayIcon}
+                  tooltip={texts.downloadOrdinanceDocument}
+                  size="sm"
+                />
+              </Link>
+              <Link
+                className="inline-block"
+                href={`/api/download/smd-text/${item.ordinance.id}`}
+                prefetch={false}
+                target="_blank"
+              >
+                <IconButton
+                  icon={DocumentTextIcon}
+                  tooltip={texts.downloadSmd}
+                  size="sm"
+                />
+              </Link>
+            </>
           )}
 
           <Link
