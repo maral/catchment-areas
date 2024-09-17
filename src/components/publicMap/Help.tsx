@@ -204,13 +204,6 @@ export default function Help({ isOpen, closeModal }: HelpProps) {
                     target="_blank"
                   >
                     Nahlásit chybu
-                  </a>{" "}
-                  nebo nám napište e-mail na{" "}
-                  <a
-                    href="mailto:mapaspadovosti@npi.cz"
-                    className="text-sky-600"
-                  >
-                    mapaspadovosti@npi.cz
                   </a>
                   . Budeme se snažit chybu co nejdříve opravit. Děkujeme za vaši
                   pomoc!
@@ -226,7 +219,7 @@ export default function Help({ isOpen, closeModal }: HelpProps) {
                     adresních bodů, které jsou vykresleny na mapovém podkladu.
                     Soubor adres je po kontrole zveřejněn a pro snazší orientaci
                     došlo ke sjednocení spádové oblasti jedné konkrétní školy do
-                    barevně vyznačeného polygonu.
+                    barevně vyznačené oblasti (polygonu).
                   </em>
                 </P>
 
