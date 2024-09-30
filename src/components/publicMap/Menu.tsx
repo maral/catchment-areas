@@ -10,15 +10,29 @@ import {
 } from "@heroicons/react/24/outline";
 import { Icon } from "@tremor/react";
 import "leaflet/dist/leaflet.css";
-import { Fragment, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { texts } from "../../utils/shared/texts";
 import Help from "./Help";
+import Intro from "./Intro";
 
 export function Menu() {
   const [isHelpOpen, setIsHelpOpen] = useState(false);
+  const [isIntroOpen, setIsIntroOpen] = useState(false);
 
   const showHelp = () => setIsHelpOpen(true);
   const hideHelp = () => setIsHelpOpen(false);
+
+  const hideIntro = () => {
+    localStorage.setItem("hasVisited", "true");
+    setIsIntroOpen(false);
+  };
+
+  useEffect(() => {
+    const hasVisited = localStorage.getItem("hasVisited");
+    if (!hasVisited) {
+      setIsIntroOpen(true);
+    }
+  }, []);
 
   return (
     <>
@@ -66,6 +80,7 @@ block px-3 py-2 transition-colors shadow text-slate-400 hover:text-slate-500 con
         </Transition>
       </HeadlessMenu>
       <Help isOpen={isHelpOpen} closeModal={hideHelp} />
+      <Intro isOpen={isIntroOpen} closeModal={hideIntro} />
     </>
   );
 }

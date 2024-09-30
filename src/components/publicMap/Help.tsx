@@ -1,9 +1,10 @@
 import { Dialog, Transition } from "@headlessui/react";
-import { QuestionMarkCircleIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { XMarkIcon } from "@heroicons/react/24/outline";
 import { Icon } from "@tremor/react";
 import { Fragment } from "react";
 import PublicButton from "../buttons/PublicButton";
 import Image from "next/image";
+import { H3, P, Ul } from "./Typography";
 
 type HelpProps = {
   closeModal: () => void;
@@ -56,27 +57,26 @@ export default function Help({ isOpen, closeModal }: HelpProps) {
                 </Dialog.Title>
 
                 <H3>Pro koho je mapa spádových oblastí škol určena?</H3>
-                <P>
-                  <Ul>
-                    <li>
-                      <strong>Rodičům</strong> - pro zjištění spádové školy
-                      jejich dětí.
-                    </li>
-                    <li>
-                      <strong>Ředitelům</strong> - pro snadnou komunikaci o
-                      spádových školách pomocí vizualizace.
-                    </li>
-                    <li>
-                      <strong>Zřizovatelům</strong> - pro kontrolu a správu
-                      modelu spádovosti.
-                    </li>
-                    <li>
-                      <strong>Expertům na vzdělávání</strong> - pro nastavení
-                      vhodné vzdělávací politiky, jako je přespádování nebo
-                      stavba nových škol.
-                    </li>
-                  </Ul>
-                </P>
+
+                <Ul>
+                  <li>
+                    <strong>Rodičům</strong> - pro zjištění spádové školy jejich
+                    dětí.
+                  </li>
+                  <li>
+                    <strong>Ředitelům</strong> - pro snadnou komunikaci o
+                    spádových školách pomocí vizualizace.
+                  </li>
+                  <li>
+                    <strong>Zřizovatelům</strong> - pro kontrolu a správu modelu
+                    spádovosti.
+                  </li>
+                  <li>
+                    <strong>Expertům na vzdělávání</strong> - pro nastavení
+                    vhodné vzdělávací politiky, jako je přespádování nebo stavba
+                    nových škol.
+                  </li>
+                </Ul>
 
                 <H3>Jak mapa funguje?</H3>
                 <P>
@@ -237,22 +237,4 @@ export default function Help({ isOpen, closeModal }: HelpProps) {
       </Dialog>
     </Transition>
   );
-}
-
-function H3({ children }: { children: React.ReactNode }) {
-  return <h3 className="mb-2 mt-8 text-xl font-semibold">{children}</h3>;
-}
-
-function H4({ children }: { children: React.ReactNode }) {
-  return (
-    <h4 className="mb-2 text-slate-500 mt-8 text-lg font-medium">{children}</h4>
-  );
-}
-
-function P({ children }: { children: React.ReactNode }) {
-  return <p className="mb-4">{children}</p>;
-}
-
-function Ul({ children }: { children: React.ReactNode }) {
-  return <ul className="list-disc pl-6 mb-4">{children}</ul>;
 }
