@@ -8,7 +8,7 @@ import { dbNamesOf, remult } from "remult";
 import { KnexDataProvider } from "remult/remult-knex";
 
 const XLSX_EXPORT_URL =
-  "https://sbirkapp.gov.cz/vyhledavani/vysledek?format_exportu=xlsx&hlavni_typ=pp&nazev=&number=&oblast=skolske-obvody-zakladni-skoly&ovm=&platnost=&typ=ozv&ucinnost_do=&ucinnost_od=&vydano_do=&vydano_od=&zverejneno_do=&zverejneno_od=";
+  "https://sbirkapp.gov.cz/vyhledavani/vysledek?format_exportu=xlsx&hlavni_typ=pp&nazev=&number=&oblast=skolske-obvody-zakladni-skoly&ovm=&platnost=&typ=ozv&ucinnost_do=&ucinnost_od=2023-01-01&vydano_do=&vydano_od=&zverejneno_do=&zverejneno_od=";
 
 export interface ParsedOrdinanceMetadata {
   id: string;
@@ -130,7 +130,7 @@ function convertDate(dateString?: string) {
 }
 
 export async function syncOrdinancesToDb() {
-  const url = await findLink(XLSX_EXPORT_URL, 10, 5000);
+  const url = await findLink(XLSX_EXPORT_URL, 15, 5000);
 
   if (!url) {
     console.log("No link found!");
@@ -165,7 +165,7 @@ export async function syncOrdinancesToDb() {
           id: o.id,
           name: o.name.substring(0, 100),
           number: o.number,
-          city: o.city,
+          city: extractCityName(o.city),
           region: o.region,
           publishedAt: convertDate(o.publishedAt),
           validFrom: convertDate(o.validFrom),
@@ -178,24 +178,105 @@ export async function syncOrdinancesToDb() {
     }
   });
 
-  // const chunks = chunk(newOrdinances, 200);
-  // for (const chunk of chunks) {
-  //   await knex(ordinanceMetadata.toString()).insert(
-  //     chunk.map((o) => ({
-  //       [ordinanceMetadata.id]: o.id,
-  //       [ordinanceMetadata.name]: o.name,
-  //       [ordinanceMetadata.number]: o.number,
-  //       [ordinanceMetadata.city]: o.city,
-  //       [ordinanceMetadata.region]: o.region,
-  //       [ordinanceMetadata.publishedAt]: o.publishedAt,
-  //       [ordinanceMetadata.validFrom]: o.validFrom,
-  //       [ordinanceMetadata.validTo]: o.validTo,
-  //       [ordinanceMetadata.approvedAt]: o.approvedAt,
-  //       [ordinanceMetadata.version]: o.version,
-  //       [ordinanceMetadata.isValid]: o.isValid,
-  //     }))
-  //   );
-  // }
+  // await extractAllCities();
+
+  await syncNewOrdinances();
 
   await KnexDataProvider.getDb().destroy();
 }
+
+const extractAllCities = async () => {
+  const knex = KnexDataProvider.getDb();
+  const allRows = await knex.select("id", "city").from("ordinance_metadata");
+  for (const { id, city } of allRows) {
+    const cityName = extractCityName(city);
+    if (cityName !== city) {
+      await knex("ordinance_metadata").where({ id }).update({ city: cityName });
+    }
+  }
+};
+
+export const syncNewOrdinances = async () => {
+  const knex = KnexDataProvider.getDb();
+
+  // first set all ordinances as not new
+  await knex("ordinance_metadata").update({ is_new: 0, city_code: null });
+
+  // select all cities and their active ordinances
+  const cities = Object.fromEntries(
+    (
+      await knex
+        .select("c.code", "c.name", "o.number")
+        .from("city as c")
+        .join("ordinance as o", "c.code", "o.city_code")
+        .where("o.is_active", 1)
+    ).map((row: any) => [row.name.toLocaleLowerCase("cs"), row])
+  );
+
+  // iterate over all ordinances and check if there is a new one for the city
+  const allRows = await knex
+    .select("id", "number", "city")
+    .from("ordinance_metadata");
+
+  for (const { id, number, city } of allRows) {
+    if (!cities[city]) {
+      continue;
+    }
+
+    const { code, number: existingNumber } = cities[city];
+
+    if (isFirstNumberHigher(number, existingNumber)) {
+      await knex("ordinance_metadata")
+        .where({ id })
+        .update({ is_new: 1, city_code: code });
+    }
+  }
+};
+
+const isOrdinanceNumber = (value: string) => {
+  return /^\d+\/\d\d\d\d$/.test(value);
+};
+
+// takes two ordinance numbers (in the format "sequenceNumber/year") and returns true if the first one is higher
+const isFirstNumberHigher = (a: string, b: string) => {
+  if (!isOrdinanceNumber(a) || !isOrdinanceNumber(b)) {
+    return false;
+  }
+  const [aSequenceNumber, aYear] = a.split("/");
+  const [bSequenceNumber, bYear] = b.split("/");
+
+  if (aYear !== bYear) {
+    return parseInt(aYear) > parseInt(bYear);
+  }
+
+  return parseInt(aSequenceNumber) > parseInt(bSequenceNumber);
+};
+
+const cityPatterns = [
+  /^statutární město +(.*)$/,
+  /^obec +(.*)$/,
+  /^město +(.*)$/,
+  /^městys +(.*)$/,
+];
+
+const extractCityName = (cityName: string): string => {
+  const lowerCaseCityName = cityName.toLocaleLowerCase("cs");
+  const correctPattern = cityPatterns.filter((pattern) =>
+    pattern.test(lowerCaseCityName)
+  );
+  if (correctPattern.length > 0) {
+    const result = correctPattern[0].exec(lowerCaseCityName);
+    if (result && typeof result[1] !== "undefined") {
+      return polishCityName(result[1]);
+    }
+  }
+
+  return polishCityName(lowerCaseCityName);
+};
+
+const polishCityName = (cityName: string): string => {
+  return cityName
+    .replace(" - ", "-")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+};

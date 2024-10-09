@@ -55,6 +55,16 @@ export const texts = {
   mapForPublic: "Mapa pro veřejnost",
   microsoftAccountRequired:
     "Uživatel musí mít pod tímto e-mailem účet u Microsoftu (Office 365 apod.)",
+  new: "nová",
+  newOrdinances: "Nové vyhlášky",
+  newOrdinancesAvailable: (count: number) =>
+    `${count} ${
+      count === 1
+        ? "nová vyhláška"
+        : count >= 2 && count <= 4
+        ? "nové vyhlášky"
+        : "nových vyhlášek"
+    } ze Sbírky právních předpisů k dispozici. Co nejdříve je prosím přidejte.`,
   name: "Název",
   no: "Ne",
   noData: "Nebyla nalezena žádná data k zobrazení",

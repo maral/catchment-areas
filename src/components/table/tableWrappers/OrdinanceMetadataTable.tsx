@@ -10,14 +10,14 @@ import { routes } from "@/utils/shared/constants";
 import { formatStringOrDate } from "@/utils/shared/date";
 import { getOrdinanceDocumentDownloadLink } from "@/utils/shared/ordinanceMetadata";
 import { replacePlaceholders, texts } from "@/utils/shared/texts";
-import { Button } from "@tremor/react";
+import { Badge, Button } from "@tremor/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { remult } from "remult";
 import { loadOrdinanceMetadata } from "../fetchFunctions/loadOrdinanceMetadata";
+import { Founder } from "../../../entities/Founder";
 
-const ordinanceMetadataRepo = remult.repo(OrdinanceMetadata);
 const citiesRepo = remult.repo(City);
 
 export default function OrdinanceMetadataTable({
@@ -53,9 +53,18 @@ export default function OrdinanceMetadataTable({
         OrdinanceController.determineActiveOrdinanceByCityCode(
           Number(cityCode)
         );
-        router.push(
-          `${routes.cities}/${cityCode}${routes.editOrdinance}/${result.ordinanceId}`
-        );
+        const city = await remult
+          .repo(City)
+          .findFirst({ code: Number(cityCode) });
+        const founders = await remult.repo(Founder).find({ where: { city } });
+
+        if (founders.length > 1) {
+          router.push(`${routes.cities}${cityCode}${routes.detail}`);
+        } else {
+          router.push(
+            `${routes.cities}/${cityCode}${routes.editOrdinance}/${founders[0].id}/${result.ordinanceId}`
+          );
+        }
       }
     } else {
       console.error("Error adding ordinance from collection");
@@ -68,6 +77,13 @@ export default function OrdinanceMetadataTable({
       title: texts.ordinanceName,
       cellFactory: (item) => (
         <span className="whitespace-normal">
+          {item.isNewOrdinance && (
+            <>
+              <Badge color={"yellow"}>
+                <strong className="uppercase">{texts.new}</strong>
+              </Badge>{" "}
+            </>
+          )}
           <Link
             prefetch={false}
             href={getOrdinanceDocumentDownloadLink(item.id)}
@@ -85,10 +101,6 @@ export default function OrdinanceMetadataTable({
     {
       title: texts.validFrom,
       cellFactory: (item) => formatStringOrDate(item.validFrom),
-    },
-    {
-      title: texts.validTo,
-      cellFactory: (item) => formatStringOrDate(item.validTo),
     },
     {
       title: texts.active,

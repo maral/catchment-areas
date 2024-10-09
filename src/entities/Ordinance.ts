@@ -212,6 +212,19 @@ ADD UNIQUE INDEX `unique_city_code` (`ordinance_id` ASC, `city_code` ASC) VISIBL
 ALTER TABLE `mapa_spadovosti_npi`.`map_data` 
 ADD UNIQUE INDEX `unique_founder_id` (`founder_id` ASC, `ordinance_id` ASC) VISIBLE;
 
+ALTER TABLE `mapa_spadovosti_npi`.`ordinance_metadata` 
+ADD COLUMN `is_new` TINYINT(1) NOT NULL DEFAULT 0 AFTER `is_valid`;
 
+ALTER TABLE `mapa_spadovosti_npi`.`ordinance_metadata` 
+ADD COLUMN `city_code` INT(10) NULL DEFAULT NULL AFTER `is_new`;
+
+ALTER TABLE `mapa_spadovosti_npi`.`map_data` 
+DROP FOREIGN KEY `map_data_ordinance_id_fk`;
+ALTER TABLE `mapa_spadovosti_npi`.`map_data` 
+ADD CONSTRAINT `map_data_ordinance_id_fk`
+  FOREIGN KEY (`ordinance_id`)
+  REFERENCES `mapa_spadovosti_npi`.`ordinance` (`id`)
+  ON DELETE CASCADE
+  ON UPDATE NO ACTION;
 
 */

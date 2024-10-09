@@ -32,7 +32,7 @@ export default function CatchmentTable<T>({
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [tableState, setTableState] = useState<TableState>({
     page: 1,
-    pageSize: 50,
+    pageSize: 250,
   });
 
   const fetchData = useCallback(async () => {

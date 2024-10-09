@@ -10,25 +10,33 @@ export async function loadOrdinanceMetadata(
   limit: number
 ): Promise<OrdinanceMetadata[]> {
   return await ordinancesMetadataRepo.find({
-    where: { city: city.name },
+    where: { city: city.name.toLocaleLowerCase("cs") },
     limit,
     page,
     orderBy: { validFrom: "asc" },
   });
 }
 
-export function serializeOrdinancesMetadata(
+export async function loadNewOrdinanceMetadata(): Promise<OrdinanceMetadata[]> {
+  return await ordinancesMetadataRepo.find({
+    where: { isNewOrdinance: true },
+  });
+}
+
+export function serializeOrdinanceMetadata(
   ordinancesMetadata: OrdinanceMetadata[]
 ): any[] {
   return ordinancesMetadataRepo.toJson(ordinancesMetadata);
 }
 
-export function deserializeOrdinancesMetadata(
+export function deserializeOrdinanceMetadata(
   ordinancesMetadata: any[]
 ): OrdinanceMetadata[] {
   return ordinancesMetadataRepo.fromJson(ordinancesMetadata);
 }
 
 export async function getOrdinanceMetadataCount(city: City): Promise<number> {
-  return await ordinancesMetadataRepo.count({ city: city.name });
+  return await ordinancesMetadataRepo.count({
+    city: city.name.toLocaleLowerCase("cs"),
+  });
 }

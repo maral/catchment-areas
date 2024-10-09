@@ -11,14 +11,24 @@ import type { ColumnDefinition } from "@/types/tableTypes";
 import { routes } from "@/utils/shared/constants";
 import { texts } from "@/utils/shared/texts";
 import { City } from "@/entities/City";
+import { deserializeOrdinanceMetadata } from "../../fetchFunctions/loadOrdinanceMetadata";
+import LinkButton from "../../../buttons/LinkButton";
+import { Badge } from "@tremor/react";
 
 export default function CitiesTable({
   initialData,
+  newOrdinanceMetadata,
   count,
 }: {
   initialData: any[];
+  newOrdinanceMetadata: any[];
   count?: number;
 }) {
+  const newOrdinancesCityCodes = new Set(
+    deserializeOrdinanceMetadata(newOrdinanceMetadata).map(
+      (row) => row.cityCode
+    )
+  );
   const columnDefinitions: ColumnDefinition<City>[] = [
     {
       title: texts.name,
@@ -42,7 +52,17 @@ export default function CitiesTable({
     },
     {
       title: texts.status,
-      cellFactory: (item) => <CityStatusChip cityStatus={item.status} />,
+      cellFactory: (item) => (
+        <>
+          <CityStatusChip cityStatus={item.status} />
+          {newOrdinancesCityCodes.has(item.code) && (
+            <>
+              {" "}
+              <Badge color={"yellow"}>{texts.newOrdinances}</Badge>
+            </>
+          )}
+        </>
+      ),
     },
     // {
     //   title: "",

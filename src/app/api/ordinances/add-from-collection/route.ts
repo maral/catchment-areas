@@ -6,6 +6,7 @@ import { downloadAndExtractText } from "@/utils/server/textExtraction";
 import { getOrdinanceDocumentDownloadLink } from "@/utils/shared/ordinanceMetadata";
 import { NextRequest, NextResponse } from "next/server";
 import { remult } from "remult";
+import { syncNewOrdinances } from "../../../../utils/server/ordinanceMetadataSync";
 
 export async function POST(request: NextRequest) {
   if (!(await isLoggedIn())) {
@@ -22,13 +23,17 @@ export async function POST(request: NextRequest) {
     return await remult.repo(OrdinanceMetadata).findId(ordinanceMetadataId);
   });
 
-  return NextResponse.json(
-    await insertOrdinanceAndGetResponse(
-      cityCode,
-      ordinanceMetadata.validFrom,
-      ordinanceMetadata.validTo,
-      ordinanceMetadata.number,
-      result
-    )
+  const response = await insertOrdinanceAndGetResponse(
+    cityCode,
+    ordinanceMetadata.validFrom,
+    ordinanceMetadata.validTo,
+    ordinanceMetadata.number,
+    result
   );
+
+  await api.withRemult(async () => {
+    await syncNewOrdinances();
+  });
+
+  return NextResponse.json(response);
 }

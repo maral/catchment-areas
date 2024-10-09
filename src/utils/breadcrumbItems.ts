@@ -8,6 +8,7 @@ import { remult } from "remult";
 import { modules, routes } from "./shared/constants";
 import { City } from "../entities/City";
 import { Founder } from "../entities/Founder";
+import { Ordinance } from "../entities/Ordinance";
 
 export type BreadcrumbItem = {
   href: string;
@@ -67,9 +68,12 @@ export const editOrdinanceBreadcrumb = async (
   const founder = await api.withRemult(() =>
     remult.repo(Founder).findId(founderId)
   );
+  const ordinance = await api.withRemult(() =>
+    remult.repo(Ordinance).findId(ordinanceId)
+  );
   return {
     href: `${routes.cities}/${cityCode}${routes.editOrdinance}/${founderId}/${ordinanceId}`,
-    title: `${texts.editOrdinance} - ${founder.shortName}`,
+    title: `${texts.editOrdinance} - ${founder.shortName} (${ordinance.number})`,
   };
 };
 

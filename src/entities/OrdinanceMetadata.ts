@@ -37,4 +37,10 @@ export class OrdinanceMetadata extends EntityBase {
 
   @Fields.boolean({ dbName: "is_valid" })
   isValid = true;
+
+  @Fields.boolean({ dbName: "is_new" })
+  isNewOrdinance = true;
+
+  @Fields.integer({ dbName: "city_code", allowNull: true })
+  cityCode: number | null = null;
 }

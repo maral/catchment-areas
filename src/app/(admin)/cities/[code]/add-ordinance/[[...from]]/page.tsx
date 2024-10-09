@@ -4,7 +4,7 @@ import UploadOrdinance from "@/components/founderDetail/UploadOrdinance";
 import {
   getOrdinanceMetadataCount,
   loadOrdinanceMetadata,
-  serializeOrdinancesMetadata,
+  serializeOrdinanceMetadata,
 } from "@/components/table/fetchFunctions/loadOrdinanceMetadata";
 import OrdinanceMetadataTable from "@/components/table/tableWrappers/OrdinanceMetadataTable";
 import { City } from "@/entities/City";
@@ -26,7 +26,7 @@ export default async function AddOrdinance({
       }
       return {
         cityName: city.name,
-        serializedOrdinanceMetadata: serializeOrdinancesMetadata(
+        serializedOrdinanceMetadata: serializeOrdinanceMetadata(
           await loadOrdinanceMetadata(city, 1, 50)
         ),
         count: await getOrdinanceMetadataCount(city),

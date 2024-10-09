@@ -8,7 +8,7 @@ import IconButton from "../buttons/IconButton";
 import Select from "../common/Select";
 import _ from "lodash";
 
-const pageSizes = [10, 25, 50, 100];
+const pageSizes = [10, 25, 50, 100, 250];
 
 export default function Pagination({
   tableState,
