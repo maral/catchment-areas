@@ -130,7 +130,7 @@ export const texts = {
   viewOnMap: "Zobrazit na mapě",
   yes: "Ano",
 
-  URL_reportBug: "https://zapojmevsechny.cz/mapa-spadovosti-kontakt",
+  URL_reportBug: "https://forms.gle/gRQGb77MvNnJfpA16",
 };
 
 export const replacePlaceholders = (
