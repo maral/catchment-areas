@@ -15,13 +15,10 @@ export async function GET(
     if (!city) {
       return null;
     }
-    const founder = await remult.repo(Founder).find({
-      where: { city },
-    });
 
     const ordinance = await remult
       .repo(Ordinance)
-      .findFirst({ founder, isActive: true });
+      .findFirst({ city, isActive: true });
     return ordinance?.id ?? null;
   });
 
