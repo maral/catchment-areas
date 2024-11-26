@@ -43,9 +43,11 @@ export const createPublicMap = (
 
   const cityMarkers: Record<string, Marker> = {};
 
-  cities.forEach((city) =>
-    createCityMarker(city, cityMarkers, citiesMap, bounds).addTo(map)
-  );
+  cities
+    .filter((city) => city.isPublished)
+    .forEach((city) =>
+      createCityMarker(city, cityMarkers, citiesMap, bounds).addTo(map)
+    );
 
   setupPopups(map);
 

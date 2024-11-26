@@ -129,7 +129,6 @@ export default function Editor({
         monacoInstance.editor.getModels()[0].setValue(preprocessedText);
       }
 
-      console.log("initial validation");
       validate(monacoInstance);
     }
   }, [monacoInstance, validate, preprocessedText]);
@@ -236,7 +235,6 @@ export default function Editor({
             value={streetMarkdown?.sourceText || ""}
             onChange={() => {
               validate(monacoInstance);
-              console.log("onchange");
               autoSave();
             }}
             options={{ automaticLayout: true, wordWrap: "on" }}
