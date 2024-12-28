@@ -1,7 +1,7 @@
 import { Allow, Entity, EntityBase, Fields } from "remult";
 
 @Entity("ordinance-metadata", {
-  allowApiRead: Allow.authenticated,
+  allowApiCrud: Allow.authenticated,
   dbName: "ordinance_metadata",
 })
 export class OrdinanceMetadata extends EntityBase {
@@ -40,6 +40,9 @@ export class OrdinanceMetadata extends EntityBase {
 
   @Fields.boolean({ dbName: "is_new" })
   isNewOrdinance = true;
+
+  @Fields.boolean({ dbName: "is_rejected" })
+  isRejected = true;
 
   @Fields.integer({ dbName: "city_code", allowNull: true })
   cityCode: number | null = null;

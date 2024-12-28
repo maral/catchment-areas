@@ -32,6 +32,7 @@ export default function OrdinanceMetadataTable({
   initialData: any[];
 }) {
   const [addingOrdinanceId, setAddingOrdinanceId] = useState("");
+  const [key, setKey] = useState(0);
 
   const router = useRouter();
 
@@ -74,6 +75,33 @@ export default function OrdinanceMetadataTable({
     }
   };
 
+  const updateOrdinanceMetadata = async (
+    ordinanceMetadataId: string,
+    toUpdate: Partial<OrdinanceMetadata>
+  ) => {
+    const ordinanceMetadata = await remult
+      .repo(OrdinanceMetadata)
+      .findId(ordinanceMetadataId);
+
+    await remult.repo(OrdinanceMetadata).update(ordinanceMetadataId, {
+      ...ordinanceMetadata,
+      ...toUpdate,
+    });
+
+    setKey((prev) => prev + 1);
+  };
+
+  const rejectOrdinance = async (ordinanceMetadataId: string) =>
+    updateOrdinanceMetadata(ordinanceMetadataId, {
+      isRejected: true,
+      isNewOrdinance: false,
+    });
+
+  const unrejectOrdinance = async (ordinanceMetadataId: string) =>
+    updateOrdinanceMetadata(ordinanceMetadataId, {
+      isRejected: false,
+    });
+
   const columnDefinitions: ColumnDefinition<OrdinanceMetadata>[] = [
     {
       title: texts.ordinanceName,
@@ -83,6 +111,13 @@ export default function OrdinanceMetadataTable({
             <>
               <Badge color={"yellow"}>
                 <strong className="uppercase">{texts.new}</strong>
+              </Badge>{" "}
+            </>
+          )}
+          {item.isRejected && (
+            <>
+              <Badge color={"red"}>
+                <strong className="uppercase">{texts.rejected}</strong>
               </Badge>{" "}
             </>
           )}
@@ -111,16 +146,41 @@ export default function OrdinanceMetadataTable({
     {
       title: "",
       cellFactory: (item) => (
-        <Button
-          color={Colors.Primary}
-          loading={addingOrdinanceId === item.id}
-          onClick={() => {
-            setAddingOrdinanceId(item.id);
-            addOrdinanceFromCollection(item.id);
-          }}
-        >
-          {texts.add}
-        </Button>
+        <>
+          {item.isRejected ? (
+            <Button
+              color={Colors.Secondary}
+              loading={addingOrdinanceId === item.id}
+              onClick={() => {
+                unrejectOrdinance(item.id);
+              }}
+            >
+              {texts.cancelRejection}
+            </Button>
+          ) : (
+            <>
+              <Button
+                color={Colors.Primary}
+                loading={addingOrdinanceId === item.id}
+                onClick={() => {
+                  setAddingOrdinanceId(item.id);
+                  addOrdinanceFromCollection(item.id);
+                }}
+              >
+                {texts.add}
+              </Button>{" "}
+              <Button
+                color={Colors.Error}
+                loading={addingOrdinanceId === item.id}
+                onClick={() => {
+                  rejectOrdinance(item.id);
+                }}
+              >
+                {texts.reject}
+              </Button>
+            </>
+          )}
+        </>
       ),
     },
   ];
@@ -132,6 +192,7 @@ export default function OrdinanceMetadataTable({
 
   return (
     <CatchmentTable
+      key={key}
       columnDefinitions={columnDefinitions}
       initialData={initialData}
       count={count}
