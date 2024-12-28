@@ -18,6 +18,7 @@ import pdf from "pdf-parse";
 import * as pdfjs from "pdfjs-dist/legacy/build/pdf";
 import { createWorker } from "tesseract.js";
 import WordExtractor from "word-extractor";
+import officeParser from "officeparser";
 
 async function extractImagesFromPdf(pdfPath: string) {
   pdfjs.GlobalWorkerOptions.workerSrc = "pdfjs-dist/legacy/build/pdf.worker.js";
@@ -108,11 +109,11 @@ function getEmptyResponse(): TextExtractionResult {
   };
 }
 
- async function uploadFile(file: File): Promise<string> {
+async function uploadFile(file: File): Promise<string> {
   const bytes = await file.arrayBuffer();
   const buffer = Buffer.from(bytes);
   const fileName = createUniqueFileName(file.name);
-  await writeFile(getFilePath(fileName), buffer);
+  await writeFile(getFilePath(fileName), new Uint8Array(buffer));
   return fileName;
 }
 
@@ -183,6 +184,12 @@ async function extractText(fileName: string): Promise<TextExtractionResult> {
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
     ) {
       text = await readDoc(path);
+    } else {
+      try {
+        text = await officeParser.parseOfficeAsync(path);
+      } catch (e) {
+        console.error(e);
+      }
     }
   }
 

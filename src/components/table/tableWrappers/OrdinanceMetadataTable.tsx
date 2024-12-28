@@ -65,6 +65,8 @@ export default function OrdinanceMetadataTable({
             `${routes.cities}/${cityCode}${routes.editOrdinance}/${founders[0].id}/${result.ordinanceId}`
           );
         }
+      } else {
+        setAddingOrdinanceId("");
       }
     } else {
       console.error("Error adding ordinance from collection");
