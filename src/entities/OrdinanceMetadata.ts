@@ -42,7 +42,7 @@ export class OrdinanceMetadata extends EntityBase {
   isNewOrdinance = true;
 
   @Fields.boolean({ dbName: "is_rejected" })
-  isRejected = true;
+  isRejected = false;
 
   @Fields.integer({ dbName: "city_code", allowNull: true })
   cityCode: number | null = null;

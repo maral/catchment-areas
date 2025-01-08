@@ -173,6 +173,7 @@ export async function syncOrdinancesToDb() {
           approvedAt: convertDate(o.approvedAt),
           version: o.version,
           isValid: o.isValid,
+          isRejected: false,
         }))
       );
     }
@@ -216,7 +217,8 @@ export const syncNewOrdinances = async () => {
   // iterate over all ordinances and check if there is a new one for the city
   const allRows = await knex
     .select("id", "number", "city")
-    .from("ordinance_metadata");
+    .from("ordinance_metadata")
+    .where("is_rejected", 0);
 
   for (const { id, number, city } of allRows) {
     if (!cities[city]) {
