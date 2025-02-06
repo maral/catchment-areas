@@ -55,13 +55,6 @@ const InnerMap = memo(
           md:top-0 md:right-0 md:left-auto md:bottom-auto md:rounded-bl-lg md:rounded-tl-none
           md:p-4 md:gap-2"
         >
-          <Image
-            src="/beta.png"
-            alt="Beta Icon"
-            className="absolute top-0 right-0"
-            width={60}
-            height={60}
-          />
           <Link
             href="/"
             className="block text-xl md:text-3xl font-title font-medium text-slate-700"
