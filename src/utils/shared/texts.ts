@@ -108,6 +108,7 @@ export const texts = {
       ? "školy"
       : "škol",
   selectDate: "Vyberte datum...",
+  setActive: "Nastavit jako Aktivní",
   setAsInProgress: 'Označit jako "Rozpracováno"',
   setAsPublished: 'Označit jako "Zveřejněno"',
   shortName: "Zkratka",

@@ -12,6 +12,7 @@ import { routes } from "@/utils/shared/constants";
 import { texts } from "@/utils/shared/texts";
 import {
   ArrowDownTrayIcon,
+  BoltIcon,
   MapIcon,
   PencilSquareIcon,
   TrashIcon,
@@ -20,7 +21,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { remult } from "remult";
 import { deserializeOrdinances } from "../fetchFunctions/loadOrdinances";
-import { DocumentTextIcon } from "@heroicons/react/24/outline";
+import { DocumentTextIcon, PlayIcon } from "@heroicons/react/24/outline";
 
 type Row = {
   founder: Founder | null;
@@ -151,19 +152,35 @@ export default function OrdinanceFoundersTable({
           </Link>
 
           {item.founder === null && (
-            <IconButton
-              icon={TrashIcon}
-              color={Colors.Error}
-              tooltip={texts.delete}
-              size="sm"
-              onClick={() => {
-                setConfirmFunction(() => async () => {
-                  await OrdinanceController.deleteOrdinance(item.ordinance.id);
-                  await fetchData();
-                });
-                setIsConfirmOpen(true);
-              }}
-            />
+            <>
+              {!item.ordinance.isActive && (
+                <IconButton
+                  icon={PlayIcon}
+                  color={Colors.Secondary}
+                  tooltip={texts.setActive}
+                  size="sm"
+                  onClick={async () => {
+                    await OrdinanceController.setActive(item.ordinance.id);
+                    window.location.reload();
+                  }}
+                />
+              )}
+              <IconButton
+                icon={TrashIcon}
+                color={Colors.Error}
+                tooltip={texts.delete}
+                size="sm"
+                onClick={() => {
+                  setConfirmFunction(() => async () => {
+                    await OrdinanceController.deleteOrdinance(
+                      item.ordinance.id
+                    );
+                    await fetchData();
+                  });
+                  setIsConfirmOpen(true);
+                }}
+              />
+            </>
           )}
         </span>
       ),

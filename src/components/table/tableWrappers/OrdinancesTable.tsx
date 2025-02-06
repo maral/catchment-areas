@@ -21,6 +21,7 @@ import { routes } from "@/utils/shared/constants";
 import { OrdinanceController } from "@/controllers/OrdinanceController";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import { useState } from "react";
+import { PlayIcon } from "@heroicons/react/24/outline";
 
 export default function OrdinancesTable({
   cityCode,
@@ -101,6 +102,18 @@ export default function OrdinancesTable({
               size="sm"
             />
           </Link>
+          {!item.isActive && (
+            <IconButton
+              icon={PlayIcon}
+              color={Colors.Secondary}
+              tooltip={texts.setActive}
+              size="sm"
+              onClick={async () => {
+                await OrdinanceController.setActive(item.id);
+                await fetchData();
+              }}
+            />
+          )}
           <IconButton
             icon={TrashIcon}
             color={Colors.Error}

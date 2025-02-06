@@ -13,17 +13,10 @@ export class StreetMarkdownController {
   ): Promise<StreetMarkdown | null> {
     const streetMarkdownRepo = remult.repo(StreetMarkdown);
     const userRepo = remult.repo(User);
-    const ordinanceRepo = remult.repo(Ordinance);
 
     if (!remult.user) {
       return null;
     }
-
-    await ordinanceRepo.update(ordinance.id, {
-      ...ordinance,
-      jsonData: null,
-      polygons: null,
-    });
 
     return await streetMarkdownRepo.insert({
       sourceText: text,

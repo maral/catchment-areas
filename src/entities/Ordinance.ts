@@ -35,12 +35,6 @@ export class Ordinance extends EntityBase {
 
   @Fields.string({ dbName: "original_text" })
   originalText: string = "";
-
-  @Fields.json({ dbName: "json_data", allowNull: true })
-  jsonData!: Municipality[] | null;
-
-  @Fields.json({ dbName: "polygons", allowNull: true })
-  polygons!: FeatureCollection[] | null;
 }
 
 /* Migration 29/7/2024

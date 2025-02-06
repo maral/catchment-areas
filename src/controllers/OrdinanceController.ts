@@ -11,7 +11,7 @@ export class OrdinanceController {
     // find all ordinances for the city
     const cityOrdinances = await ordinanceRepo.find({
       where: { city },
-      orderBy: { id: "desc" },
+      orderBy: { validFrom: "desc" },
     });
     if (cityOrdinances && cityOrdinances.length) {
       // deactivate all active ordinances
@@ -57,6 +57,23 @@ export class OrdinanceController {
       const cityCode = ordinance.city.code;
       await ordinanceRepo.delete(ordinance);
       await OrdinanceController.determineActiveOrdinanceByCityCode(cityCode);
+    }
+  }
+
+  @BackendMethod({ allowed: true })
+  static async setActive(ordinanceId: number) {
+    const ordinanceRepo = remult.repo(Ordinance);
+    const ordinance = await ordinanceRepo.findId(ordinanceId);
+    if (ordinance) {
+      const activeOrdinances = await ordinanceRepo.find({
+        where: { city: ordinance.city, isActive: true },
+      });
+
+      for (const activeOrdinance of activeOrdinances) {
+        await ordinanceRepo.save({ ...activeOrdinance, isActive: false });
+      }
+
+      await ordinanceRepo.save({ ...ordinance, isActive: true });
     }
   }
 }
