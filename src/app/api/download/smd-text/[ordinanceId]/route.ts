@@ -38,7 +38,7 @@ export async function GET(
     headers: {
       "content-type": "text/plain",
       "content-disposition": `attachment; filename="vyhlaska-${slugify(
-        ordinance.founder.shortName
+        ordinance.city.name
       ).toLowerCase()}.txt"`,
     },
   });
