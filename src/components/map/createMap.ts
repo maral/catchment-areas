@@ -52,7 +52,9 @@ export const createMap = (
   }
 
   map.addLayer(polygonLayerGroup);
-  map.addLayer(addressesLayerGroup);
+  if (schoolsLayerGroup.getLayers().length <= 20) {
+    map.addLayer(addressesLayerGroup);
+  }
   map.addLayer(schoolsLayerGroup);
   map.addLayer(unmappedLayerGroup);
   map.addLayer(unmappedRegistrationNumberLayerGroup);
