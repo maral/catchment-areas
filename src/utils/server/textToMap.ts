@@ -172,7 +172,7 @@ export async function getOrCreateDataForMapByCityCode(
       });
     }
 
-    OrdinanceControllerServer.setJsonData(
+    await OrdinanceControllerServer.setJsonData(
       ordinanceId,
       jsonData,
       cityCode,
@@ -191,7 +191,7 @@ export async function getOrCreateDataForMapByCityCode(
       await remult.repo(MapData).delete(mapData.id);
       return null;
     }
-    OrdinanceControllerServer.setPolygons(
+    await OrdinanceControllerServer.setPolygons(
       ordinanceId,
       polygons,
       cityCode,
