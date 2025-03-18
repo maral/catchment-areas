@@ -47,9 +47,6 @@ export class Founder extends EntityBase {
   })
   cityDistrict?: CityDistrict;
 
-  @Fields.integer()
-  status = 0;
-
   @Field(() => School, {
     lazy: true,
     serverExpression: (founder: Founder) =>
@@ -62,6 +59,9 @@ export class Founder extends EntityBase {
 
   @Fields.integer({ dbName: "school_count" })
   schoolCount = 0;
+
+  @Fields.integer({ dbName: "kindergarten_count" })
+  kindergartenCount = 0;
 
   static filterByRegion = Filter.createCustom<Founder, { regionCode: string }>(
     async ({ regionCode }) => {

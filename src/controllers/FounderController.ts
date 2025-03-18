@@ -2,25 +2,24 @@ import { KnexDataProvider } from "remult/remult-knex";
 import { City, CitySchools, School } from "../app/embed/Embed";
 import { CityStatus } from "../entities/City";
 
-type SimpleOrdinance = {
-  id: number;
-  founderId: number;
-  isActive: boolean;
-  fileName: string;
-  hasJsonData: boolean;
-  hasPolygons: boolean;
-};
-
 export class FounderController {
   static async recalculateFounderSchoolCounts(destroyKnex = true) {
     const knex = KnexDataProvider.getDb();
     await knex.raw(
       `UPDATE founder f
-        SET school_count = (
-          SELECT COUNT(*)
-          FROM school_founder sf
-          WHERE sf.founder_id = f.id
-        )`
+        SET
+          kindergarten_count = (
+            SELECT COUNT(*)
+            FROM school_founder sf
+            JOIN school s ON sf.school_izo = s.izo
+            WHERE sf.founder_id = f.id AND s.type = 0
+          ),
+          school_count = (
+            SELECT COUNT(*)
+            FROM school_founder sf
+            JOIN school s ON sf.school_izo = s.izo
+            WHERE sf.founder_id = f.id AND s.type = 1
+          )`
     );
     if (destroyKnex) {
       await knex.destroy();

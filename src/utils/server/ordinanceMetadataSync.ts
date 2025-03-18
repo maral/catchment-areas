@@ -1,14 +1,12 @@
 import { getAdminRemultAPI } from "@/app/api/[...remult]/config";
 import { OrdinanceMetadata } from "@/entities/OrdinanceMetadata";
+import { SchoolType } from "@/entities/School";
 import { load } from "cheerio";
 import { Cell, Workbook } from "exceljs";
 import chunk from "lodash/chunk";
 import fetch from "node-fetch";
 import { dbNamesOf, remult } from "remult";
 import { KnexDataProvider } from "remult/remult-knex";
-
-const XLSX_EXPORT_URL =
-  "https://sbirkapp.gov.cz/vyhledavani/vysledek?format_exportu=xlsx&hlavni_typ=pp&nazev=&number=&oblast=skolske-obvody-zakladni-skoly&ovm=&platnost=&typ=ozv&ucinnost_do=&ucinnost_od=2023-01-01&vydano_do=&vydano_od=&zverejneno_do=&zverejneno_od=";
 
 export interface ParsedOrdinanceMetadata {
   id: string;
@@ -130,6 +128,18 @@ function convertDate(dateString?: string) {
 }
 
 export async function syncOrdinancesToDb() {
+  await syncOrdinancesToDbBySchoolType(SchoolType.Kindergarten);
+  await syncOrdinancesToDbBySchoolType(SchoolType.Elementary);
+
+  await KnexDataProvider.getDb().destroy();
+}
+
+export async function syncOrdinancesToDbBySchoolType(schoolType: SchoolType) {
+  const currentYear = new Date().getFullYear();
+  const XLSX_EXPORT_URL = `https://sbirkapp.gov.cz/vyhledavani/vysledek?format_exportu=xlsx&hlavni_typ=pp&nazev=&number=&oblast=skolske-obvody-${
+    schoolType === SchoolType.Kindergarten ? "materske" : "zakladni"
+  }-skoly&ovm=&platnost=&typ=ozv&ucinnost_do=&ucinnost_od=${currentYear}-01-01&vydano_do=&vydano_od=&zverejneno_do=&zverejneno_od=`;
+
   const url = await findLink(XLSX_EXPORT_URL, 15, 5000);
 
   if (!url) {
@@ -163,6 +173,7 @@ export async function syncOrdinancesToDb() {
       await ordinanceMetadataRepo.insert(
         chunk.map((o) => ({
           id: o.id,
+          schoolType,
           name: o.name.substring(0, 100),
           number: o.number,
           city: extractCityName(o.city),
@@ -181,9 +192,7 @@ export async function syncOrdinancesToDb() {
 
   // await extractAllCities();
 
-  await syncNewOrdinances();
-
-  await KnexDataProvider.getDb().destroy();
+  await syncNewOrdinances(schoolType);
 }
 
 const extractAllCities = async () => {
@@ -197,11 +206,13 @@ const extractAllCities = async () => {
   }
 };
 
-export const syncNewOrdinances = async () => {
+export const syncNewOrdinances = async (schoolType: SchoolType) => {
   const knex = KnexDataProvider.getDb();
 
   // first set all ordinances as not new
-  await knex("ordinance_metadata").update({ is_new: 0, city_code: null });
+  await knex("ordinance_metadata")
+    .update({ is_new: 0, city_code: null })
+    .where({ school_type: schoolType });
 
   // select all cities and their active ordinances
   const cities = Object.fromEntries(
@@ -211,6 +222,7 @@ export const syncNewOrdinances = async () => {
         .from("city as c")
         .join("ordinance as o", "c.code", "o.city_code")
         .where("o.is_active", 1)
+        .where("o.school_type", schoolType)
     ).map((row: any) => [row.name.toLocaleLowerCase("cs"), row])
   );
 
@@ -218,6 +230,7 @@ export const syncNewOrdinances = async () => {
   const allRows = await knex
     .select("id", "number", "city")
     .from("ordinance_metadata")
+    .where("school_type", schoolType)
     .where("is_rejected", 0);
 
   for (const { id, number, city } of allRows) {

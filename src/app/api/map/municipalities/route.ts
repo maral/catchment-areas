@@ -1,3 +1,4 @@
+import { SchoolType } from "@/entities/School";
 import { getOrCreateDataForMapByCityCodes } from "@/utils/server/textToMap";
 import { texts } from "@/utils/shared/texts";
 import { NextRequest, NextResponse } from "next/server";
@@ -10,7 +11,7 @@ interface RequestBody {
 export async function POST(request: NextRequest) {
   const { cityCodes }: RequestBody = await request.json();
   const dataForMapByCityCodes = await api.withRemult(async () =>
-    getOrCreateDataForMapByCityCodes(cityCodes)
+    getOrCreateDataForMapByCityCodes(cityCodes, SchoolType.Elementary)
   );
 
   if (dataForMapByCityCodes === null) {

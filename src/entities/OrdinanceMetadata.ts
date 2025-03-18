@@ -1,4 +1,5 @@
 import { Allow, Entity, EntityBase, Fields } from "remult";
+import { SchoolType } from "./School";
 
 @Entity("ordinance-metadata", {
   allowApiCrud: Allow.authenticated,
@@ -49,10 +50,4 @@ export class OrdinanceMetadata extends EntityBase {
 
   @Fields.boolean({ dbName: "is_rejected" })
   isRejected = false;
-}
-
-// TODO: import from text-to-map once new version is released
-enum SchoolType {
-  Kindergarten = 0,
-  Elementary = 1,
 }

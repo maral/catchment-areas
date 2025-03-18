@@ -17,3 +17,7 @@ ADD COLUMN `school_type` TINYINT(1) NOT NULL DEFAULT 1 AFTER `city_code`;
 
 ALTER TABLE `school`
 CHANGE COLUMN `type` `type` TINYINT(1) NOT NULL DEFAULT 1 ;
+
+ALTER TABLE `founder`
+DROP COLUMN `status`,
+ADD COLUMN `kindergarten_count` INT(11) NOT NULL DEFAULT 0 AFTER `school_count`;

@@ -4,6 +4,7 @@ import CatchmentTable from "@/components/table/CatchmentTable";
 import { OrdinanceController } from "@/controllers/OrdinanceController";
 import { City } from "@/entities/City";
 import { OrdinanceMetadata } from "@/entities/OrdinanceMetadata";
+import { SchoolType } from "@/entities/School";
 import { Colors } from "@/styles/Themes";
 import type { ColumnDefinition } from "@/types/tableTypes";
 import { routes } from "@/utils/shared/constants";
@@ -15,8 +16,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { remult } from "remult";
-import { loadOrdinanceMetadata } from "../fetchFunctions/loadOrdinanceMetadata";
 import { Founder } from "../../../entities/Founder";
+import { loadOrdinanceMetadata } from "../fetchFunctions/loadOrdinanceMetadata";
 
 const citiesRepo = remult.repo(City);
 
@@ -52,7 +53,8 @@ export default function OrdinanceMetadataTable({
       const result = await response.json();
       if (result.success) {
         OrdinanceController.determineActiveOrdinanceByCityCode(
-          Number(cityCode)
+          Number(cityCode),
+          SchoolType.Elementary
         );
         const city = await remult
           .repo(City)

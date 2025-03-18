@@ -22,8 +22,7 @@ export class School {
   type = SchoolType.Elementary;
 }
 
-// TODO: import from text-to-map once new version is released
-enum SchoolType {
+export enum SchoolType {
   Kindergarten = 0,
   Elementary = 1,
 }

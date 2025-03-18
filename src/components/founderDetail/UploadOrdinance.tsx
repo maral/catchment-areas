@@ -1,21 +1,22 @@
 "use client";
 
-import { texts } from "@/utils/shared/texts";
-import { Button, DatePicker, Subtitle, TextInput } from "@tremor/react";
-import { Formik, Form, Field, FieldProps } from "formik";
-import { cs } from "date-fns/locale";
-import * as Yup from "yup";
-import Header from "../common/Header";
-import { Colors } from "@/styles/Themes";
 import { OrdinanceController } from "@/controllers/OrdinanceController";
-import { useRouter } from "next/navigation";
+import { SchoolType } from "@/entities/School";
+import { Colors } from "@/styles/Themes";
 import { routes } from "@/utils/shared/constants";
+import { texts } from "@/utils/shared/texts";
+import { Button, DatePicker, TextInput } from "@tremor/react";
+import { cs } from "date-fns/locale";
+import { Field, FieldProps, Formik } from "formik";
+import { useRouter } from "next/navigation";
+import * as Yup from "yup";
 import {
   ErrorWrapper,
   InputSubtitle,
   StyledErrorMessage,
   StyledForm,
 } from "../common/Forms";
+import Header from "../common/Header";
 
 interface FormValues {
   validFrom: Date | undefined;
@@ -45,7 +46,8 @@ export default function UploadOrdinance({ cityCode }: { cityCode: string }) {
       const result = await res.json();
       if (result.success) {
         OrdinanceController.determineActiveOrdinanceByCityCode(
-          Number(cityCode)
+          Number(cityCode),
+          SchoolType.Elementary
         );
         router.push(`${routes.cities}/${cityCode}${routes.detail}`);
         return;

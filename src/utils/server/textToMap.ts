@@ -1,5 +1,9 @@
+import { OrdinanceControllerServer } from "@/controllers/OrdinanceControllerServer";
+import { StreetMarkdownControllerServer } from "@/controllers/StreetMarkdownControllerServer";
 import { Founder, FounderType } from "@/entities/Founder";
+import { MapData } from "@/entities/MapData";
 import { Ordinance } from "@/entities/Ordinance";
+import { School, SchoolType } from "@/entities/School";
 import { StreetMarkdown } from "@/entities/StreetMarkdown";
 import { DataForMap, DataForMapByCityCodes, SmdText } from "@/types/mapTypes";
 import { remult } from "remult";
@@ -11,13 +15,11 @@ import {
   parseOrdinanceToAddressPoints,
 } from "text-to-map";
 import { TextToMapError } from "../shared/types";
-import { MapData } from "@/entities/MapData";
-import { OrdinanceControllerServer } from "@/controllers/OrdinanceControllerServer";
-import { StreetMarkdownControllerServer } from "@/controllers/StreetMarkdownControllerServer";
 
 export async function validateStreetMarkdown(
   lines: string[],
-  founderId: number
+  founderId: number,
+  schoolType: SchoolType
 ): Promise<{ errors: TextToMapError[]; warnings: TextToMapError[] } | null> {
   const errorList: TextToMapError[] = [];
   const warningList: TextToMapError[] = [];
@@ -32,7 +34,10 @@ export async function validateStreetMarkdown(
     });
   };
 
-  const currentMunicipality = await getNewMunicipalityByFounderId(founderId);
+  const currentMunicipality = await getNewMunicipalityByFounderId(
+    founderId,
+    schoolType
+  );
 
   if (currentMunicipality.errors.length > 0) {
     return null;
@@ -44,6 +49,7 @@ export async function validateStreetMarkdown(
       currentMunicipality.errors.length === 0
         ? { currentMunicipality: currentMunicipality.municipality }
         : {},
+    schoolType,
     onError,
     onWarning,
     includeUnmappedAddressPoints: false,
@@ -52,11 +58,15 @@ export async function validateStreetMarkdown(
   return { errors: errorList, warnings: warningList };
 }
 
-export async function parseStreetMarkdown(
+async function parseStreetMarkdown(
   founderId: number,
+  schoolType: SchoolType,
   text: string
 ): Promise<Municipality[] | null> {
-  const currentMunicipality = await getNewMunicipalityByFounderId(founderId);
+  const currentMunicipality = await getNewMunicipalityByFounderId(
+    founderId,
+    schoolType
+  );
 
   if (currentMunicipality.errors.length > 0) {
     console.log(
@@ -70,12 +80,14 @@ export async function parseStreetMarkdown(
     initialState: {
       currentMunicipality: currentMunicipality.municipality,
     },
+    schoolType,
     includeUnmappedAddressPoints: true,
   });
 }
 
 export async function getOrCreateDataForMapByCityCodes(
-  cityCodes: number[]
+  cityCodes: number[],
+  schoolType: SchoolType
 ): Promise<DataForMapByCityCodes | null> {
   const ordinanceIds =
     await OrdinanceControllerServer.getActiveOrdinanceIdsByCityCodes(cityCodes);
@@ -83,7 +95,11 @@ export async function getOrCreateDataForMapByCityCodes(
   const municipalitiesByCityCodes: DataForMapByCityCodes = {};
 
   for (const { ordinanceId, cityCode } of ordinanceIds) {
-    const data = await getOrCreateDataForMapByCityCode(cityCode, ordinanceId);
+    const data = await getOrCreateDataForMapByCityCode(
+      cityCode,
+      ordinanceId,
+      schoolType
+    );
     if (data) {
       if (cityCode in municipalitiesByCityCodes) {
         municipalitiesByCityCodes[cityCode].municipalities.push(
@@ -102,6 +118,9 @@ export async function getOrCreateDataForMapByCityCodes(
 export async function getOrCreateDataForMapBySchoolIzo(
   schoolIzo: string
 ): Promise<DataForMap | null> {
+  const school = await remult.repo(School).findFirst({
+    izo: schoolIzo,
+  });
   const activeOrdinance =
     await OrdinanceControllerServer.getActiveOrdinanceBySchoolIzo(schoolIzo);
 
@@ -110,7 +129,11 @@ export async function getOrCreateDataForMapBySchoolIzo(
   }
   const { cityCode, ordinanceId } = activeOrdinance;
 
-  const data = await getOrCreateDataForMapByCityCode(cityCode, ordinanceId);
+  const data = await getOrCreateDataForMapByCityCode(
+    cityCode,
+    ordinanceId,
+    school.type
+  );
 
   if (data === null) {
     return null;
@@ -121,7 +144,8 @@ export async function getOrCreateDataForMapBySchoolIzo(
 
 export async function getOrCreateDataForMapByCityCode(
   cityCode: number,
-  ordinanceId: number
+  ordinanceId: number,
+  schoolType: SchoolType
 ): Promise<DataForMap | null> {
   let mapData = await remult.repo(MapData).findFirst({
     cityCode,
@@ -141,7 +165,7 @@ export async function getOrCreateDataForMapByCityCode(
       console.log(`No street markdowns found for city code = '${cityCode}'.`);
       return null;
     }
-    jsonData = await getAddressPointsBySmdTexts(smdTexts);
+    jsonData = await getAddressPointsBySmdTexts(smdTexts, schoolType);
     if (jsonData === null) {
       return null;
     }
@@ -185,7 +209,8 @@ export async function getOrCreateDataForMapByCityCode(
 
 export async function getOrCreateDataForMapByFounderId(
   founderId: number,
-  ordinanceId: number
+  ordinanceId: number,
+  schoolType: SchoolType
 ): Promise<DataForMap | null> {
   const mapData = await remult.repo(MapData).findFirst({
     founderId,
@@ -225,7 +250,7 @@ export async function getOrCreateDataForMapByFounderId(
   }
 
   if (jsonData === null) {
-    jsonData = await parseStreetMarkdown(founderId, text);
+    jsonData = await parseStreetMarkdown(founderId, schoolType, text);
     if (jsonData === null) {
       return null;
     }
@@ -338,13 +363,14 @@ export function getSmdText(smdTexts: SmdText[]) {
 }
 
 async function getAddressPointsBySmdTexts(
-  smdTexts: SmdText[]
+  smdTexts: SmdText[],
+  schoolType: SchoolType
 ): Promise<Municipality[] | null> {
   const text = getSmdText(smdTexts);
 
   const currentMunicipality =
     smdTexts.length === 1 && smdTexts[0].founderType === FounderType.City
-      ? await getNewMunicipalityByFounderId(smdTexts[0].founderId)
+      ? await getNewMunicipalityByFounderId(smdTexts[0].founderId, schoolType)
       : undefined;
 
   return await parseOrdinanceToAddressPoints({
@@ -354,6 +380,7 @@ async function getAddressPointsBySmdTexts(
           currentMunicipality: currentMunicipality.municipality,
         }
       : {},
+    schoolType,
     includeUnmappedAddressPoints: true,
   });
 }

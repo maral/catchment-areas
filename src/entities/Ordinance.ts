@@ -1,5 +1,6 @@
 import { Allow, Entity, EntityBase, Field, Fields } from "remult";
 import { City } from "./City";
+import { SchoolType } from "./School";
 
 @Entity("ordinances", {
   allowApiCrud: Allow.authenticated,
@@ -32,10 +33,4 @@ export class Ordinance extends EntityBase {
 
   @Fields.string({ dbName: "original_text" })
   originalText: string = "";
-}
-
-// TODO: import from text-to-map once new version is released
-enum SchoolType {
-  Kindergarten = 0,
-  Elementary = 1,
 }

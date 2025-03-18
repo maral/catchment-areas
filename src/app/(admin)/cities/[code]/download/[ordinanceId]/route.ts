@@ -1,5 +1,6 @@
 import { api } from "@/app/api/[...remult]/api";
 import { City } from "@/entities/City";
+import { SchoolType } from "@/entities/School";
 import { getOrCreateDataForMapByCityCode } from "@/utils/server/textToMap";
 import { NextRequest, NextResponse } from "next/server";
 import { remult } from "remult";
@@ -16,7 +17,8 @@ export async function GET(
 
     const municipalities = await getOrCreateDataForMapByCityCode(
       Number(code),
-      Number(ordinanceId)
+      Number(ordinanceId),
+      SchoolType.Elementary
     );
 
     return { city, municipalities };

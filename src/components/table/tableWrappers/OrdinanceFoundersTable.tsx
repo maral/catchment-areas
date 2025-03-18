@@ -12,7 +12,6 @@ import { routes } from "@/utils/shared/constants";
 import { texts } from "@/utils/shared/texts";
 import {
   ArrowDownTrayIcon,
-  BoltIcon,
   MapIcon,
   PencilSquareIcon,
   TrashIcon,

@@ -1,10 +1,11 @@
+import { api } from "@/app/api/[...remult]/api";
 import CatchmentMap from "@/components/map/CatchmentMap";
+import { SchoolType } from "@/entities/School";
 import {
   getOrCreateDataForMapByFounderId,
   getStreetMarkdownSourceText,
 } from "@/utils/server/textToMap";
 import { notFound } from "next/navigation";
-import { api } from "@/app/api/[...remult]/api";
 
 export default async function MapPage({
   params: { id, ordinanceId },
@@ -14,7 +15,8 @@ export default async function MapPage({
   const { data, smdText } = await api.withRemult(async () => {
     const data = await getOrCreateDataForMapByFounderId(
       Number(id),
-      Number(ordinanceId)
+      Number(ordinanceId),
+      SchoolType.Elementary
     );
 
     const smdText = await getStreetMarkdownSourceText(

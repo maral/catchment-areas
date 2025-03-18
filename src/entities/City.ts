@@ -1,4 +1,5 @@
 import { Region } from "@/entities/Region";
+import { SchoolType } from "@/entities/School";
 import { Entity, Field, Fields } from "remult";
 import { County } from "./County";
 import { Orp } from "./Orp";
@@ -50,4 +51,13 @@ export enum CityStatus {
   NoActiveOrdinance,
   InProgress,
   Published,
+}
+
+export function getStatusPropertyBySchoolType(schoolType: SchoolType): string {
+  switch (schoolType) {
+    case SchoolType.Elementary:
+      return "statusElementary";
+    case SchoolType.Kindergarten:
+      return "statusKindergarten";
+  }
 }

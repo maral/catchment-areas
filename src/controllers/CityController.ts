@@ -1,3 +1,4 @@
+import { SchoolType } from "@/entities/School";
 import { KnexDataProvider } from "remult/remult-knex";
 import { City, CitySchools, School } from "../app/embed/Embed";
 import { CityStatus } from "../entities/City";
@@ -18,13 +19,24 @@ export class CityController {
     const knex = KnexDataProvider.getDb();
     await knex.raw(
       `UPDATE city c
-        SET school_count = IFNULL((
-          SELECT COUNT(DISTINCT sf.school_izo)
-          FROM founder f
-          JOIN school_founder sf ON sf.founder_id = f.id
-          WHERE f.city_code = c.code
-          GROUP BY f.city_code
-        ), 0)`
+        SET
+          kindergarten_count = IFNULL((
+            SELECT COUNT(DISTINCT sf.school_izo)
+            FROM founder f
+            JOIN school_founder sf ON sf.founder_id = f.id
+            JOIN school s ON s.izo = sf.school_izo
+            WHERE f.city_code = c.code AND s.type = 0
+            GROUP BY f.city_code
+          ), 0),
+          school_count = IFNULL((
+            SELECT COUNT(DISTINCT sf.school_izo)
+            FROM founder f
+            JOIN school_founder sf ON sf.founder_id = f.id
+            JOIN school s ON s.izo = sf.school_izo
+            WHERE f.city_code = c.code AND s.type = 1
+            GROUP BY f.city_code
+          ), 0)
+        `
     );
     if (destroyKnex) {
       await knex.destroy();
@@ -32,14 +44,18 @@ export class CityController {
   }
 
   static async loadActiveOrdinancesByCityCodes(
-    cityCodes: number[]
+    cityCodes: number[],
+    schoolType: SchoolType
   ): Promise<Record<number, SimpleOrdinance>> {
     const knex = KnexDataProvider.getDb();
     const ordinances = await knex.raw(
       `SELECT o.id, o.city_code, is_active, file_name, m.json_data IS NOT NULL AS has_json_data, m.polygons IS NOT NULL as has_polygons
       FROM ordinance o
       LEFT JOIN map_data m ON o.id = m.ordinance_id AND o.city_code = m.city_code
-      WHERE o.city_code IN (${cityCodes.join(", ")}) AND o.is_active = 1`
+      WHERE o.city_code IN (${cityCodes.join(
+        ", "
+      )}) AND o.is_active = 1 AND o.school_type = ?`,
+      [schoolType]
     );
     return Object.fromEntries(
       ordinances[0].map((o: any) => [
@@ -69,6 +85,7 @@ export class CityController {
     )[0]?.[0]?.id;
   }
 
+  // TODO: add support for kindergartens
   static async loadPublishedCities(): Promise<
     (City & { regionName: string; schoolCount: number })[]
   > {
@@ -89,6 +106,7 @@ export class CityController {
     }));
   }
 
+  // TODO: add support for kindergartens
   static async loadPublishedSchools(): Promise<CitySchools[]> {
     const knex = KnexDataProvider.getDb();
     const schools = await knex.raw(

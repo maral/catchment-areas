@@ -1,4 +1,5 @@
 import CatchmentMap from "@/components/map/CatchmentMap";
+import { SchoolType } from "@/entities/School";
 import { getOrCreateDataForMapByCityCode } from "@/utils/server/textToMap";
 import { notFound } from "next/navigation";
 import { api } from "../../../../../api/[...remult]/api";
@@ -11,7 +12,11 @@ export default async function MapPage({
   const cityCode = Number(code);
 
   const data = await api.withRemult(async () =>
-    getOrCreateDataForMapByCityCode(cityCode, Number(ordinanceId))
+    getOrCreateDataForMapByCityCode(
+      cityCode,
+      Number(ordinanceId),
+      SchoolType.Elementary
+    )
   );
 
   if (data === null) {
