@@ -47,14 +47,6 @@ export default function Navbar({ className }: { className?: string }) {
             />
 
             <MenuItem
-              href={routes.counties}
-              icon={BuildingOfficeIcon}
-              text={texts.counties}
-            />
-
-            <MenuItem href={routes.orps} icon={MapPinIcon} text={texts.orp} />
-
-            <MenuItem
               href={routes.users}
               icon={UserIcon}
               text={texts.users}

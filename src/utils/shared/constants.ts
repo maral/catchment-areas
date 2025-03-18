@@ -9,8 +9,6 @@ const constants = {
 export const routes = {
   cities: "/cities",
   regions: "/regions",
-  counties: "/counties",
-  orps: "/orps",
   users: "/users",
   detail: "/detail",
   addOrdinance: "/add-ordinance",
@@ -23,8 +21,6 @@ export const routes = {
 
 export const modules = {
   regions: "regions",
-  counties: "counties",
-  orps: "orps",
   users: "users",
 };
 

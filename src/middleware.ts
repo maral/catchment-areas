@@ -21,8 +21,6 @@ export const config = {
   matcher: [
     "/cities(.*)",
     "/regions(.*)",
-    "/counties(.*)",
-    "/orps(.*)",
     "/users(.*)",
   ],
 };

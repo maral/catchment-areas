@@ -1,14 +1,12 @@
 import { api } from "@/app/api/[...remult]/api";
-import { County } from "@/entities/County";
-import { Orp } from "@/entities/Orp";
 import { Region } from "@/entities/Region";
 import { User } from "@/entities/User";
 import { texts } from "@/utils/shared/texts";
 import { remult } from "remult";
-import { modules, routes } from "./shared/constants";
 import { City } from "../entities/City";
 import { Founder } from "../entities/Founder";
 import { Ordinance } from "../entities/Ordinance";
+import { modules, routes } from "./shared/constants";
 
 export type BreadcrumbItem = {
   href: string;
@@ -21,8 +19,6 @@ export type BreadcrumbItemFunction = (
 
 const citiesRepo = remult.repo(City);
 const regionsRepo = remult.repo(Region);
-const countiesRepo = remult.repo(County);
-const orpsRepo = remult.repo(Orp);
 const usersRepo = remult.repo(User);
 
 // CITIES
@@ -113,38 +109,6 @@ export const regionDetailBreadcrumb: BreadcrumbItemFunction = async (
   };
 };
 
-// COUNTIES
-export const countiesBreadcrumb: BreadcrumbItem = {
-  href: routes.counties,
-  title: texts.counties,
-};
-
-export const countyDetailBreadcrumb: BreadcrumbItemFunction = async (
-  countyCode: string
-) => {
-  const county = await api.withRemult(() => countiesRepo.findId(countyCode));
-  return {
-    href: `${routes.counties}/${countyCode}`,
-    title: county?.name,
-  };
-};
-
-// ORPS
-export const orpsBreadcrumb: BreadcrumbItem = {
-  href: routes.orps,
-  title: texts.orp,
-};
-
-export const orpDetailBreadcrumb: BreadcrumbItemFunction = async (
-  orpCode: string
-) => {
-  const orp = await api.withRemult(() => orpsRepo.findId(orpCode));
-  return {
-    href: `${routes.orps}/${orpCode}`,
-    title: orp?.name,
-  };
-};
-
 // USERS
 export const usersBreadcrumb: BreadcrumbItem = {
   href: routes.users,
@@ -178,18 +142,6 @@ export const cityFromBreadcrumb: (
         regionDetailBreadcrumb(from[1]),
       ]);
       breadcrumbItems.push(...regionsBreadcrumbs);
-    } else if (from[0] === modules.counties) {
-      const countiesBreadcrumbs = await Promise.all([
-        countiesBreadcrumb,
-        countyDetailBreadcrumb(from[1]),
-      ]);
-      breadcrumbItems.push(...countiesBreadcrumbs);
-    } else if (from[0] === modules.orps) {
-      const orpsBreadcrumbs = await Promise.all([
-        orpsBreadcrumb,
-        orpDetailBreadcrumb(from[1]),
-      ]);
-      breadcrumbItems.push(...orpsBreadcrumbs);
     }
   } else {
     breadcrumbItems.push(citiesBreadcrumb);
