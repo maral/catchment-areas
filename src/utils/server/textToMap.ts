@@ -15,25 +15,6 @@ import { MapData } from "@/entities/MapData";
 import { OrdinanceControllerServer } from "@/controllers/OrdinanceControllerServer";
 import { StreetMarkdownControllerServer } from "@/controllers/StreetMarkdownControllerServer";
 
-/*
-Editor:
-- opens SMD that is now bound to (a) ordinance_id and (b) founder_id
-- founder_id decides the streets loaded -> Liberec can get whole city streets, while Vratislavice only city district streets
-- when saved, save SMD as usual
-- the city map should be calculated together - using string concatenation
-- but do we want to revalidate the large cities on every district change?
-*/
-
-// functions we need
-
-// getDataForMap
-// - [x] for school -> via city code + filter
-// - [x] by city codes -> via city code
-// - [x] by city code
-// - [ ] by founder id -> different thing
-
-// validateStreetMarkdown -> by founder ID only
-
 export async function validateStreetMarkdown(
   lines: string[],
   founderId: number

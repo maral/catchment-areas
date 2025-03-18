@@ -78,7 +78,7 @@ export class CityController {
         `SELECT c.code, c.name, r.name AS region_name, c.school_count
         FROM city c
         JOIN region r ON c.region_code = r.code
-        WHERE status = ${CityStatus.Published}
+        WHERE status_elementary = ${CityStatus.Published}
         ORDER BY name ASC`
       )
     )[0].map((row: any) => ({
@@ -97,13 +97,13 @@ export class CityController {
       JOIN founder f ON f.city_code = c.code
       JOIN school_founder sf ON f.id = sf.founder_id
       JOIN school s ON s.izo = sf.school_izo
-      WHERE f.status = ${CityStatus.Published}
+      WHERE c.status_elementary = ${CityStatus.Published}
       ORDER BY c.name ASC, s.name ASC`
     );
 
     const schoolsByCity = new Map<string, School[]>();
     for (const school of schools[0]) {
-      const city = school.short_name;
+      const city = school.city_name;
       if (!schoolsByCity.has(city)) {
         schoolsByCity.set(city, []);
       }

@@ -35,8 +35,14 @@ export class City {
   @Fields.integer({ dbName: "school_count" })
   schoolCount = 0;
 
-  @Fields.integer()
-  status = 0;
+  @Fields.integer({ dbName: "kindergarten_count" })
+  kindergartenCount = 0;
+
+  @Fields.integer({ dbName: "status_elementary" })
+  statusElementary = 0;
+
+  @Fields.integer({ dbName: "status_kindergarten" })
+  statusKindergarten = 0;
 }
 
 export enum CityStatus {

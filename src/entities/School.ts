@@ -1,6 +1,10 @@
 import { Entity, Fields } from "remult";
 
-@Entity("schools", { allowApiCrud: false, allowApiRead: true, dbName: "school" })
+@Entity("schools", {
+  allowApiCrud: false,
+  allowApiRead: true,
+  dbName: "school",
+})
 export class School {
   @Fields.string()
   izo = "";
@@ -13,4 +17,13 @@ export class School {
 
   @Fields.integer()
   capacity = 0;
+
+  @Fields.object({ dbName: "type" })
+  type = SchoolType.Elementary;
+}
+
+// TODO: import from text-to-map once new version is released
+enum SchoolType {
+  Kindergarten = 0,
+  Elementary = 1,
 }

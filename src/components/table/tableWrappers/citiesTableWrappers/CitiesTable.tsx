@@ -54,7 +54,7 @@ export default function CitiesTable({
       title: texts.status,
       cellFactory: (item) => (
         <>
-          <CityStatusChip cityStatus={item.status} />
+          <CityStatusChip cityStatus={item.statusElementary} />
           {newOrdinancesCityCodes.has(item.code) && (
             <>
               {" "}

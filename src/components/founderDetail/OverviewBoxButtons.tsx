@@ -26,21 +26,21 @@ export default function OverviewBoxButtons({
 
   const setAsPublished = async () => {
     setLoading(true);
-    await remult.repo(City).save({ ...city, status: CityStatus.Published });
+    await remult.repo(City).save({ ...city, statusElementary: CityStatus.Published });
     await fetchCity();
     setLoading(false);
   };
 
   const setAsInProgress = async () => {
     setLoading(true);
-    await remult.repo(City).save({ ...city, status: CityStatus.InProgress });
+    await remult.repo(City).save({ ...city, statusElementary: CityStatus.InProgress });
     await fetchCity();
     setLoading(false);
   };
 
   return (
     <>
-      {city.status == CityStatus.Published ? (
+      {city.statusElementary == CityStatus.Published ? (
         <Button
           className="my-2 w-full"
           color={Colors.Secondary}
@@ -56,7 +56,7 @@ export default function OverviewBoxButtons({
           color={Colors.Primary}
           variant="secondary"
           loading={loading}
-          disabled={city.status != CityStatus.InProgress}
+          disabled={city.statusElementary != CityStatus.InProgress}
           onClick={async () => await setAsPublished()}
         >
           {texts.setAsPublished}

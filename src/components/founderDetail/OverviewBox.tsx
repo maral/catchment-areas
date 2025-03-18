@@ -35,7 +35,7 @@ export default function OverviewBox({
       <div className="mb-4">
         <div className="flex justify-between w-60 my-1">
           <Subtitle className="text-tremor-content">{texts.status}:</Subtitle>
-          <CityStatusChip cityStatus={city.status} />
+          <CityStatusChip cityStatus={city.statusElementary} />
         </div>
         <div className="flex justify-between w-60 my-1">
           <Subtitle className="text-tremor-content">

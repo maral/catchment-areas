@@ -8,6 +8,12 @@ export class OrdinanceMetadata extends EntityBase {
   @Fields.string()
   id = "";
 
+  @Fields.integer({ dbName: "city_code", allowNull: true })
+  cityCode: number | null = null;
+
+  @Fields.object({ dbName: "school_type" })
+  schoolType = SchoolType.Elementary;
+
   @Fields.string()
   name = "";
 
@@ -43,7 +49,10 @@ export class OrdinanceMetadata extends EntityBase {
 
   @Fields.boolean({ dbName: "is_rejected" })
   isRejected = false;
+}
 
-  @Fields.integer({ dbName: "city_code", allowNull: true })
-  cityCode: number | null = null;
+// TODO: import from text-to-map once new version is released
+enum SchoolType {
+  Kindergarten = 0,
+  Elementary = 1,
 }

@@ -33,14 +33,14 @@ export class OrdinanceController {
         // activate the first valid ordinance
         await ordinanceRepo.save({ ...validOrdinances[0], isActive: true });
         // set founder status to InProgress
-        if (city && city.status !== CityStatus.InProgress) {
+        if (city && city.statusElementary !== CityStatus.InProgress) {
           await remult
             .repo(City)
-            .save({ ...city, status: CityStatus.InProgress });
+            .save({ ...city, statusElementary: CityStatus.InProgress });
         }
       } else {
         // set founder status to NoActiveOrdinance
-        if (city && city.status !== CityStatus.NoActiveOrdinance) {
+        if (city && city.statusElementary !== CityStatus.NoActiveOrdinance) {
           await remult
             .repo(Founder)
             .save({ ...city, status: CityStatus.NoActiveOrdinance });
