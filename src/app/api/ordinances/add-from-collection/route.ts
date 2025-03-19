@@ -1,12 +1,13 @@
 import { api } from "@/app/api/[...remult]/api";
 import { OrdinanceMetadata } from "@/entities/OrdinanceMetadata";
-import { isLoggedIn, getNotLoggedInResponse } from "@/utils/server/auth";
+import { SchoolType } from "@/entities/School";
+import { getNotLoggedInResponse, isLoggedIn } from "@/utils/server/auth";
 import { insertOrdinanceAndGetResponse } from "@/utils/server/ordinance";
+import { syncNewOrdinances } from "@/utils/server/ordinanceMetadataSync";
 import { downloadAndExtractText } from "@/utils/server/textExtraction";
 import { getOrdinanceDocumentDownloadLink } from "@/utils/shared/ordinanceMetadata";
 import { NextRequest, NextResponse } from "next/server";
 import { remult } from "remult";
-import { syncNewOrdinances } from "../../../../utils/server/ordinanceMetadataSync";
 
 export async function POST(request: NextRequest) {
   if (!(await isLoggedIn())) {
@@ -32,7 +33,7 @@ export async function POST(request: NextRequest) {
   );
 
   await api.withRemult(async () => {
-    await syncNewOrdinances();
+    await syncNewOrdinances(SchoolType.Elementary);
   });
 
   return NextResponse.json(response);

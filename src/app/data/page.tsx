@@ -7,20 +7,22 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/shadcn/Table";
+import { CityController } from "@/controllers/CityController";
+import { SchoolType } from "@/entities/School";
+import { texts } from "@/utils/shared/texts";
 import {
   ArrowDownTrayIcon,
   ChevronLeftIcon,
 } from "@heroicons/react/24/outline";
 import Link from "next/link";
-import { texts } from "../../utils/shared/texts";
 import { api } from "../api/[...remult]/api";
-import { CityController } from "../../controllers/CityController";
 
 export default async function DataPage() {
   const { founders, ordinances } = await api.withRemult(async () => {
     const cities = await CityController.loadPublishedCities();
     const ordinances = await CityController.loadActiveOrdinancesByCityCodes(
-      cities.map((f) => f.code)
+      cities.map((f) => f.code),
+      SchoolType.Elementary
     );
     return { founders: cities, ordinances };
   });
