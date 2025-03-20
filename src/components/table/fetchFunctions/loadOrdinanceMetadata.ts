@@ -1,6 +1,8 @@
 import { City } from "@/entities/City";
 import { OrdinanceMetadata } from "@/entities/OrdinanceMetadata";
 import { remult } from "remult";
+import { SchoolTypeValues } from "@/types/schoolTypes";
+import { SchoolType } from "@/entities/School";
 
 const ordinancesMetadataRepo = remult.repo(OrdinanceMetadata);
 
@@ -17,9 +19,16 @@ export async function loadOrdinanceMetadata(
   });
 }
 
-export async function loadNewOrdinanceMetadata(): Promise<OrdinanceMetadata[]> {
+export async function loadNewOrdinanceMetadata(
+  type: string
+): Promise<OrdinanceMetadata[]> {
+  const schoolTypeCode =
+    type === SchoolTypeValues.kindergarten
+      ? SchoolType.Kindergarten
+      : SchoolType.Elementary;
+
   return await ordinancesMetadataRepo.find({
-    where: { isNewOrdinance: true },
+    where: { isNewOrdinance: true, schoolType: schoolTypeCode },
   });
 }
 
