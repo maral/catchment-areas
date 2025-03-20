@@ -13,7 +13,7 @@ export default function Login() {
   const router = useRouter();
   useEffect(() => {
     if (session && session.status === "authenticated") {
-      router.push(routes.cities);
+      router.push(routes.elementary);
     }
   }, [session, router]);
 

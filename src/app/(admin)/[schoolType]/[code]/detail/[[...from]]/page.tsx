@@ -15,9 +15,9 @@ import OrdinanceFoundersTable from "../../../../../../components/table/tableWrap
 import { Founder } from "../../../../../../entities/Founder";
 
 export default async function CityDetailPage({
-  params: { code, from },
+  params: { code, from, schoolType },
 }: {
-  params: { code: string; from?: string[] };
+  params: { code: string; from?: string[]; schoolType: string };
 }) {
   const cityCode = Number(code);
   const {
@@ -35,7 +35,7 @@ export default async function CityDetailPage({
 
     const founders = await remult.repo(Founder).find({ where: { city } });
     const cityJson = remult.repo(City).toJson(city);
-    const ordinances = await loadOrdinancesByCityCode(cityCode);
+    const ordinances = await loadOrdinancesByCityCode(cityCode, schoolType);
     return {
       serializedOrdinances: serializeOrdinances(ordinances),
       serializedFounders: remult.repo(Founder).toJson(founders),
@@ -45,11 +45,11 @@ export default async function CityDetailPage({
     };
   });
 
+  const rootPath = routes[schoolType as keyof typeof routes];
+
   if (serializedOrdinances.length === 0) {
     redirect(
-      `${routes.cities}/${code}/add-ordinance${
-        from ? `/${from.join("/")}` : ""
-      }`
+      `${rootPath}/${code}/add-ordinance${from ? `/${from.join("/")}` : ""}`
     );
   }
 
@@ -65,6 +65,8 @@ export default async function CityDetailPage({
               cityCode={cityCode}
               initialData={serializedOrdinances}
               urlFrom={from}
+              schoolType={schoolType}
+              rootPath={rootPath}
             />
           )}
 
@@ -82,6 +84,8 @@ export default async function CityDetailPage({
           activeOrdinanceId={activeOrdinanceId}
           cityProp={cityJson}
           urlFrom={from}
+          schoolType={schoolType}
+          rootPath={rootPath}
           className="flex-1 m-1 ml-2"
         />
       </div>

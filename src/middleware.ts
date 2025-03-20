@@ -19,7 +19,8 @@ export default withAuth(async function middleware(req, res) {
 
 export const config = {
   matcher: [
-    "/cities(.*)",
+    "/elementary(.*)",
+    "/kindergarten(.*)",
     "/regions(.*)",
     "/users(.*)",
   ],

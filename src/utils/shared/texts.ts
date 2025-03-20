@@ -1,3 +1,5 @@
+import { SchoolTypeValues } from "@/types/schoolTypes";
+
 export const texts = {
   actions: "Akce",
   active: "Aktivní",
@@ -72,7 +74,10 @@ export const texts = {
   noDataOrdinanceFromRegister:
     "Obec {{city}} nemá ve Sbírce právních předpisů nahranou žádnou vyhlášku.",
   notRegistered: "neregistrovaný",
-  numberOfSchools: "Počet škol",
+  numberOfSchools: (type: string) =>
+    type === SchoolTypeValues.elementary
+      ? "Počet zakladních škol"
+      : "Počet mateřských škol",
   ordinanceDocument: "Dokument vyhlášky",
   ordinanceFile: "Soubor vyhlášky",
   ordinanceName: "Název vyhlášky",
@@ -107,6 +112,8 @@ export const texts = {
       : 2 <= schoolsCount && schoolsCount <= 4
       ? "školy"
       : "škol",
+  schoolsElementary: "Zakladní školy",
+  schoolsKindergarten: "Mateřské školy",
   selectDate: "Vyberte datum...",
   setActive: "Nastavit jako Aktivní",
   setAsInProgress: 'Označit jako "Rozpracováno"',

@@ -8,6 +8,8 @@ const constants = {
 
 export const routes = {
   cities: "/cities",
+  kindergarten: "/kindergarten",
+  elementary: "/elementary",
   regions: "/regions",
   users: "/users",
   detail: "/detail",
