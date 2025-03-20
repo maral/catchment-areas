@@ -9,17 +9,22 @@ import { remult } from "remult";
 import CityStatusChip from "../CityStatusChip";
 import { useRouter } from "next/navigation";
 import { City } from "../../entities/City";
+import { SchoolTypeValues } from "@/types/schoolTypes";
 
 export default function OverviewBox({
   cityProp,
   activeOrdinanceId,
   urlFrom,
   className,
+  schoolType,
+  rootPath,
 }: {
   cityProp: any;
   activeOrdinanceId?: number;
   urlFrom?: string[];
   className?: string;
+  schoolType: string;
+  rootPath: string;
 }) {
   const [city, setCity] = useState<City>(remult.repo(City).fromJson(cityProp));
 
@@ -30,18 +35,28 @@ export default function OverviewBox({
     router.refresh();
   };
 
+  const status =
+    schoolType === SchoolTypeValues.kindergarten
+      ? city.statusKindergarten
+      : city.statusElementary;
+
+  const count =
+    schoolType === SchoolTypeValues.kindergarten
+      ? city.kindergartenCount
+      : city.schoolCount;
+
   return (
     <Card className={`${className ?? ""}`}>
       <div className="mb-4">
         <div className="flex justify-between w-60 my-1">
           <Subtitle className="text-tremor-content">{texts.status}:</Subtitle>
-          <CityStatusChip cityStatus={city.statusElementary} />
+          <CityStatusChip cityStatus={status} />
         </div>
         <div className="flex justify-between w-60 my-1">
           <Subtitle className="text-tremor-content">
-            {texts.numberOfSchools}:
+            {texts.numberOfSchools(schoolType)}:
           </Subtitle>
-          <Title className="mr-2">{city.schoolCount}</Title>
+          <Title className="mr-2">{count}</Title>
         </div>
       </div>
       <OverviewBoxButtons
@@ -49,6 +64,7 @@ export default function OverviewBox({
         fetchCity={fetchFounder}
         activeOrdinanceId={activeOrdinanceId}
         urlFrom={urlFrom}
+        rootPath={rootPath}
       />
     </Card>
   );

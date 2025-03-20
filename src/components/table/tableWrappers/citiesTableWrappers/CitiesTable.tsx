@@ -14,15 +14,20 @@ import { City } from "@/entities/City";
 import { deserializeOrdinanceMetadata } from "../../fetchFunctions/loadOrdinanceMetadata";
 import LinkButton from "../../../buttons/LinkButton";
 import { Badge } from "@tremor/react";
+import { SchoolTypeValues } from "@/types/schoolTypes";
 
 export default function CitiesTable({
   initialData,
   newOrdinanceMetadata,
   count,
+  schoolType,
+  rootPath,
 }: {
   initialData: any[];
   newOrdinanceMetadata: any[];
   count?: number;
+  schoolType: string;
+  rootPath: string;
 }) {
   const newOrdinancesCityCodes = new Set(
     deserializeOrdinanceMetadata(newOrdinanceMetadata).map(
@@ -33,7 +38,7 @@ export default function CitiesTable({
     {
       title: texts.name,
       cellFactory: (item) => (
-        <CatchmentLink href={`${routes.cities}/${item.code}${routes.detail}`}>
+        <CatchmentLink href={`${rootPath}/${item.code}${routes.detail}`}>
           {item.name}
         </CatchmentLink>
       ),
@@ -47,14 +52,23 @@ export default function CitiesTable({
       cellFactory: (item) => item.county?.name,
     },
     {
-      title: texts.numberOfSchools,
-      cellFactory: (item) => item.schoolCount,
+      title: texts.numberOfSchools(schoolType),
+      cellFactory: (item) =>
+        schoolType === SchoolTypeValues.kindergarten
+          ? item.kindergartenCount
+          : item.schoolCount,
     },
     {
       title: texts.status,
       cellFactory: (item) => (
         <>
-          <CityStatusChip cityStatus={item.statusElementary} />
+          <CityStatusChip
+            cityStatus={
+              schoolType === SchoolTypeValues.kindergarten
+                ? item.statusKindergarten
+                : item.statusElementary
+            }
+          />
           {newOrdinancesCityCodes.has(item.code) && (
             <>
               {" "}
@@ -84,6 +98,7 @@ export default function CitiesTable({
       fetchItems={fetchItems}
       initialData={deserializeCities(initialData)}
       count={count}
+      rootPath={rootPath}
     />
   );
 }

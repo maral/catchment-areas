@@ -16,24 +16,30 @@ export default function OverviewBoxButtons({
   fetchCity,
   activeOrdinanceId,
   urlFrom,
+  rootPath,
 }: {
   city: City;
   fetchCity: () => Promise<void>;
   activeOrdinanceId?: number;
   urlFrom?: string[];
+  rootPath: string;
 }) {
   const [loading, setLoading] = useState<boolean>(false);
 
   const setAsPublished = async () => {
     setLoading(true);
-    await remult.repo(City).save({ ...city, statusElementary: CityStatus.Published });
+    await remult
+      .repo(City)
+      .save({ ...city, statusElementary: CityStatus.Published });
     await fetchCity();
     setLoading(false);
   };
 
   const setAsInProgress = async () => {
     setLoading(true);
-    await remult.repo(City).save({ ...city, statusElementary: CityStatus.InProgress });
+    await remult
+      .repo(City)
+      .save({ ...city, statusElementary: CityStatus.InProgress });
     await fetchCity();
     setLoading(false);
   };
@@ -65,8 +71,8 @@ export default function OverviewBoxButtons({
       <LinkButton
         href={
           urlFrom && urlFrom.length >= 2
-            ? `${routes.cities}/${city.code}${routes.map}/${urlFrom[0]}/${urlFrom[1]}/${activeOrdinanceId}`
-            : `${routes.cities}/${city.code}${routes.map}/${activeOrdinanceId}`
+            ? `${rootPath}/${city.code}${routes.map}/${urlFrom[0]}/${urlFrom[1]}/${activeOrdinanceId}`
+            : `${rootPath}/${city.code}${routes.map}/${activeOrdinanceId}`
         }
         buttonProps={{
           icon: MapPinIcon,
@@ -78,7 +84,7 @@ export default function OverviewBoxButtons({
         {texts.viewOnMap}
       </LinkButton>
       <LinkButton
-        href={`${routes.cities}/${city.code}${routes.download}/${activeOrdinanceId}`}
+        href={`${rootPath}/${city.code}${routes.download}/${activeOrdinanceId}`}
         buttonProps={{
           icon: ArrowDownTrayIcon,
           variant: "secondary",
