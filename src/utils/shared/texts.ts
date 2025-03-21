@@ -1,4 +1,4 @@
-import { SchoolTypeValues } from "@/types/schoolTypes";
+import { SchoolTypeValues } from "@/entities/School";
 
 export const texts = {
   actions: "Akce",
