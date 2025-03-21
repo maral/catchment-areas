@@ -22,7 +22,7 @@ import { OrdinanceController } from "@/controllers/OrdinanceController";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import { useState } from "react";
 import { PlayIcon } from "@heroicons/react/24/outline";
-import { SchoolTypeValues } from "@/types/schoolTypes";
+import { SchoolTypeValues } from "@/entities/School";
 
 export default function OrdinancesTable({
   cityCode,

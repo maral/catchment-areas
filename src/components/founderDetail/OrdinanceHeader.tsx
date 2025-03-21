@@ -10,10 +10,14 @@ import { Colors } from "@/styles/Themes";
 export default function OrdinanceHeader({
   cityCode,
   urlFrom,
+  schoolType,
 }: {
   cityCode: string;
   urlFrom?: string[];
+  schoolType: string;
 }) {
+  const rootPath = routes[schoolType as keyof typeof routes];
+
   return (
     <div className="flex justify-between mb-2">
       <HeaderBox title={texts.ordinances} />
@@ -21,8 +25,8 @@ export default function OrdinanceHeader({
         className="m-2"
         href={
           urlFrom && urlFrom.length >= 2
-            ? `${routes.cities}/${cityCode}${routes.addOrdinance}/${urlFrom[0]}/${urlFrom[1]}`
-            : `${routes.cities}/${cityCode}${routes.addOrdinance}`
+            ? `${rootPath}/${cityCode}${routes.addOrdinance}/${urlFrom[0]}/${urlFrom[1]}`
+            : `${rootPath}/${cityCode}${routes.addOrdinance}`
         }
         buttonProps={{ color: Colors.Primary, icon: PlusIcon }}
       >

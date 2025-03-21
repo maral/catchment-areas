@@ -12,11 +12,12 @@ import { texts } from "@/utils/shared/texts";
 import { Card } from "@tremor/react";
 import { notFound } from "next/navigation";
 import { remult } from "remult";
+import { routes } from "@/utils/shared/constants";
 
 export default async function AddOrdinance({
-  params: { code },
+  params: { code, schoolType },
 }: {
-  params: { code: string };
+  params: { code: string; schoolType: string };
 }) {
   const { cityName, serializedOrdinanceMetadata, count } = await api.withRemult(
     async () => {
@@ -27,12 +28,14 @@ export default async function AddOrdinance({
       return {
         cityName: city.name,
         serializedOrdinanceMetadata: serializeOrdinanceMetadata(
-          await loadOrdinanceMetadata(city, 1, 50)
+          await loadOrdinanceMetadata(city, 1, 50, schoolType)
         ),
         count: await getOrdinanceMetadataCount(city),
       };
     }
   );
+
+  const rootPath = routes[schoolType as keyof typeof routes];
 
   return (
     <>
@@ -44,11 +47,17 @@ export default async function AddOrdinance({
           initialData={serializedOrdinanceMetadata}
           count={count}
           cityName={cityName}
+          schoolType={schoolType}
+          rootPath={rootPath}
         />
       </Card>
       {/* BOTTOM PART OF THE VIEW */}
       <Card>
-        <UploadOrdinance cityCode={code} />
+        <UploadOrdinance
+          cityCode={code}
+          schoolType={schoolType}
+          rootPath={rootPath}
+        />
       </Card>
     </>
   );

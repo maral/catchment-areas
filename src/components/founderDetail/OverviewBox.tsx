@@ -9,7 +9,7 @@ import { remult } from "remult";
 import CityStatusChip from "../CityStatusChip";
 import { useRouter } from "next/navigation";
 import { City } from "../../entities/City";
-import { SchoolTypeValues } from "@/types/schoolTypes";
+import { SchoolTypeValues } from "@/entities/School";
 
 export default function OverviewBox({
   cityProp,
@@ -65,6 +65,7 @@ export default function OverviewBox({
         activeOrdinanceId={activeOrdinanceId}
         urlFrom={urlFrom}
         rootPath={rootPath}
+        schoolType={schoolType}
       />
     </Card>
   );

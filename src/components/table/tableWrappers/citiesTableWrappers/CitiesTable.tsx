@@ -14,7 +14,7 @@ import { City } from "@/entities/City";
 import { deserializeOrdinanceMetadata } from "../../fetchFunctions/loadOrdinanceMetadata";
 import LinkButton from "../../../buttons/LinkButton";
 import { Badge } from "@tremor/react";
-import { SchoolTypeValues } from "@/types/schoolTypes";
+import { SchoolTypeValues } from "@/entities/School";
 
 export default function CitiesTable({
   initialData,

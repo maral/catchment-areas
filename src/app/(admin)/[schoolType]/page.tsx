@@ -12,7 +12,7 @@ import {
   loadNewOrdinanceMetadata,
   serializeOrdinanceMetadata,
 } from "../../../components/table/fetchFunctions/loadOrdinanceMetadata";
-import { isSchoolType, SchoolTypeValues } from "@/types/schoolTypes";
+import { isSchoolType, SchoolTypeValues } from "@/entities/School";
 import { notFound } from "next/navigation";
 import { routes } from "@/utils/shared/constants";
 

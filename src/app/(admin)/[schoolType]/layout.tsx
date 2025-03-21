@@ -1,6 +1,6 @@
 // app/[schoolType]/layout.tsx
 import { notFound } from "next/navigation";
-import { isSchoolType } from "@/types/schoolTypes";
+import { isSchoolType } from "@/entities/School";
 
 export default function SchoolTypeLayout({
   children,

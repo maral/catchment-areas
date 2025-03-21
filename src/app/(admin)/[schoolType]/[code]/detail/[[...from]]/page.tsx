@@ -58,7 +58,11 @@ export default async function CityDetailPage({
       {/* TOP PART OF THE VIEW */}
       <div className="h-full pb-5 flex">
         <Card className="grow m-1 mr-4 overflow-y-auto">
-          <OrdinanceHeader cityCode={code} urlFrom={from} />
+          <OrdinanceHeader
+            cityCode={code}
+            urlFrom={from}
+            schoolType={schoolType}
+          />
           {founders.length === 1 && (
             <OrdinancesTable
               founderId={founders[0].id}
@@ -76,6 +80,8 @@ export default async function CityDetailPage({
               initialFounders={serializedFounders}
               cityCode={cityCode}
               urlFrom={from}
+              schoolType={schoolType}
+              rootPath={rootPath}
             />
           )}
         </Card>

@@ -1,8 +1,7 @@
 import { Ordinance } from "@/entities/Ordinance";
 import { remult } from "remult";
 import { City } from "../../../entities/City";
-import { SchoolTypeValues } from "@/types/schoolTypes";
-import { SchoolType } from "@/entities/School";
+import { getSchoolTypeCode } from "@/entities/School";
 
 const ordinancesRepo = remult.repo(Ordinance);
 
@@ -12,10 +11,7 @@ export async function loadOrdinancesByCityCode(
 ): Promise<Ordinance[]> {
   const city = await remult.repo(City).findFirst({ code: cityCode });
 
-  const schoolTypeCode =
-    type === SchoolTypeValues.kindergarten
-      ? SchoolType.Kindergarten
-      : SchoolType.Elementary;
+  const schoolTypeCode = getSchoolTypeCode(type);
 
   return await ordinancesRepo.find({
     where: { city, schoolType: schoolTypeCode },

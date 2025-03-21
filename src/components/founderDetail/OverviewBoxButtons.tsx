@@ -10,6 +10,7 @@ import { Button } from "@tremor/react";
 import { useState } from "react";
 import { remult } from "remult";
 import LinkButton from "../buttons/LinkButton";
+import { SchoolTypeValues } from "@/entities/School";
 
 export default function OverviewBoxButtons({
   city,
@@ -17,29 +18,50 @@ export default function OverviewBoxButtons({
   activeOrdinanceId,
   urlFrom,
   rootPath,
+  schoolType,
 }: {
   city: City;
   fetchCity: () => Promise<void>;
   activeOrdinanceId?: number;
   urlFrom?: string[];
   rootPath: string;
+  schoolType: string;
 }) {
   const [loading, setLoading] = useState<boolean>(false);
 
   const setAsPublished = async () => {
     setLoading(true);
-    await remult
-      .repo(City)
-      .save({ ...city, statusElementary: CityStatus.Published });
+
+    let statusObject: {
+      statusKindergarten?: CityStatus;
+      statusElementary?: CityStatus;
+    } = {};
+
+    if (schoolType === SchoolTypeValues.kindergarten) {
+      statusObject["statusKindergarten"] = CityStatus.Published;
+    } else {
+      statusObject["statusElementary"] = CityStatus.Published;
+    }
+
+    await remult.repo(City).save({ ...city, ...statusObject });
     await fetchCity();
     setLoading(false);
   };
 
   const setAsInProgress = async () => {
     setLoading(true);
-    await remult
-      .repo(City)
-      .save({ ...city, statusElementary: CityStatus.InProgress });
+
+    let statusObject: {
+      statusKindergarten?: CityStatus;
+      statusElementary?: CityStatus;
+    } = {};
+    if (schoolType === SchoolTypeValues.kindergarten) {
+      statusObject["statusKindergarten"] = CityStatus.InProgress;
+    } else {
+      statusObject["statusElementary"] = CityStatus.InProgress;
+    }
+
+    await remult.repo(City).save({ ...city, ...statusObject });
     await fetchCity();
     setLoading(false);
   };

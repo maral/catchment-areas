@@ -47,12 +47,14 @@ export default function Editor({
   ordinanceJson,
   founderJson,
   founderCount,
+  schoolType,
 }: {
   suggestions: SuggestionList[];
   streetMarkdownJson: any | null;
   ordinanceJson: any;
   founderJson: any;
   founderCount: number;
+  schoolType: string;
 }) {
   const [streetMarkdown, setStreetMarkdown] = useState<StreetMarkdown | null>(
     streetMarkdownJson ? streetMarkdownRepo.fromJson(streetMarkdownJson) : null

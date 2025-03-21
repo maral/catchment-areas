@@ -33,12 +33,16 @@ export default function OrdinanceFoundersTable({
   initialOrdinances,
   count,
   urlFrom,
+  schoolType,
+  rootPath,
 }: {
   cityCode: number;
   initialOrdinances: any[];
   initialFounders: any[];
   count?: number;
   urlFrom?: string[];
+  schoolType: string;
+  rootPath: string;
 }) {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [confirmFunction, setConfirmFunction] = useState<
@@ -92,8 +96,8 @@ export default function OrdinanceFoundersTable({
               className="inline-block"
               href={
                 urlFrom && urlFrom.length >= 2
-                  ? `${routes.cities}/${cityCode}${routes.editOrdinance}/${item.founder.id}/${urlFrom[0]}/${urlFrom[1]}/${item.ordinance.id}`
-                  : `${routes.cities}/${cityCode}${routes.editOrdinance}/${item.founder.id}/${item.ordinance.id}`
+                  ? `${rootPath}/${cityCode}${routes.editOrdinance}/${item.founder.id}/${urlFrom[0]}/${urlFrom[1]}/${item.ordinance.id}`
+                  : `${rootPath}/${cityCode}${routes.editOrdinance}/${item.founder.id}/${item.ordinance.id}`
               }
               prefetch={false}
             >
@@ -137,7 +141,7 @@ export default function OrdinanceFoundersTable({
 
           <Link
             className="inline-block"
-            href={`${routes.cities}/${cityCode}${routes.map}/${
+            href={`${rootPath}/${cityCode}${routes.map}/${
               item.founder !== null ? `founder/${item.founder.id}/` : ""
             }${item.ordinance.id}`}
             target="_blank"
