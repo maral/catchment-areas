@@ -7,19 +7,25 @@ import {
 } from "@/utils/breadcrumbItems";
 
 export default async function EditOrdinanceBreadcrumb({
-  params: { code, founderId, from },
+  params: { code, founderId, from, schoolType },
 }: {
-  params: { code: string; founderId: string; from?: string[] };
+  params: {
+    code: string;
+    founderId: string;
+    from?: string[];
+    schoolType: string;
+  };
 }) {
   const ordinanceId = getOrdinanceIdFromFrom(from);
 
-  const breadcrumbItems = await cityFromBreadcrumb(from);
+  const breadcrumbItems = await cityFromBreadcrumb(schoolType, from);
   const editOrdinanceBreadcrumbs = await Promise.all([
-    cityDetailBreadcrumb(code, from),
+    cityDetailBreadcrumb(code, schoolType, from),
     editOrdinanceBreadcrumb(
       Number(code),
       Number(founderId),
-      Number(ordinanceId)
+      Number(ordinanceId),
+      schoolType
     ),
   ]);
 

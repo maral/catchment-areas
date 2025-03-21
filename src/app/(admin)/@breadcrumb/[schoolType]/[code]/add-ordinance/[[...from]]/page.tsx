@@ -6,14 +6,14 @@ import {
 } from "@/utils/breadcrumbItems";
 
 export default async function AddOrdinanceBreadcrumb({
-  params: { code, from },
+  params: { code, from, schoolType },
 }: {
-  params: { code: string; from?: string[] };
+  params: { code: string; from?: string[]; schoolType: string };
 }) {
-  const breadcrumbItems = await cityFromBreadcrumb(from);
+  const breadcrumbItems = await cityFromBreadcrumb(schoolType, from);
   const addOrdinancesBreadcrumbs = await Promise.all([
-    cityDetailBreadcrumb(code, from),
-    addOrdinanceBreadcrumb(code, from),
+    cityDetailBreadcrumb(code, schoolType, from),
+    addOrdinanceBreadcrumb(code, schoolType, from),
   ]);
 
   breadcrumbItems.push(...addOrdinancesBreadcrumbs);

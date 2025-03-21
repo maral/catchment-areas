@@ -5,13 +5,13 @@ import {
 } from "@/utils/breadcrumbItems";
 
 export default async function CityDetailBreadcrumb({
-  params: { code, from },
+  params: { code, from, schoolType },
 }: {
-  params: { code: string; from?: string[] };
+  params: { code: string; from?: string[]; schoolType: string };
 }) {
-  const breadcrumbItems = await cityFromBreadcrumb(from);
+  const breadcrumbItems = await cityFromBreadcrumb(schoolType, from);
 
-  breadcrumbItems.push(await cityDetailBreadcrumb(code, from));
+  breadcrumbItems.push(await cityDetailBreadcrumb(code, schoolType, from));
 
   return <BreadcrumbNav items={breadcrumbItems} />;
 }
