@@ -14,7 +14,8 @@ export async function POST(request: NextRequest) {
     return getNotLoggedInResponse();
   }
 
-  const { cityCode, ordinanceMetadataId } = await request.json();
+  const { cityCode, ordinanceMetadataId, schoolType, redirectRootUrl } =
+    await request.json();
 
   const documentUrl = getOrdinanceDocumentDownloadLink(ordinanceMetadataId);
 
@@ -29,7 +30,9 @@ export async function POST(request: NextRequest) {
     ordinanceMetadata.validFrom,
     ordinanceMetadata.validTo,
     ordinanceMetadata.number,
-    result
+    result,
+    schoolType,
+    redirectRootUrl
   );
 
   await api.withRemult(async () => {
