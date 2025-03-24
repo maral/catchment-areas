@@ -10,7 +10,8 @@ import { Button } from "@tremor/react";
 import { useState } from "react";
 import { remult } from "remult";
 import LinkButton from "../buttons/LinkButton";
-import { SchoolTypeValues } from "@/entities/School";
+import { SchoolTypeValues, getSchoolTypeCode } from "@/entities/School";
+import { getStatusPropertyBySchoolType } from "@/entities/City";
 
 export default function OverviewBoxButtons({
   city,
@@ -29,19 +30,17 @@ export default function OverviewBoxButtons({
 }) {
   const [loading, setLoading] = useState<boolean>(false);
 
+  const schoolTypeCode = getSchoolTypeCode(schoolType);
+  const statusParam = getStatusPropertyBySchoolType(schoolTypeCode);
+
   const setAsPublished = async () => {
     setLoading(true);
 
     let statusObject: {
-      statusKindergarten?: CityStatus;
-      statusElementary?: CityStatus;
+      [key: string]: CityStatus;
     } = {};
 
-    if (schoolType === SchoolTypeValues.kindergarten) {
-      statusObject["statusKindergarten"] = CityStatus.Published;
-    } else {
-      statusObject["statusElementary"] = CityStatus.Published;
-    }
+    statusObject[statusParam] = CityStatus.Published;
 
     await remult.repo(City).save({ ...city, ...statusObject });
     await fetchCity();
@@ -50,16 +49,11 @@ export default function OverviewBoxButtons({
 
   const setAsInProgress = async () => {
     setLoading(true);
-
     let statusObject: {
-      statusKindergarten?: CityStatus;
-      statusElementary?: CityStatus;
+      [key: string]: CityStatus;
     } = {};
-    if (schoolType === SchoolTypeValues.kindergarten) {
-      statusObject["statusKindergarten"] = CityStatus.InProgress;
-    } else {
-      statusObject["statusElementary"] = CityStatus.InProgress;
-    }
+
+    statusObject[statusParam] = CityStatus.InProgress;
 
     await remult.repo(City).save({ ...city, ...statusObject });
     await fetchCity();
@@ -68,7 +62,7 @@ export default function OverviewBoxButtons({
 
   return (
     <>
-      {city.statusElementary == CityStatus.Published ? (
+      {city[statusParam] == CityStatus.Published ? (
         <Button
           className="my-2 w-full"
           color={Colors.Secondary}
@@ -84,7 +78,7 @@ export default function OverviewBoxButtons({
           color={Colors.Primary}
           variant="secondary"
           loading={loading}
-          disabled={city.statusElementary != CityStatus.InProgress}
+          disabled={city[statusParam] != CityStatus.InProgress}
           onClick={async () => await setAsPublished()}
         >
           {texts.setAsPublished}
