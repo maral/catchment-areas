@@ -106,13 +106,20 @@ export const texts = {
   schoolEditorLabel: "škola",
   school: "Škola",
   schools: "Školy",
-  schoolsDeclined: (schoolsCount: number) =>
-    schoolsCount === 1
-      ? "škola"
-      : 2 <= schoolsCount && schoolsCount <= 4
-      ? "školy"
-      : "škol",
-  schoolsElementary: "Zakladní školy",
+  schoolsDeclined: (schoolsCount: number, schoolType: string) => {
+    const schoolForms = ["škola", "školy", "škol"];
+    const elementaryForms = ["základní", "základní", "základních"];
+    const kindergartenForms = ["mateřská", "mateřské", "mateřských"];
+
+    const index = schoolsCount === 1 ? 0 : schoolsCount <= 4 ? 1 : 2;
+    const typeForms =
+      schoolType === SchoolTypeValues.elementary
+        ? elementaryForms
+        : kindergartenForms;
+
+    return `${typeForms[index]} ${schoolForms[index]}`;
+  },
+  schoolsElementary: "Základní školy",
   schoolsKindergarten: "Mateřské školy",
   selectDate: "Vyberte datum...",
   setActive: "Nastavit jako Aktivní",

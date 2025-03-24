@@ -6,6 +6,7 @@ import CatchmentTable from "@/components/table/CatchmentTable";
 import { OrdinanceController } from "@/controllers/OrdinanceController";
 import { Founder } from "@/entities/Founder";
 import { Ordinance } from "@/entities/Ordinance";
+import { SchoolTypeValues } from "@/entities/School";
 import { Colors } from "@/styles/Themes";
 import type { ColumnDefinition } from "@/types/tableTypes";
 import { routes } from "@/utils/shared/constants";
@@ -74,8 +75,15 @@ export default function OrdinanceFoundersTable({
           ? `${item.ordinance.validFrom.toLocaleDateString("cs")}–${
               item.ordinance.validTo?.toLocaleDateString("cs") ?? "?"
             }`
-          : `${item.founder.schoolCount} ${texts.schoolsDeclined(
-              item.founder.schoolCount
+          : `${
+              schoolType == SchoolTypeValues.elementary
+                ? item.founder.schoolCount
+                : item.founder.kindergartenCount
+            } ${texts.schoolsDeclined(
+              schoolType == SchoolTypeValues.elementary
+                ? item.founder.schoolCount
+                : item.founder.kindergartenCount,
+              schoolType
             )}`,
     },
     {
