@@ -30,7 +30,7 @@ export default async function AddOrdinance({
         serializedOrdinanceMetadata: serializeOrdinanceMetadata(
           await loadOrdinanceMetadata(city, 1, 50, schoolType)
         ),
-        count: await getOrdinanceMetadataCount(city),
+        count: await getOrdinanceMetadataCount(city, schoolType),
       };
     }
   );

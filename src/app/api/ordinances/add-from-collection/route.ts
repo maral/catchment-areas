@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
   );
 
   await api.withRemult(async () => {
-    await syncNewOrdinances(SchoolType.Elementary);
+    await syncNewOrdinances(schoolType);
   });
 
   return NextResponse.json(response);

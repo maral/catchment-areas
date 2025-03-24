@@ -46,8 +46,14 @@ export function deserializeOrdinanceMetadata(
   return ordinancesMetadataRepo.fromJson(ordinancesMetadata);
 }
 
-export async function getOrdinanceMetadataCount(city: City): Promise<number> {
+export async function getOrdinanceMetadataCount(
+  city: City,
+  type: string
+): Promise<number> {
+  const schoolTypeCode = getSchoolTypeCode(type);
+
   return await ordinancesMetadataRepo.count({
     city: city.name.toLocaleLowerCase("cs"),
+    schoolType: schoolTypeCode,
   });
 }
