@@ -1,4 +1,4 @@
-import { SchoolTypeValues } from "@/entities/School";
+import { SchoolType } from "@/entities/School";
 
 export const texts = {
   actions: "Akce",
@@ -74,8 +74,8 @@ export const texts = {
   noDataOrdinanceFromRegister:
     "Obec {{city}} nemá ve Sbírce právních předpisů nahranou žádnou vyhlášku.",
   notRegistered: "neregistrovaný",
-  numberOfSchools: (type: string) =>
-    type === SchoolTypeValues.elementary
+  numberOfSchools: (schoolType: SchoolType) =>
+    schoolType === SchoolType.Elementary
       ? "Počet zakladních škol"
       : "Počet mateřských škol",
   ordinanceDocument: "Dokument vyhlášky",
@@ -106,14 +106,14 @@ export const texts = {
   schoolEditorLabel: "škola",
   school: "Škola",
   schools: "Školy",
-  schoolsDeclined: (schoolsCount: number, schoolType: string) => {
+  schoolsDeclined: (schoolsCount: number, schoolType: SchoolType) => {
     const schoolForms = ["škola", "školy", "škol"];
     const elementaryForms = ["základní", "základní", "základních"];
     const kindergartenForms = ["mateřská", "mateřské", "mateřských"];
 
     const index = schoolsCount === 1 ? 0 : schoolsCount <= 4 ? 1 : 2;
     const typeForms =
-      schoolType === SchoolTypeValues.elementary
+      schoolType === SchoolType.Elementary
         ? elementaryForms
         : kindergartenForms;
 

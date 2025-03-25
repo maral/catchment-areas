@@ -15,12 +15,10 @@ export async function GET(
   const { city, municipalities } = await api.withRemult(async () => {
     const city = await remult.repo(City).findId(Number(code));
 
-    const schoolTypeCode = getSchoolTypeCode(schoolType);
-
     const municipalities = await getOrCreateDataForMapByCityCode(
       Number(code),
       Number(ordinanceId),
-      schoolTypeCode
+      getSchoolTypeCode(schoolType)
     );
 
     return { city, municipalities };

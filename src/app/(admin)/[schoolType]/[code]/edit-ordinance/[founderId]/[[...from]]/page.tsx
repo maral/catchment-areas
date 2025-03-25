@@ -10,6 +10,7 @@ import { isPrefetch } from "@/utils/server/headers";
 import { notFound } from "next/navigation";
 import { remult } from "remult";
 import { City } from "@/entities/City";
+import { getSchoolTypeCode } from "@/entities/School";
 
 export const dynamic = "force-dynamic";
 
@@ -83,7 +84,7 @@ export default async function EditorPage({
         founderJson={founderJson}
         streetMarkdownJson={streetMarkdownJson}
         founderCount={founderCount}
-        schoolType={schoolType}
+        schoolType={getSchoolTypeCode(schoolType)}
       />
     </div>
   );

@@ -13,6 +13,7 @@ import { notFound, redirect } from "next/navigation";
 import { remult } from "remult";
 import OrdinanceFoundersTable from "../../../../../../components/table/tableWrappers/OrdinanceFoundersTable";
 import { Founder } from "../../../../../../entities/Founder";
+import { getSchoolTypeCode, getRootPathBySchoolType } from "@/entities/School";
 
 export default async function CityDetailPage({
   params: { code, from, schoolType },
@@ -20,6 +21,9 @@ export default async function CityDetailPage({
   params: { code: string; from?: string[]; schoolType: string };
 }) {
   const cityCode = Number(code);
+
+  const schoolTypeCode = getSchoolTypeCode(schoolType);
+
   const {
     serializedOrdinances,
     serializedFounders,
@@ -35,7 +39,7 @@ export default async function CityDetailPage({
 
     const founders = await remult.repo(Founder).find({ where: { city } });
     const cityJson = remult.repo(City).toJson(city);
-    const ordinances = await loadOrdinancesByCityCode(cityCode, schoolType);
+    const ordinances = await loadOrdinancesByCityCode(cityCode, schoolTypeCode);
     return {
       serializedOrdinances: serializeOrdinances(ordinances),
       serializedFounders: remult.repo(Founder).toJson(founders),
@@ -45,11 +49,11 @@ export default async function CityDetailPage({
     };
   });
 
-  const rootPath = routes[schoolType as keyof typeof routes];
-
   if (serializedOrdinances.length === 0) {
     redirect(
-      `${rootPath}/${code}/add-ordinance${from ? `/${from.join("/")}` : ""}`
+      `${getRootPathBySchoolType(schoolTypeCode)}/${code}/add-ordinance${
+        from ? `/${from.join("/")}` : ""
+      }`
     );
   }
 
@@ -61,7 +65,7 @@ export default async function CityDetailPage({
           <OrdinanceHeader
             cityCode={code}
             urlFrom={from}
-            schoolType={schoolType}
+            schoolType={schoolTypeCode}
           />
           {founders.length === 1 && (
             <OrdinancesTable
@@ -69,8 +73,7 @@ export default async function CityDetailPage({
               cityCode={cityCode}
               initialData={serializedOrdinances}
               urlFrom={from}
-              schoolType={schoolType}
-              rootPath={rootPath}
+              schoolType={schoolTypeCode}
             />
           )}
 
@@ -80,8 +83,7 @@ export default async function CityDetailPage({
               initialFounders={serializedFounders}
               cityCode={cityCode}
               urlFrom={from}
-              schoolType={schoolType}
-              rootPath={rootPath}
+              schoolType={schoolTypeCode}
             />
           )}
         </Card>
@@ -90,8 +92,7 @@ export default async function CityDetailPage({
           activeOrdinanceId={activeOrdinanceId}
           cityProp={cityJson}
           urlFrom={from}
-          schoolType={schoolType}
-          rootPath={rootPath}
+          schoolType={schoolTypeCode}
           className="flex-1 m-1 ml-2"
         />
       </div>

@@ -35,6 +35,7 @@ import LinkButton from "../buttons/LinkButton";
 import HeaderBox from "../common/HeaderBox";
 import Spinner from "../common/Spinner";
 import { Monaco, configureMonaco } from "./configureMonaco";
+import { SchoolType } from "@/entities/School";
 
 const owner = "street-markdown";
 
@@ -54,7 +55,7 @@ export default function Editor({
   ordinanceJson: any;
   founderJson: any;
   founderCount: number;
-  schoolType: string;
+  schoolType: SchoolType;
 }) {
   const [streetMarkdown, setStreetMarkdown] = useState<StreetMarkdown | null>(
     streetMarkdownJson ? streetMarkdownRepo.fromJson(streetMarkdownJson) : null
@@ -327,7 +328,7 @@ async function getPreprocessedText(
 async function getMarkersFromLines(
   lines: string[],
   founderId: number,
-  schoolType: string
+  schoolType: SchoolType
 ): Promise<editor.IMarkerData[]> {
   const markers: editor.IMarkerData[] = [];
   const response = await fetch("/api/text-to-map/validate", {

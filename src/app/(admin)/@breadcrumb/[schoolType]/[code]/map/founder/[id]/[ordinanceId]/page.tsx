@@ -5,22 +5,25 @@ import {
   founderMapBreadcrumb,
   editOrdinanceBreadcrumb,
 } from "@/utils/breadcrumbItems";
+import { getSchoolTypeCode } from "@/entities/School";
 
 export default async function MapBreadcrumb({
   params: { code, id, ordinanceId, schoolType },
 }: {
   params: { code: string; id: string; ordinanceId: string; schoolType: string };
 }) {
+  const schoolTypeCode = getSchoolTypeCode(schoolType);
+
   const breadcrumbItems = await Promise.all([
-    schoolTypeBreadcrumb(schoolType),
-    cityDetailBreadcrumb(code, schoolType),
+    schoolTypeBreadcrumb(schoolTypeCode),
+    cityDetailBreadcrumb(code, schoolTypeCode),
     editOrdinanceBreadcrumb(
       Number(code),
       Number(id),
       Number(ordinanceId),
-      schoolType
+      schoolTypeCode
     ),
-    founderMapBreadcrumb(code, ordinanceId, schoolType),
+    founderMapBreadcrumb(code, ordinanceId, schoolTypeCode),
   ]);
 
   return <BreadcrumbNav items={breadcrumbItems} />;

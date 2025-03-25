@@ -6,30 +6,33 @@ import {
   serializeCities,
 } from "@/components/table/fetchFunctions/loadCities";
 import CitiesTable from "@/components/table/tableWrappers/citiesTableWrappers/CitiesTable";
+import { SchoolType, getSchoolTypeCode } from "@/entities/School";
+import { routes } from "@/utils/shared/constants";
 import { texts } from "@/utils/shared/texts";
 import { Callout, Card } from "@tremor/react";
 import {
   loadNewOrdinanceMetadata,
   serializeOrdinanceMetadata,
 } from "../../../components/table/fetchFunctions/loadOrdinanceMetadata";
-import { isSchoolType, SchoolTypeValues } from "@/entities/School";
-import { notFound } from "next/navigation";
-import { routes } from "@/utils/shared/constants";
 
 export default async function Cities({
   params: { schoolType },
 }: {
   params: { schoolType: string };
 }) {
+  const schoolTypeCode = getSchoolTypeCode(schoolType);
+
   const {
     serializedCities,
     count,
     newOrdinanceMetadata,
     serializedNewOrdinanceMetadata,
   } = await api.withRemult(async () => {
-    const newOrdinanceMetadata = await loadNewOrdinanceMetadata(schoolType);
+    const newOrdinanceMetadata = await loadNewOrdinanceMetadata(schoolTypeCode);
     return {
-      serializedCities: serializeCities(await loadCities(1, 250)),
+      serializedCities: serializeCities(
+        await loadCities(1, 250, schoolTypeCode)
+      ),
       newOrdinanceMetadata,
       serializedNewOrdinanceMetadata:
         serializeOrdinanceMetadata(newOrdinanceMetadata),
@@ -38,11 +41,9 @@ export default async function Cities({
   });
 
   const pageTitle =
-    schoolType === SchoolTypeValues.kindergarten
+    schoolTypeCode === SchoolType.Kindergarten
       ? texts.schoolsKindergarten
       : texts.schoolsElementary;
-
-  const rootPath = routes[schoolType as keyof typeof routes];
 
   return (
     <Card>
@@ -56,8 +57,7 @@ export default async function Cities({
         initialData={serializedCities}
         newOrdinanceMetadata={serializedNewOrdinanceMetadata}
         count={count}
-        schoolType={schoolType}
-        rootPath={rootPath}
+        schoolType={schoolTypeCode}
       />
     </Card>
   );

@@ -6,6 +6,7 @@ import LinkButton from "@/components/buttons/LinkButton";
 import HeaderBox from "../common/HeaderBox";
 import { routes } from "@/utils/shared/constants";
 import { Colors } from "@/styles/Themes";
+import { getRootPathBySchoolType, SchoolType } from "@/entities/School";
 
 export default function OrdinanceHeader({
   cityCode,
@@ -14,9 +15,9 @@ export default function OrdinanceHeader({
 }: {
   cityCode: string;
   urlFrom?: string[];
-  schoolType: string;
+  schoolType: SchoolType;
 }) {
-  const rootPath = routes[schoolType as keyof typeof routes];
+  const rootPath = getRootPathBySchoolType(schoolType);
 
   return (
     <div className="flex justify-between mb-2">

@@ -8,17 +8,19 @@ import {
 } from "@/components/table/fetchFunctions/loadOrdinanceMetadata";
 import OrdinanceMetadataTable from "@/components/table/tableWrappers/OrdinanceMetadataTable";
 import { City } from "@/entities/City";
+import { getSchoolTypeCode } from "@/entities/School";
 import { texts } from "@/utils/shared/texts";
 import { Card } from "@tremor/react";
 import { notFound } from "next/navigation";
 import { remult } from "remult";
-import { routes } from "@/utils/shared/constants";
 
 export default async function AddOrdinance({
   params: { code, schoolType },
 }: {
   params: { code: string; schoolType: string };
 }) {
+  const schoolTypeCode = getSchoolTypeCode(schoolType);
+
   const { cityName, serializedOrdinanceMetadata, count } = await api.withRemult(
     async () => {
       const city = await remult.repo(City).findId(Number(code));
@@ -28,14 +30,12 @@ export default async function AddOrdinance({
       return {
         cityName: city.name,
         serializedOrdinanceMetadata: serializeOrdinanceMetadata(
-          await loadOrdinanceMetadata(city, 1, 50, schoolType)
+          await loadOrdinanceMetadata(city, 1, 50, schoolTypeCode)
         ),
-        count: await getOrdinanceMetadataCount(city, schoolType),
+        count: await getOrdinanceMetadataCount(city, schoolTypeCode),
       };
     }
   );
-
-  const rootPath = routes[schoolType as keyof typeof routes];
 
   return (
     <>
@@ -47,17 +47,12 @@ export default async function AddOrdinance({
           initialData={serializedOrdinanceMetadata}
           count={count}
           cityName={cityName}
-          schoolType={schoolType}
-          rootPath={rootPath}
+          schoolType={schoolTypeCode}
         />
       </Card>
       {/* BOTTOM PART OF THE VIEW */}
       <Card>
-        <UploadOrdinance
-          cityCode={code}
-          schoolType={schoolType}
-          rootPath={rootPath}
-        />
+        <UploadOrdinance cityCode={code} schoolType={schoolTypeCode} />
       </Card>
     </>
   );

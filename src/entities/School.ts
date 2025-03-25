@@ -1,5 +1,5 @@
 import { Entity, Fields } from "remult";
-
+import { routes } from "@/utils/shared/constants";
 @Entity("schools", {
   allowApiCrud: false,
   allowApiRead: true,
@@ -27,25 +27,15 @@ export enum SchoolType {
   Elementary = 1,
 }
 
-export const SchoolTypesStrings = {
-  kindergarten: "kindergarten",
-  elementary: "elementary",
-};
+export const isSchoolType = (value: string): boolean =>
+  Object.keys(SchoolType)
+    .map((key) => key.toLowerCase())
+    .includes(value.toLowerCase());
 
-export function isSchoolType(value: string): value is SchoolTypeString {
-  return Object.values(SchoolTypesStrings).includes(value as SchoolTypeString);
-}
+export const getSchoolTypeCode = (schoolType: string): SchoolType =>
+  SchoolType[schoolType as keyof typeof SchoolType] ?? SchoolType.Elementary;
 
-export type SchoolTypeString =
-  (typeof SchoolTypesStrings)[keyof typeof SchoolTypesStrings];
-
-export const SchoolTypeValues = SchoolTypesStrings;
-
-const SchoolTypeMapping: Record<SchoolTypeString, SchoolType> = {
-  [SchoolTypesStrings.kindergarten]: SchoolType.Kindergarten,
-  [SchoolTypesStrings.elementary]: SchoolType.Elementary,
-};
-
-export function getSchoolTypeCode(schoolType: string): SchoolType {
-  return SchoolTypeMapping[schoolType];
-}
+export const getRootPathBySchoolType = (schoolType: SchoolType): string =>
+  schoolType === SchoolType.Kindergarten
+    ? routes.kindergarten
+    : routes.elementary;

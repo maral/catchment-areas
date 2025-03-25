@@ -1,12 +1,17 @@
-import { City } from "@/entities/City";
+import { City, getCountPropertyBySchoolType } from "@/entities/City";
 import { Region } from "@/entities/Region";
 import { remult } from "remult";
-
+import { SchoolType } from "@/entities/School";
 const citiesRepo = remult.repo(City);
 
 // CITIES
-export async function loadCities(page: number, limit: number): Promise<City[]> {
+export async function loadCities(
+  page: number,
+  limit: number,
+  schoolType: SchoolType
+): Promise<City[]> {
   return await citiesRepo.find({
+    where: { [getCountPropertyBySchoolType(schoolType)]: { $gte: 2 } },
     limit,
     page,
     orderBy: { name: "asc" },

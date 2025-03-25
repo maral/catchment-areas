@@ -22,7 +22,7 @@ import { OrdinanceController } from "@/controllers/OrdinanceController";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import { useState } from "react";
 import { PlayIcon } from "@heroicons/react/24/outline";
-import { SchoolTypeValues } from "@/entities/School";
+import { SchoolType, getRootPathBySchoolType } from "@/entities/School";
 
 export default function OrdinancesTable({
   cityCode,
@@ -31,20 +31,20 @@ export default function OrdinancesTable({
   count,
   urlFrom,
   schoolType,
-  rootPath,
 }: {
   cityCode: number;
   founderId: number;
   initialData: any[];
   count?: number;
   urlFrom?: string[];
-  schoolType: string;
-  rootPath: string;
+  schoolType: SchoolType;
 }) {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [confirmFunction, setConfirmFunction] = useState<
     (() => Promise<void>) | null
   >(null);
+
+  const rootPath = getRootPathBySchoolType(schoolType);
 
   const columnDefinitions: ColumnDefinition<Ordinance>[] = [
     {

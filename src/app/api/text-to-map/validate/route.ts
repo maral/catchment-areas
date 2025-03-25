@@ -3,7 +3,6 @@ import { getNotLoggedInResponse, isLoggedIn } from "@/utils/server/auth";
 import { validateStreetMarkdown } from "@/utils/server/textToMap";
 import { texts } from "@/utils/shared/texts";
 import { NextRequest, NextResponse } from "next/server";
-import { getSchoolTypeCode } from "@/entities/School";
 
 export async function POST(request: NextRequest) {
   if (!(await isLoggedIn())) {
@@ -12,9 +11,7 @@ export async function POST(request: NextRequest) {
 
   const { lines, founderId, schoolType } = await request.json();
 
-  const schoolTypeCode = getSchoolTypeCode(schoolType);
-
-  const result = await validateStreetMarkdown(lines, founderId, schoolTypeCode);
+  const result = await validateStreetMarkdown(lines, founderId, schoolType);
 
   if (result === null) {
     return NextResponse.json(

@@ -13,12 +13,10 @@ export default async function MapPage({
   params: { code: string; id: string; ordinanceId: string; schoolType: string };
 }) {
   const { data, smdText } = await api.withRemult(async () => {
-    const schoolTypeCode = getSchoolTypeCode(schoolType);
-
     const data = await getOrCreateDataForMapByFounderId(
       Number(id),
       Number(ordinanceId),
-      schoolTypeCode
+      getSchoolTypeCode(schoolType)
     );
 
     const smdText = await getStreetMarkdownSourceText(

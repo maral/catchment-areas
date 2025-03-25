@@ -1,7 +1,7 @@
 import { City } from "@/entities/City";
 import { OrdinanceMetadata } from "@/entities/OrdinanceMetadata";
 import { remult } from "remult";
-import { getSchoolTypeCode } from "@/entities/School";
+import { SchoolType } from "@/entities/School";
 
 const ordinancesMetadataRepo = remult.repo(OrdinanceMetadata);
 
@@ -9,14 +9,12 @@ export async function loadOrdinanceMetadata(
   city: City,
   page: number,
   limit: number,
-  type: string
+  schoolType: SchoolType
 ): Promise<OrdinanceMetadata[]> {
-  const schoolTypeCode = getSchoolTypeCode(type);
-
   return await ordinancesMetadataRepo.find({
     where: {
       city: city.name.toLocaleLowerCase("cs"),
-      schoolType: schoolTypeCode,
+      schoolType,
     },
     limit,
     page,
@@ -25,12 +23,10 @@ export async function loadOrdinanceMetadata(
 }
 
 export async function loadNewOrdinanceMetadata(
-  type: string
+  schoolType: SchoolType
 ): Promise<OrdinanceMetadata[]> {
-  const schoolTypeCode = getSchoolTypeCode(type);
-
   return await ordinancesMetadataRepo.find({
-    where: { isNewOrdinance: true, schoolType: schoolTypeCode },
+    where: { isNewOrdinance: true, schoolType },
   });
 }
 
@@ -48,12 +44,10 @@ export function deserializeOrdinanceMetadata(
 
 export async function getOrdinanceMetadataCount(
   city: City,
-  type: string
+  schoolType: SchoolType
 ): Promise<number> {
-  const schoolTypeCode = getSchoolTypeCode(type);
-
   return await ordinancesMetadataRepo.count({
     city: city.name.toLocaleLowerCase("cs"),
-    schoolType: schoolTypeCode,
+    schoolType,
   });
 }

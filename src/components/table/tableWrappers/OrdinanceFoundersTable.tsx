@@ -6,7 +6,7 @@ import CatchmentTable from "@/components/table/CatchmentTable";
 import { OrdinanceController } from "@/controllers/OrdinanceController";
 import { Founder } from "@/entities/Founder";
 import { Ordinance } from "@/entities/Ordinance";
-import { SchoolTypeValues } from "@/entities/School";
+import { getRootPathBySchoolType, SchoolType } from "@/entities/School";
 import { Colors } from "@/styles/Themes";
 import type { ColumnDefinition } from "@/types/tableTypes";
 import { routes } from "@/utils/shared/constants";
@@ -35,15 +35,13 @@ export default function OrdinanceFoundersTable({
   count,
   urlFrom,
   schoolType,
-  rootPath,
 }: {
   cityCode: number;
   initialOrdinances: any[];
   initialFounders: any[];
   count?: number;
   urlFrom?: string[];
-  schoolType: string;
-  rootPath: string;
+  schoolType: SchoolType;
 }) {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [confirmFunction, setConfirmFunction] = useState<
@@ -57,6 +55,8 @@ export default function OrdinanceFoundersTable({
       [null, ...founders].map((founder) => ({ founder, ordinance }))
     );
   }, [initialOrdinances, initialFounders]);
+
+  const rootPath = getRootPathBySchoolType(schoolType);
 
   const columnDefinitions: ColumnDefinition<Row>[] = [
     {
@@ -76,11 +76,11 @@ export default function OrdinanceFoundersTable({
               item.ordinance.validTo?.toLocaleDateString("cs") ?? "?"
             }`
           : `${
-              schoolType == SchoolTypeValues.elementary
+              schoolType == SchoolType.Elementary
                 ? item.founder.schoolCount
                 : item.founder.kindergartenCount
             } ${texts.schoolsDeclined(
-              schoolType == SchoolTypeValues.elementary
+              schoolType == SchoolType.Elementary
                 ? item.founder.schoolCount
                 : item.founder.kindergartenCount,
               schoolType

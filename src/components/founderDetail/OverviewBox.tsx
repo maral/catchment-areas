@@ -1,15 +1,14 @@
 "use client";
 
-import { Card, Subtitle, Title } from "@tremor/react";
 import OverviewBoxButtons from "@/components/founderDetail/OverviewBoxButtons";
+import { SchoolType } from "@/entities/School";
 import { texts } from "@/utils/shared/texts";
-import { Founder } from "@/entities/Founder";
+import { Card, Subtitle, Title } from "@tremor/react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { remult } from "remult";
-import CityStatusChip from "../CityStatusChip";
-import { useRouter } from "next/navigation";
 import { City } from "../../entities/City";
-import { SchoolTypeValues } from "@/entities/School";
+import CityStatusChip from "../CityStatusChip";
 
 export default function OverviewBox({
   cityProp,
@@ -17,14 +16,12 @@ export default function OverviewBox({
   urlFrom,
   className,
   schoolType,
-  rootPath,
 }: {
   cityProp: any;
   activeOrdinanceId?: number;
   urlFrom?: string[];
   className?: string;
-  schoolType: string;
-  rootPath: string;
+  schoolType: SchoolType;
 }) {
   const [city, setCity] = useState<City>(remult.repo(City).fromJson(cityProp));
 
@@ -36,12 +33,12 @@ export default function OverviewBox({
   };
 
   const status =
-    schoolType === SchoolTypeValues.kindergarten
+    schoolType === SchoolType.Kindergarten
       ? city.statusKindergarten
       : city.statusElementary;
 
   const count =
-    schoolType === SchoolTypeValues.kindergarten
+    schoolType === SchoolType.Kindergarten
       ? city.kindergartenCount
       : city.schoolCount;
 
@@ -64,7 +61,6 @@ export default function OverviewBox({
         fetchCity={fetchFounder}
         activeOrdinanceId={activeOrdinanceId}
         urlFrom={urlFrom}
-        rootPath={rootPath}
         schoolType={schoolType}
       />
     </Card>

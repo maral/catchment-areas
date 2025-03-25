@@ -11,13 +11,11 @@ export default async function MapPage({
 }) {
   const cityCode = Number(code);
 
-  const schoolTypeCode = getSchoolTypeCode(schoolType);
-
   const data = await api.withRemult(async () =>
     getOrCreateDataForMapByCityCode(
       cityCode,
       Number(ordinanceId),
-      schoolTypeCode
+      getSchoolTypeCode(schoolType)
     )
   );
 

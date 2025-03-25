@@ -1,61 +1,56 @@
 "use client";
 
-import { City, CityStatus } from "@/entities/City";
+import {
+  City,
+  CityStatus,
+  getStatusPropertyBySchoolType,
+} from "@/entities/City";
+import { SchoolType, getRootPathBySchoolType } from "@/entities/School";
 import { Colors } from "@/styles/Themes";
 import { routes } from "@/utils/shared/constants";
 import { texts } from "@/utils/shared/texts";
 import { ArrowDownTrayIcon } from "@heroicons/react/24/outline";
-import { MapPinIcon, PencilSquareIcon } from "@heroicons/react/24/solid";
+import { MapPinIcon } from "@heroicons/react/24/solid";
 import { Button } from "@tremor/react";
 import { useState } from "react";
 import { remult } from "remult";
 import LinkButton from "../buttons/LinkButton";
-import { SchoolTypeValues, getSchoolTypeCode } from "@/entities/School";
-import { getStatusPropertyBySchoolType } from "@/entities/City";
 
 export default function OverviewBoxButtons({
   city,
   fetchCity,
   activeOrdinanceId,
   urlFrom,
-  rootPath,
   schoolType,
 }: {
   city: City;
   fetchCity: () => Promise<void>;
   activeOrdinanceId?: number;
   urlFrom?: string[];
-  rootPath: string;
-  schoolType: string;
+  schoolType: SchoolType;
 }) {
   const [loading, setLoading] = useState<boolean>(false);
 
-  const schoolTypeCode = getSchoolTypeCode(schoolType);
-  const statusParam = getStatusPropertyBySchoolType(schoolTypeCode);
+  const statusParam = getStatusPropertyBySchoolType(schoolType);
+
+  const rootPath = getRootPathBySchoolType(schoolType);
 
   const setAsPublished = async () => {
     setLoading(true);
 
-    let statusObject: {
-      [key: string]: CityStatus;
-    } = {};
-
-    statusObject[statusParam] = CityStatus.Published;
-
-    await remult.repo(City).save({ ...city, ...statusObject });
+    await remult
+      .repo(City)
+      .save({ ...city, [statusParam]: CityStatus.Published });
     await fetchCity();
     setLoading(false);
   };
 
   const setAsInProgress = async () => {
     setLoading(true);
-    let statusObject: {
-      [key: string]: CityStatus;
-    } = {};
 
-    statusObject[statusParam] = CityStatus.InProgress;
-
-    await remult.repo(City).save({ ...city, ...statusObject });
+    await remult
+      .repo(City)
+      .save({ ...city, [statusParam]: CityStatus.InProgress });
     await fetchCity();
     setLoading(false);
   };
@@ -78,7 +73,6 @@ export default function OverviewBoxButtons({
           color={Colors.Primary}
           variant="secondary"
           loading={loading}
-          disabled={city[statusParam] != CityStatus.InProgress}
           onClick={async () => await setAsPublished()}
         >
           {texts.setAsPublished}

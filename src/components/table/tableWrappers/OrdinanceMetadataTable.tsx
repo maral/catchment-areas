@@ -4,7 +4,7 @@ import CatchmentTable from "@/components/table/CatchmentTable";
 import { OrdinanceController } from "@/controllers/OrdinanceController";
 import { City } from "@/entities/City";
 import { OrdinanceMetadata } from "@/entities/OrdinanceMetadata";
-import { getSchoolTypeCode } from "@/entities/School";
+import { getRootPathBySchoolType, SchoolType } from "@/entities/School";
 import { Colors } from "@/styles/Themes";
 import type { ColumnDefinition } from "@/types/tableTypes";
 import { routes } from "@/utils/shared/constants";
@@ -27,21 +27,19 @@ export default function OrdinanceMetadataTable({
   count,
   initialData,
   schoolType,
-  rootPath,
 }: {
   cityCode: string;
   cityName: string;
   count: number;
   initialData: any[];
-  schoolType: string;
-  rootPath: string;
+  schoolType: SchoolType;
 }) {
   const [addingOrdinanceId, setAddingOrdinanceId] = useState("");
   const [key, setKey] = useState(0);
 
   const router = useRouter();
 
-  const schoolTypeCode = getSchoolTypeCode(schoolType);
+  const rootPath = getRootPathBySchoolType(schoolType);
 
   const addOrdinanceFromCollection = async (ordinanceMetadataId: string) => {
     const response = await fetch("/api/ordinances/add-from-collection", {
@@ -52,7 +50,7 @@ export default function OrdinanceMetadataTable({
       body: JSON.stringify({
         cityCode,
         ordinanceMetadataId,
-        schoolType: schoolTypeCode,
+        schoolType: schoolType,
         redirectRootUrl: rootPath,
       }),
     });
@@ -63,7 +61,7 @@ export default function OrdinanceMetadataTable({
       if (result.success) {
         OrdinanceController.determineActiveOrdinanceByCityCode(
           Number(cityCode),
-          schoolTypeCode
+          schoolType
         );
         const city = await remult
           .repo(City)
