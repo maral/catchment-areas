@@ -165,7 +165,7 @@ export const addUserBreadcrumb: BreadcrumbItem = {
 };
 
 // HELPER FUNCTIONS
-export const cityFromBreadcrumb = async (type: string, from?: string[]) => {
+export const cityFromBreadcrumb = async (type: SchoolType, from?: string[]) => {
   const breadcrumbItems: BreadcrumbItem[] = [];
   if (from && from.length >= 2) {
     if (from[0] === modules.regions) {

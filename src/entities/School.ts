@@ -32,8 +32,16 @@ export const isSchoolType = (value: string): boolean =>
     .map((key) => key.toLowerCase())
     .includes(value.toLowerCase());
 
-export const getSchoolTypeCode = (schoolType: string): SchoolType =>
-  SchoolType[schoolType as keyof typeof SchoolType] ?? SchoolType.Elementary;
+export const getSchoolTypeCode = (schoolType: string): SchoolType => {
+  switch (schoolType.toLowerCase()) {
+    case "kindergarten":
+      return SchoolType.Kindergarten;
+    case "elementary":
+      return SchoolType.Elementary;
+    default:
+      return SchoolType.Elementary;
+  }
+};
 
 export const getRootPathBySchoolType = (schoolType: SchoolType): string =>
   schoolType === SchoolType.Kindergarten
