@@ -6,14 +6,19 @@ import LinkButton from "@/components/buttons/LinkButton";
 import HeaderBox from "../common/HeaderBox";
 import { routes } from "@/utils/shared/constants";
 import { Colors } from "@/styles/Themes";
+import { getRootPathBySchoolType, SchoolType } from "@/entities/School";
 
 export default function OrdinanceHeader({
   cityCode,
   urlFrom,
+  schoolType,
 }: {
   cityCode: string;
   urlFrom?: string[];
+  schoolType: SchoolType;
 }) {
+  const rootPath = getRootPathBySchoolType(schoolType);
+
   return (
     <div className="flex justify-between mb-2">
       <HeaderBox title={texts.ordinances} />
@@ -21,8 +26,8 @@ export default function OrdinanceHeader({
         className="m-2"
         href={
           urlFrom && urlFrom.length >= 2
-            ? `${routes.cities}/${cityCode}${routes.addOrdinance}/${urlFrom[0]}/${urlFrom[1]}`
-            : `${routes.cities}/${cityCode}${routes.addOrdinance}`
+            ? `${rootPath}/${cityCode}${routes.addOrdinance}/${urlFrom[0]}/${urlFrom[1]}`
+            : `${rootPath}/${cityCode}${routes.addOrdinance}`
         }
         buttonProps={{ color: Colors.Primary, icon: PlusIcon }}
       >

@@ -1,15 +1,18 @@
 import { getAdminRemultAPI } from "@/app/api/[...remult]/config";
-import { CityController } from "../controllers/CityController";
+import { SchoolType } from "@/entities/School";
 import { KnexDataProvider } from "remult/remult-knex";
+import { CityController } from "../controllers/CityController";
 import { getOrCreateDataForMapByCityCode } from "../utils/server/textToMap";
 
+// TODO: add support for kindergartens
 const main = async () => {
   console.log("Starting...");
   const api = getAdminRemultAPI();
   await api.withRemult(async () => {
     const cities = await CityController.loadPublishedCities();
     const ordinances = await CityController.loadActiveOrdinancesByCityCodes(
-      cities.map((f) => f.code)
+      cities.map((c) => c.code),
+      SchoolType.Elementary
     );
 
     const total = cities.reduce((sum, city) => {
@@ -32,7 +35,11 @@ const main = async () => {
       }
 
       console.log(`Processing ${city.name}...`);
-      await getOrCreateDataForMapByCityCode(city.code, ordinance.id);
+      await getOrCreateDataForMapByCityCode(
+        city.code,
+        ordinance.id,
+        SchoolType.Elementary
+      );
       processed += 1;
       console.log(`Processed ${processed}/${total} - ${city.name}`);
     }

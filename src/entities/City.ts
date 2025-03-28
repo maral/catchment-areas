@@ -1,4 +1,5 @@
 import { Region } from "@/entities/Region";
+import { SchoolType } from "@/entities/School";
 import { Entity, Field, Fields } from "remult";
 import { County } from "./County";
 import { Orp } from "./Orp";
@@ -35,8 +36,14 @@ export class City {
   @Fields.integer({ dbName: "school_count" })
   schoolCount = 0;
 
-  @Fields.integer()
-  status = 0;
+  @Fields.integer({ dbName: "kindergarten_count" })
+  kindergartenCount = 0;
+
+  @Fields.integer({ dbName: "status_elementary" })
+  statusElementary = 0;
+
+  @Fields.integer({ dbName: "status_kindergarten" })
+  statusKindergarten = 0;
 }
 
 export enum CityStatus {
@@ -44,4 +51,26 @@ export enum CityStatus {
   NoActiveOrdinance,
   InProgress,
   Published,
+}
+
+export function getStatusPropertyBySchoolType(
+  schoolType: SchoolType
+): keyof City {
+  switch (schoolType) {
+    case SchoolType.Elementary:
+      return "statusElementary";
+    case SchoolType.Kindergarten:
+      return "statusKindergarten";
+  }
+}
+
+export function getCountPropertyBySchoolType(
+  schoolType: SchoolType
+): keyof City {
+  switch (schoolType) {
+    case SchoolType.Elementary:
+      return "schoolCount";
+    case SchoolType.Kindergarten:
+      return "kindergartenCount";
+  }
 }

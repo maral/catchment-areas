@@ -1,3 +1,5 @@
+import { SchoolType } from "@/entities/School";
+
 export const texts = {
   actions: "Akce",
   active: "Aktivní",
@@ -72,7 +74,10 @@ export const texts = {
   noDataOrdinanceFromRegister:
     "Obec {{city}} nemá ve Sbírce právních předpisů nahranou žádnou vyhlášku.",
   notRegistered: "neregistrovaný",
-  numberOfSchools: "Počet škol",
+  numberOfSchools: (schoolType: SchoolType) =>
+    schoolType === SchoolType.Elementary
+      ? "Počet zakladních škol"
+      : "Počet mateřských škol",
   ordinanceDocument: "Dokument vyhlášky",
   ordinanceFile: "Soubor vyhlášky",
   ordinanceName: "Název vyhlášky",
@@ -101,12 +106,21 @@ export const texts = {
   schoolEditorLabel: "škola",
   school: "Škola",
   schools: "Školy",
-  schoolsDeclined: (schoolsCount: number) =>
-    schoolsCount === 1
-      ? "škola"
-      : 2 <= schoolsCount && schoolsCount <= 4
-      ? "školy"
-      : "škol",
+  schoolsDeclined: (schoolsCount: number, schoolType: SchoolType) => {
+    const schoolForms = ["škola", "školy", "škol"];
+    const elementaryForms = ["základní", "základní", "základních"];
+    const kindergartenForms = ["mateřská", "mateřské", "mateřských"];
+
+    const index = schoolsCount === 1 ? 0 : schoolsCount <= 4 ? 1 : 2;
+    const typeForms =
+      schoolType === SchoolType.Elementary
+        ? elementaryForms
+        : kindergartenForms;
+
+    return `${typeForms[index]} ${schoolForms[index]}`;
+  },
+  schoolsElementary: "Základní školy",
+  schoolsKindergarten: "Mateřské školy",
   selectDate: "Vyberte datum...",
   setActive: "Nastavit jako Aktivní",
   setAsInProgress: 'Označit jako "Rozpracováno"',

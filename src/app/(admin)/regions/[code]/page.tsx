@@ -10,6 +10,7 @@ import { Region } from "@/entities/Region";
 import { Card } from "@tremor/react";
 import { remult } from "remult";
 import { CityController } from "@/controllers/CityController";
+import { SchoolType } from "../../../../entities/School";
 
 export default async function RegionDetailPage({
   params: { code },
@@ -23,7 +24,8 @@ export default async function RegionDetailPage({
       const cities = await loadCitiesByRegion(regionCode, 1, 50);
       const cityCodes = cities.map((city) => city.code);
       const ordinances = await CityController.loadActiveOrdinancesByCityCodes(
-        cityCodes
+        cityCodes,
+        SchoolType.Elementary
       );
       return {
         region,

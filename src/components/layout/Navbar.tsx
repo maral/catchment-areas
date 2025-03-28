@@ -34,9 +34,15 @@ export default function Navbar({ className }: { className?: string }) {
         <div className="flex-grow flex flex-col justify-between">
           <List className="mt-6">
             <MenuItem
-              href={routes.cities}
+              href={routes.elementary}
               icon={ShieldCheckIcon}
-              text={texts.cities}
+              text={texts.schoolsElementary}
+              requiredRole={Role.Editor}
+            />
+            <MenuItem
+              href={routes.kindergarten}
+              icon={ShieldCheckIcon}
+              text={texts.schoolsKindergarten}
               requiredRole={Role.Editor}
             />
 
@@ -45,14 +51,6 @@ export default function Navbar({ className }: { className?: string }) {
               icon={BuildingOffice2Icon}
               text={texts.regions}
             />
-
-            <MenuItem
-              href={routes.counties}
-              icon={BuildingOfficeIcon}
-              text={texts.counties}
-            />
-
-            <MenuItem href={routes.orps} icon={MapPinIcon} text={texts.orp} />
 
             <MenuItem
               href={routes.users}

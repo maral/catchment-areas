@@ -1,4 +1,5 @@
 import { Allow, Entity, EntityBase, Fields } from "remult";
+import { SchoolType } from "./School";
 
 @Entity("ordinance-metadata", {
   allowApiCrud: Allow.authenticated,
@@ -7,6 +8,12 @@ import { Allow, Entity, EntityBase, Fields } from "remult";
 export class OrdinanceMetadata extends EntityBase {
   @Fields.string()
   id = "";
+
+  @Fields.integer({ dbName: "city_code", allowNull: true })
+  cityCode: number | null = null;
+
+  @Fields.integer({ dbName: "school_type" })
+  schoolType = SchoolType.Elementary;
 
   @Fields.string()
   name = "";
@@ -43,7 +50,4 @@ export class OrdinanceMetadata extends EntityBase {
 
   @Fields.boolean({ dbName: "is_rejected" })
   isRejected = false;
-
-  @Fields.integer({ dbName: "city_code", allowNull: true })
-  cityCode: number | null = null;
 }

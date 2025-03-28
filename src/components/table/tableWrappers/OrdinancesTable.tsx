@@ -22,6 +22,7 @@ import { OrdinanceController } from "@/controllers/OrdinanceController";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import { useState } from "react";
 import { PlayIcon } from "@heroicons/react/24/outline";
+import { SchoolType, getRootPathBySchoolType } from "@/entities/School";
 
 export default function OrdinancesTable({
   cityCode,
@@ -29,17 +30,21 @@ export default function OrdinancesTable({
   initialData,
   count,
   urlFrom,
+  schoolType,
 }: {
   cityCode: number;
   founderId: number;
   initialData: any[];
   count?: number;
   urlFrom?: string[];
+  schoolType: SchoolType;
 }) {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [confirmFunction, setConfirmFunction] = useState<
     (() => Promise<void>) | null
   >(null);
+
+  const rootPath = getRootPathBySchoolType(schoolType);
 
   const columnDefinitions: ColumnDefinition<Ordinance>[] = [
     {
@@ -66,8 +71,8 @@ export default function OrdinancesTable({
             className="inline-block"
             href={
               urlFrom && urlFrom.length >= 2
-                ? `${routes.cities}/${cityCode}${routes.editOrdinance}/${founderId}/${urlFrom[0]}/${urlFrom[1]}/${item.id}`
-                : `${routes.cities}/${cityCode}${routes.editOrdinance}/${founderId}/${item.id}`
+                ? `${rootPath}/${cityCode}${routes.editOrdinance}/${founderId}/${urlFrom[0]}/${urlFrom[1]}/${item.id}`
+                : `${rootPath}/${cityCode}${routes.editOrdinance}/${founderId}/${item.id}`
             }
             prefetch={false}
           >
@@ -92,7 +97,7 @@ export default function OrdinancesTable({
           </Link>
           <Link
             className="inline-block"
-            href={`${routes.cities}/${cityCode}${routes.map}/${item.id}`}
+            href={`${rootPath}/${cityCode}${routes.map}/${item.id}`}
             target="_blank"
           >
             <IconButton
@@ -132,8 +137,8 @@ export default function OrdinancesTable({
     },
   ];
 
-  const fetchItems = async (page: number, limit: number) => {
-    return loadOrdinancesByCityCode(cityCode);
+  const fetchItems = async () => {
+    return loadOrdinancesByCityCode(cityCode, schoolType);
   };
 
   return (

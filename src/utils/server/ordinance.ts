@@ -11,7 +11,8 @@ async function insertOrdinance(
   validFrom: Date,
   validTo: Date | undefined,
   serialNumber: string,
-  result: TextExtractionResult
+  result: TextExtractionResult,
+  schoolTypeCode: number
 ): Promise<number | null> {
   if (!result.text || !result.fileName) {
     return null;
@@ -31,6 +32,7 @@ async function insertOrdinance(
       fileName: result.fileName ?? "",
       isActive,
       city,
+      schoolType: schoolTypeCode,
     });
   });
 
@@ -51,19 +53,22 @@ export async function insertOrdinanceAndGetResponse(
   validFrom: Date,
   validTo: Date | undefined,
   serialNumber: string,
-  result: TextExtractionResult
+  result: TextExtractionResult,
+  schoolTypeCode: number,
+  redirectRootUrl: string
 ): Promise<AddOrdinanceResponse> {
   const ordinanceId = await insertOrdinance(
     cityCode,
     validFrom,
     validTo,
     serialNumber,
-    result
+    result,
+    schoolTypeCode
   );
 
   if (ordinanceId) {
     revalidatePath(
-      `${routes.cities}/[code]${routes.detail}/[[...from]]`,
+      `${redirectRootUrl}/[code]${routes.detail}/[[...from]]`,
       "page"
     );
     return {

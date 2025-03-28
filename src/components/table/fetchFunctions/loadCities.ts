@@ -1,14 +1,17 @@
-import { City } from "@/entities/City";
+import { City, getCountPropertyBySchoolType } from "@/entities/City";
 import { Region } from "@/entities/Region";
 import { remult } from "remult";
-import { County } from "../../../entities/County";
-import { Orp } from "../../../entities/Orp";
-
+import { SchoolType } from "@/entities/School";
 const citiesRepo = remult.repo(City);
 
 // CITIES
-export async function loadCities(page: number, limit: number): Promise<City[]> {
+export async function loadCities(
+  page: number,
+  limit: number,
+  schoolType: SchoolType
+): Promise<City[]> {
   return await citiesRepo.find({
+    where: { [getCountPropertyBySchoolType(schoolType)]: { $gte: 2 } },
     limit,
     page,
     orderBy: { name: "asc" },
@@ -39,48 +42,6 @@ export async function getCitiesCountByRegion(
 ): Promise<number> {
   const region = await remult.repo(Region).findId(regionCode);
   return await citiesRepo.count({ region });
-}
-
-// CITIES BY COUNTY
-export async function loadCitiesByCounty(
-  countyCode: number,
-  page: number,
-  limit: number
-): Promise<City[]> {
-  const county = await remult.repo(County).findId(countyCode);
-  return await citiesRepo.find({
-    limit,
-    page,
-    where: { county },
-    orderBy: { name: "asc" },
-  });
-}
-
-export async function getCitiesCountByCounty(
-  countyCode: number
-): Promise<number> {
-  const county = await remult.repo(County).findId(countyCode);
-  return await citiesRepo.count({ county });
-}
-
-// CITIES BY ORP
-export async function loadCitiesByOrp(
-  orpCode: number,
-  page: number,
-  limit: number
-): Promise<City[]> {
-  const orp = await remult.repo(Orp).findId(orpCode);
-  return await citiesRepo.find({
-    limit,
-    page,
-    where: { orp },
-    orderBy: { name: "asc" },
-  });
-}
-
-export async function getCitiesCountByOrp(orpCode: number): Promise<number> {
-  const orp = await remult.repo(Orp).findId(orpCode);
-  return await citiesRepo.count({ orp });
 }
 
 // TRANSFORM DATA

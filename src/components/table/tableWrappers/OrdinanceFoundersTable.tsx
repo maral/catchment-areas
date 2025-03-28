@@ -6,13 +6,13 @@ import CatchmentTable from "@/components/table/CatchmentTable";
 import { OrdinanceController } from "@/controllers/OrdinanceController";
 import { Founder } from "@/entities/Founder";
 import { Ordinance } from "@/entities/Ordinance";
+import { getRootPathBySchoolType, SchoolType } from "@/entities/School";
 import { Colors } from "@/styles/Themes";
 import type { ColumnDefinition } from "@/types/tableTypes";
 import { routes } from "@/utils/shared/constants";
 import { texts } from "@/utils/shared/texts";
 import {
   ArrowDownTrayIcon,
-  BoltIcon,
   MapIcon,
   PencilSquareIcon,
   TrashIcon,
@@ -34,12 +34,14 @@ export default function OrdinanceFoundersTable({
   initialOrdinances,
   count,
   urlFrom,
+  schoolType,
 }: {
   cityCode: number;
   initialOrdinances: any[];
   initialFounders: any[];
   count?: number;
   urlFrom?: string[];
+  schoolType: SchoolType;
 }) {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [confirmFunction, setConfirmFunction] = useState<
@@ -53,6 +55,8 @@ export default function OrdinanceFoundersTable({
       [null, ...founders].map((founder) => ({ founder, ordinance }))
     );
   }, [initialOrdinances, initialFounders]);
+
+  const rootPath = getRootPathBySchoolType(schoolType);
 
   const columnDefinitions: ColumnDefinition<Row>[] = [
     {
@@ -71,8 +75,15 @@ export default function OrdinanceFoundersTable({
           ? `${item.ordinance.validFrom.toLocaleDateString("cs")}–${
               item.ordinance.validTo?.toLocaleDateString("cs") ?? "?"
             }`
-          : `${item.founder.schoolCount} ${texts.schoolsDeclined(
-              item.founder.schoolCount
+          : `${
+              schoolType == SchoolType.Elementary
+                ? item.founder.schoolCount
+                : item.founder.kindergartenCount
+            } ${texts.schoolsDeclined(
+              schoolType == SchoolType.Elementary
+                ? item.founder.schoolCount
+                : item.founder.kindergartenCount,
+              schoolType
             )}`,
     },
     {
@@ -93,8 +104,8 @@ export default function OrdinanceFoundersTable({
               className="inline-block"
               href={
                 urlFrom && urlFrom.length >= 2
-                  ? `${routes.cities}/${cityCode}${routes.editOrdinance}/${item.founder.id}/${urlFrom[0]}/${urlFrom[1]}/${item.ordinance.id}`
-                  : `${routes.cities}/${cityCode}${routes.editOrdinance}/${item.founder.id}/${item.ordinance.id}`
+                  ? `${rootPath}/${cityCode}${routes.editOrdinance}/${item.founder.id}/${urlFrom[0]}/${urlFrom[1]}/${item.ordinance.id}`
+                  : `${rootPath}/${cityCode}${routes.editOrdinance}/${item.founder.id}/${item.ordinance.id}`
               }
               prefetch={false}
             >
@@ -138,7 +149,7 @@ export default function OrdinanceFoundersTable({
 
           <Link
             className="inline-block"
-            href={`${routes.cities}/${cityCode}${routes.map}/${
+            href={`${rootPath}/${cityCode}${routes.map}/${
               item.founder !== null ? `founder/${item.founder.id}/` : ""
             }${item.ordinance.id}`}
             target="_blank"

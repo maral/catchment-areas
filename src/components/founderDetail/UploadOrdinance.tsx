@@ -1,21 +1,22 @@
 "use client";
 
-import { texts } from "@/utils/shared/texts";
-import { Button, DatePicker, Subtitle, TextInput } from "@tremor/react";
-import { Formik, Form, Field, FieldProps } from "formik";
-import { cs } from "date-fns/locale";
-import * as Yup from "yup";
-import Header from "../common/Header";
-import { Colors } from "@/styles/Themes";
 import { OrdinanceController } from "@/controllers/OrdinanceController";
-import { useRouter } from "next/navigation";
+import { SchoolType, getRootPathBySchoolType } from "@/entities/School";
+import { Colors } from "@/styles/Themes";
 import { routes } from "@/utils/shared/constants";
+import { texts } from "@/utils/shared/texts";
+import { Button, DatePicker, TextInput } from "@tremor/react";
+import { cs } from "date-fns/locale";
+import { Field, FieldProps, Formik } from "formik";
+import { useRouter } from "next/navigation";
+import * as Yup from "yup";
 import {
   ErrorWrapper,
   InputSubtitle,
   StyledErrorMessage,
   StyledForm,
 } from "../common/Forms";
+import Header from "../common/Header";
 
 interface FormValues {
   validFrom: Date | undefined;
@@ -24,17 +25,27 @@ interface FormValues {
   file: File | null;
 }
 
-export default function UploadOrdinance({ cityCode }: { cityCode: string }) {
+export default function UploadOrdinance({
+  cityCode,
+  schoolType,
+}: {
+  cityCode: string;
+  schoolType: SchoolType;
+}) {
   const router = useRouter();
 
   const onSubmit = async (values: FormValues) => {
     const data = new FormData();
+
+    const rootPath = getRootPathBySchoolType(schoolType);
 
     data.set("file", values.file!);
     data.set("validFrom", values.validFrom!.toISOString());
     data.set("validTo", values.validTo ? values.validTo.toISOString() : "");
     data.set("serialNumber", values.serialNumber);
     data.set("cityCode", cityCode);
+    data.set("schoolType", schoolType.toString());
+    data.set("redirectRootUrl", rootPath);
 
     const res = await fetch("/api/ordinances/add-from-upload", {
       method: "POST",
@@ -45,9 +56,10 @@ export default function UploadOrdinance({ cityCode }: { cityCode: string }) {
       const result = await res.json();
       if (result.success) {
         OrdinanceController.determineActiveOrdinanceByCityCode(
-          Number(cityCode)
+          Number(cityCode),
+          schoolType
         );
-        router.push(`${routes.cities}/${cityCode}${routes.detail}`);
+        router.push(`${rootPath}/${cityCode}${routes.detail}`);
         return;
       }
     } else {

@@ -75,14 +75,6 @@ export const routes: Route[] = [
     role: Role.Editor,
   },
   {
-    matcher: pathToRegexp("/counties(.*)"),
-    role: Role.Editor,
-  },
-  {
-    matcher: pathToRegexp("/orps(.*)"),
-    role: Role.Editor,
-  },
-  {
     matcher: pathToRegexp("/founders(.*)"),
     role: Role.User,
   },

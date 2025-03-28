@@ -14,6 +14,8 @@ export async function POST(req: NextRequest) {
   const validTo = data.get("validTo") as string;
   const serialNumber = data.get("serialNumber") as string;
   const cityCode = Number(data.get("cityCode"));
+  const schoolType = Number(data.get("schoolType"));
+  const redirectRootUrl = data.get("redirectRootUrl") as string;
 
   if (!file) {
     return NextResponse.json({ success: false }, { status: 400 });
@@ -27,7 +29,9 @@ export async function POST(req: NextRequest) {
       new Date(validFrom),
       validTo.length > 0 ? new Date(validTo) : undefined,
       serialNumber,
-      result
+      result,
+      schoolType,
+      redirectRootUrl
     )
   );
 }

@@ -9,8 +9,6 @@ import {
 } from "remult";
 import { City } from "./City";
 import { CityDistrict } from "./CityDistrict";
-import { County } from "./County";
-import { Orp } from "./Orp";
 import { Region } from "./Region";
 import { School } from "./School";
 import { SchoolFounder } from "./SchoolFounder";
@@ -49,9 +47,6 @@ export class Founder extends EntityBase {
   })
   cityDistrict?: CityDistrict;
 
-  @Fields.integer()
-  status = 0;
-
   @Field(() => School, {
     lazy: true,
     serverExpression: (founder: Founder) =>
@@ -65,6 +60,9 @@ export class Founder extends EntityBase {
   @Fields.integer({ dbName: "school_count" })
   schoolCount = 0;
 
+  @Fields.integer({ dbName: "kindergarten_count" })
+  kindergartenCount = 0;
+
   static filterByRegion = Filter.createCustom<Founder, { regionCode: string }>(
     async ({ regionCode }) => {
       const region = await remult
@@ -72,26 +70,6 @@ export class Founder extends EntityBase {
         .findFirst({ code: Number(regionCode) });
       return {
         city: { $in: await remult.repo(City).find({ where: { region } }) },
-      };
-    }
-  );
-
-  static filterByCounty = Filter.createCustom<Founder, { countyCode: string }>(
-    async ({ countyCode }) => {
-      const county = await remult
-        .repo(County)
-        .findFirst({ code: Number(countyCode) });
-      return {
-        city: { $in: await remult.repo(City).find({ where: { county } }) },
-      };
-    }
-  );
-
-  static filterByOrp = Filter.createCustom<Founder, { orpCode: string }>(
-    async ({ orpCode }) => {
-      const orp = await remult.repo(Orp).findFirst({ code: Number(orpCode) });
-      return {
-        city: { $in: await remult.repo(City).find({ where: { orp } }) },
       };
     }
   );

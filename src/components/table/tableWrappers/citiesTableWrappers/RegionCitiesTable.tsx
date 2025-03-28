@@ -52,7 +52,7 @@ export default function RegionCitiesTable({
     },
     {
       title: texts.status,
-      cellFactory: (item) => <CityStatusChip cityStatus={item.status} />,
+      cellFactory: (item) => <CityStatusChip cityStatus={item.statusElementary} />,
     },
     {
       title: "",

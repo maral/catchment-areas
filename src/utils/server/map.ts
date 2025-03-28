@@ -14,7 +14,7 @@ export async function getCitiesForMap(): Promise<CityOnMap[] | null> {
           code: city.code,
           name: city.name,
           isPublished:
-            city.status === CityStatus.Published ||
+            city.statusElementary === CityStatus.Published ||
             (acc[city.code] && acc[city.code].isPublished),
           lat: city.latitude,
           lng: city.longitude,

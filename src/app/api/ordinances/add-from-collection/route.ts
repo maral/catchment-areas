@@ -1,19 +1,21 @@
 import { api } from "@/app/api/[...remult]/api";
 import { OrdinanceMetadata } from "@/entities/OrdinanceMetadata";
-import { isLoggedIn, getNotLoggedInResponse } from "@/utils/server/auth";
+import { SchoolType } from "@/entities/School";
+import { getNotLoggedInResponse, isLoggedIn } from "@/utils/server/auth";
 import { insertOrdinanceAndGetResponse } from "@/utils/server/ordinance";
+import { syncNewOrdinances } from "@/utils/server/ordinanceMetadataSync";
 import { downloadAndExtractText } from "@/utils/server/textExtraction";
 import { getOrdinanceDocumentDownloadLink } from "@/utils/shared/ordinanceMetadata";
 import { NextRequest, NextResponse } from "next/server";
 import { remult } from "remult";
-import { syncNewOrdinances } from "../../../../utils/server/ordinanceMetadataSync";
 
 export async function POST(request: NextRequest) {
   if (!(await isLoggedIn())) {
     return getNotLoggedInResponse();
   }
 
-  const { cityCode, ordinanceMetadataId } = await request.json();
+  const { cityCode, ordinanceMetadataId, schoolType, redirectRootUrl } =
+    await request.json();
 
   const documentUrl = getOrdinanceDocumentDownloadLink(ordinanceMetadataId);
 
@@ -28,11 +30,13 @@ export async function POST(request: NextRequest) {
     ordinanceMetadata.validFrom,
     ordinanceMetadata.validTo,
     ordinanceMetadata.number,
-    result
+    result,
+    schoolType,
+    redirectRootUrl
   );
 
   await api.withRemult(async () => {
-    await syncNewOrdinances();
+    await syncNewOrdinances(schoolType);
   });
 
   return NextResponse.json(response);
