@@ -63,7 +63,7 @@ export default function OverviewBoxButtons({
           color={Colors.Secondary}
           variant="secondary"
           loading={loading}
-          onClick={async () => await setAsInProgress()}
+          onClick={setAsInProgress}
         >
           {texts.setAsInProgress}
         </Button>
@@ -73,7 +73,7 @@ export default function OverviewBoxButtons({
           color={Colors.Primary}
           variant="secondary"
           loading={loading}
-          onClick={async () => await setAsPublished()}
+          onClick={setAsPublished}
         >
           {texts.setAsPublished}
         </Button>
