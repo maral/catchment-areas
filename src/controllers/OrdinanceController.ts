@@ -1,5 +1,5 @@
 import { Ordinance } from "@/entities/Ordinance";
-import { SchoolType } from "@/entities/School";
+import { SchoolType } from "@/types/basicTypes";
 import { BackendMethod, remult } from "remult";
 import {
   City,

@@ -8,7 +8,8 @@ import {
   loadCities,
 } from "@/components/table/fetchFunctions/loadCities";
 import { City } from "@/entities/City";
-import { SchoolType, getRootPathBySchoolType } from "@/entities/School";
+import { getRootPathBySchoolType } from "@/entities/School";
+import { SchoolType } from "@/types/basicTypes";
 import type { ColumnDefinition } from "@/types/tableTypes";
 import { routes } from "@/utils/shared/constants";
 import { texts } from "@/utils/shared/texts";

@@ -3,8 +3,9 @@ import { StreetMarkdownControllerServer } from "@/controllers/StreetMarkdownCont
 import { Founder, FounderType } from "@/entities/Founder";
 import { MapData } from "@/entities/MapData";
 import { Ordinance } from "@/entities/Ordinance";
-import { School, SchoolType } from "@/entities/School";
+import { School } from "@/entities/School";
 import { StreetMarkdown } from "@/entities/StreetMarkdown";
+import { SchoolType } from "@/types/basicTypes";
 import { DataForMap, DataForMapByCityCodes, SmdText } from "@/types/mapTypes";
 import { remult } from "remult";
 import {

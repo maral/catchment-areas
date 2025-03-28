@@ -1,16 +1,16 @@
 import { api } from "@/app/api/[...remult]/api";
 import HeaderBox from "@/components/common/HeaderBox";
 import {
-  loadCitiesByRegion,
   getCitiesCountByRegion,
+  loadCitiesByRegion,
   serializeCities,
 } from "@/components/table/fetchFunctions/loadCities";
 import RegionCitiesTable from "@/components/table/tableWrappers/citiesTableWrappers/RegionCitiesTable";
+import { CityController } from "@/controllers/CityController";
 import { Region } from "@/entities/Region";
+import { SchoolType } from "@/types/basicTypes";
 import { Card } from "@tremor/react";
 import { remult } from "remult";
-import { CityController } from "@/controllers/CityController";
-import { SchoolType } from "../../../../entities/School";
 
 export default async function RegionDetailPage({
   params: { code },

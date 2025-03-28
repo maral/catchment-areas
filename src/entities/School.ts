@@ -1,5 +1,7 @@
-import { Entity, Fields } from "remult";
+import { SchoolType } from "@/types/basicTypes";
 import { routes } from "@/utils/shared/constants";
+import { Entity, Fields } from "remult";
+
 @Entity("schools", {
   allowApiCrud: false,
   allowApiRead: true,
@@ -20,11 +22,6 @@ export class School {
 
   @Fields.object({ dbName: "type" })
   type = SchoolType.Elementary;
-}
-
-export enum SchoolType {
-  Kindergarten = 0,
-  Elementary = 1,
 }
 
 export const isSchoolType = (value: string): boolean =>

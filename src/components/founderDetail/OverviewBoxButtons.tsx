@@ -5,8 +5,9 @@ import {
   CityStatus,
   getStatusPropertyBySchoolType,
 } from "@/entities/City";
-import { SchoolType, getRootPathBySchoolType } from "@/entities/School";
+import { getRootPathBySchoolType } from "@/entities/School";
 import { Colors } from "@/styles/Themes";
+import { SchoolType } from "@/types/basicTypes";
 import { routes } from "@/utils/shared/constants";
 import { texts } from "@/utils/shared/texts";
 import { ArrowDownTrayIcon } from "@heroicons/react/24/outline";

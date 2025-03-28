@@ -1,6 +1,6 @@
+import { SchoolType } from "@/types/basicTypes";
 import { Allow, Entity, EntityBase, Field, Fields } from "remult";
 import { City } from "./City";
-import { SchoolType } from "./School";
 
 @Entity("ordinances", {
   allowApiCrud: Allow.authenticated,

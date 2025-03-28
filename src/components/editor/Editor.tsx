@@ -5,6 +5,7 @@ import { Founder, FounderType } from "@/entities/Founder";
 import { Ordinance } from "@/entities/Ordinance";
 import { StreetMarkdown } from "@/entities/StreetMarkdown";
 import { Colors } from "@/styles/Themes";
+import { SchoolType } from "@/types/basicTypes";
 import { routes } from "@/utils/shared/constants";
 import { texts } from "@/utils/shared/texts";
 import { SuggestionList, TextToMapError } from "@/utils/shared/types";
@@ -35,7 +36,6 @@ import LinkButton from "../buttons/LinkButton";
 import HeaderBox from "../common/HeaderBox";
 import Spinner from "../common/Spinner";
 import { Monaco, configureMonaco } from "./configureMonaco";
-import { SchoolType } from "@/entities/School";
 
 const owner = "street-markdown";
 

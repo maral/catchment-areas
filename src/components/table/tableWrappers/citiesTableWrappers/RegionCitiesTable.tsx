@@ -4,6 +4,7 @@ import CityStatusChip from "@/components/CityStatusChip";
 import CatchmentLink from "@/components/common/CatchmentLink";
 import { SimpleOrdinanceMap } from "@/controllers/CityController";
 import { City } from "@/entities/City";
+import { SchoolType } from "@/types/basicTypes";
 import { ColumnDefinition } from "@/types/tableTypes";
 import { routes } from "@/utils/shared/constants";
 import { texts } from "@/utils/shared/texts";
@@ -47,12 +48,14 @@ export default function RegionCitiesTable({
       cellFactory: (item) => item.orp?.name,
     },
     {
-      title: texts.numberOfSchools,
+      title: texts.numberOfSchools(SchoolType.Elementary),
       cellFactory: (item) => item.schoolCount,
     },
     {
       title: texts.status,
-      cellFactory: (item) => <CityStatusChip cityStatus={item.statusElementary} />,
+      cellFactory: (item) => (
+        <CityStatusChip cityStatus={item.statusElementary} />
+      ),
     },
     {
       title: "",

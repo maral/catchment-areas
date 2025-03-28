@@ -1,12 +1,13 @@
 "use client";
 
+import LinkButton from "@/components/buttons/LinkButton";
+import { getRootPathBySchoolType } from "@/entities/School";
+import { Colors } from "@/styles/Themes";
+import { SchoolType } from "@/types/basicTypes";
+import { routes } from "@/utils/shared/constants";
 import { texts } from "@/utils/shared/texts";
 import { PlusIcon } from "@heroicons/react/24/solid";
-import LinkButton from "@/components/buttons/LinkButton";
 import HeaderBox from "../common/HeaderBox";
-import { routes } from "@/utils/shared/constants";
-import { Colors } from "@/styles/Themes";
-import { getRootPathBySchoolType, SchoolType } from "@/entities/School";
 
 export default function OrdinanceHeader({
   cityCode,

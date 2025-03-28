@@ -1,6 +1,6 @@
 import { getAdminRemultAPI } from "@/app/api/[...remult]/config";
 import { OrdinanceMetadata } from "@/entities/OrdinanceMetadata";
-import { SchoolType } from "@/entities/School";
+import { SchoolType } from "@/types/basicTypes";
 import { load } from "cheerio";
 import { Cell, Workbook } from "exceljs";
 import chunk from "lodash/chunk";

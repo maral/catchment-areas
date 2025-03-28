@@ -6,8 +6,8 @@ import {
   serializeCities,
 } from "@/components/table/fetchFunctions/loadCities";
 import CitiesTable from "@/components/table/tableWrappers/citiesTableWrappers/CitiesTable";
-import { SchoolType, getSchoolTypeCode } from "@/entities/School";
-import { routes } from "@/utils/shared/constants";
+import { getSchoolTypeCode } from "@/entities/School";
+import { SchoolType } from "@/types/basicTypes";
 import { texts } from "@/utils/shared/texts";
 import { Callout, Card } from "@tremor/react";
 import {

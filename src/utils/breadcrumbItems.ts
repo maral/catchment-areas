@@ -1,13 +1,14 @@
 import { api } from "@/app/api/[...remult]/api";
 import { Region } from "@/entities/Region";
+import { getRootPathBySchoolType } from "@/entities/School";
 import { User } from "@/entities/User";
+import { SchoolType } from "@/types/basicTypes";
 import { texts } from "@/utils/shared/texts";
 import { remult } from "remult";
 import { City } from "../entities/City";
 import { Founder } from "../entities/Founder";
 import { Ordinance } from "../entities/Ordinance";
 import { modules, routes } from "./shared/constants";
-import { getRootPathBySchoolType, SchoolType } from "@/entities/School";
 
 export type BreadcrumbItem = {
   href: string;

@@ -1,6 +1,5 @@
 import { api } from "@/app/api/[...remult]/api";
 import { OrdinanceMetadata } from "@/entities/OrdinanceMetadata";
-import { SchoolType } from "@/entities/School";
 import { getNotLoggedInResponse, isLoggedIn } from "@/utils/server/auth";
 import { insertOrdinanceAndGetResponse } from "@/utils/server/ordinance";
 import { syncNewOrdinances } from "@/utils/server/ordinanceMetadataSync";

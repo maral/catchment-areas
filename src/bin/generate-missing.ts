@@ -1,5 +1,5 @@
 import { getAdminRemultAPI } from "@/app/api/[...remult]/config";
-import { SchoolType } from "@/entities/School";
+import { SchoolType } from "@/types/basicTypes";
 import { KnexDataProvider } from "remult/remult-knex";
 import { CityController } from "../controllers/CityController";
 import { getOrCreateDataForMapByCityCode } from "../utils/server/textToMap";

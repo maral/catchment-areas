@@ -8,7 +8,7 @@ import {
   TableRow,
 } from "@/components/shadcn/Table";
 import { CityController } from "@/controllers/CityController";
-import { SchoolType } from "@/entities/School";
+import { SchoolType } from "@/types/basicTypes";
 import { texts } from "@/utils/shared/texts";
 import {
   ArrowDownTrayIcon,

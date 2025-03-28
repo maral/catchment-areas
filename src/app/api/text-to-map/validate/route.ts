@@ -1,4 +1,3 @@
-import { SchoolType } from "@/entities/School";
 import { getNotLoggedInResponse, isLoggedIn } from "@/utils/server/auth";
 import { validateStreetMarkdown } from "@/utils/server/textToMap";
 import { texts } from "@/utils/shared/texts";

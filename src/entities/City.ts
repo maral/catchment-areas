@@ -1,5 +1,5 @@
 import { Region } from "@/entities/Region";
-import { SchoolType } from "@/entities/School";
+import { SchoolType } from "@/types/basicTypes";
 import { Entity, Field, Fields } from "remult";
 import { County } from "./County";
 import { Orp } from "./Orp";

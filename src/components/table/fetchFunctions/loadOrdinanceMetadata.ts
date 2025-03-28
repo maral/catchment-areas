@@ -1,7 +1,7 @@
 import { City } from "@/entities/City";
 import { OrdinanceMetadata } from "@/entities/OrdinanceMetadata";
+import { SchoolType } from "@/types/basicTypes";
 import { remult } from "remult";
-import { SchoolType } from "@/entities/School";
 
 const ordinancesMetadataRepo = remult.repo(OrdinanceMetadata);
 

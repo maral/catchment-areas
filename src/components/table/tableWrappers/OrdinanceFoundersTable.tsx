@@ -6,11 +6,13 @@ import CatchmentTable from "@/components/table/CatchmentTable";
 import { OrdinanceController } from "@/controllers/OrdinanceController";
 import { Founder } from "@/entities/Founder";
 import { Ordinance } from "@/entities/Ordinance";
-import { getRootPathBySchoolType, SchoolType } from "@/entities/School";
+import { getRootPathBySchoolType } from "@/entities/School";
 import { Colors } from "@/styles/Themes";
+import { SchoolType } from "@/types/basicTypes";
 import type { ColumnDefinition } from "@/types/tableTypes";
 import { routes } from "@/utils/shared/constants";
 import { texts } from "@/utils/shared/texts";
+import { DocumentTextIcon, PlayIcon } from "@heroicons/react/24/outline";
 import {
   ArrowDownTrayIcon,
   MapIcon,
@@ -21,7 +23,6 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { remult } from "remult";
 import { deserializeOrdinances } from "../fetchFunctions/loadOrdinances";
-import { DocumentTextIcon, PlayIcon } from "@heroicons/react/24/outline";
 
 type Row = {
   founder: Founder | null;

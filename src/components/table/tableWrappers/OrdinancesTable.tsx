@@ -1,11 +1,17 @@
 "use client";
 
 import IconButton from "@/components/buttons/IconButton";
+import ConfirmDialog from "@/components/common/ConfirmDialog";
 import CatchmentTable from "@/components/table/CatchmentTable";
+import { OrdinanceController } from "@/controllers/OrdinanceController";
 import { Ordinance } from "@/entities/Ordinance";
+import { getRootPathBySchoolType } from "@/entities/School";
 import { Colors } from "@/styles/Themes";
+import { SchoolType } from "@/types/basicTypes";
 import type { ColumnDefinition } from "@/types/tableTypes";
+import { routes } from "@/utils/shared/constants";
 import { texts } from "@/utils/shared/texts";
+import { PlayIcon } from "@heroicons/react/24/outline";
 import {
   ArrowDownTrayIcon,
   MapIcon,
@@ -13,16 +19,11 @@ import {
   TrashIcon,
 } from "@heroicons/react/24/solid";
 import Link from "next/link";
+import { useState } from "react";
 import {
   deserializeOrdinances,
   loadOrdinancesByCityCode,
 } from "../fetchFunctions/loadOrdinances";
-import { routes } from "@/utils/shared/constants";
-import { OrdinanceController } from "@/controllers/OrdinanceController";
-import ConfirmDialog from "@/components/common/ConfirmDialog";
-import { useState } from "react";
-import { PlayIcon } from "@heroicons/react/24/outline";
-import { SchoolType, getRootPathBySchoolType } from "@/entities/School";
 
 export default function OrdinancesTable({
   cityCode,

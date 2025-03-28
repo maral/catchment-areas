@@ -1,5 +1,5 @@
 import CatchmentMap from "@/components/map/CatchmentMap";
-import { SchoolType } from "@/entities/School";
+import { SchoolType } from "@/types/basicTypes";
 import { getOrCreateDataForMapByCityCodes } from "@/utils/server/textToMap";
 import { notFound } from "next/navigation";
 import { api } from "../../api/[...remult]/api";

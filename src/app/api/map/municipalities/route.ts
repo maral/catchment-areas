@@ -1,4 +1,4 @@
-import { SchoolType } from "@/entities/School";
+import { SchoolType } from "@/types/basicTypes";
 import { getOrCreateDataForMapByCityCodes } from "@/utils/server/textToMap";
 import { texts } from "@/utils/shared/texts";
 import { NextRequest, NextResponse } from "next/server";

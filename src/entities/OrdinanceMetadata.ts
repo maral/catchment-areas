@@ -1,5 +1,5 @@
+import { SchoolType } from "@/types/basicTypes";
 import { Allow, Entity, EntityBase, Fields } from "remult";
-import { SchoolType } from "./School";
 
 @Entity("ordinance-metadata", {
   allowApiCrud: Allow.authenticated,

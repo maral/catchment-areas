@@ -1,7 +1,7 @@
 "use client";
 
 import OverviewBoxButtons from "@/components/founderDetail/OverviewBoxButtons";
-import { SchoolType } from "@/entities/School";
+import { SchoolType } from "@/types/basicTypes";
 import { texts } from "@/utils/shared/texts";
 import { Card, Subtitle, Title } from "@tremor/react";
 import { useRouter } from "next/navigation";

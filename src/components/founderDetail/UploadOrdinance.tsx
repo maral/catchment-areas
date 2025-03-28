@@ -1,8 +1,9 @@
 "use client";
 
 import { OrdinanceController } from "@/controllers/OrdinanceController";
-import { SchoolType, getRootPathBySchoolType } from "@/entities/School";
+import { getRootPathBySchoolType } from "@/entities/School";
 import { Colors } from "@/styles/Themes";
+import { SchoolType } from "@/types/basicTypes";
 import { routes } from "@/utils/shared/constants";
 import { texts } from "@/utils/shared/texts";
 import { Button, DatePicker, TextInput } from "@tremor/react";

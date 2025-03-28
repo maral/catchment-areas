@@ -1,7 +1,7 @@
 import { City, getCountPropertyBySchoolType } from "@/entities/City";
 import { Region } from "@/entities/Region";
+import { SchoolType } from "@/types/basicTypes";
 import { remult } from "remult";
-import { SchoolType } from "@/entities/School";
 const citiesRepo = remult.repo(City);
 
 // CITIES

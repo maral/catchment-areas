@@ -1,4 +1,4 @@
-import { SchoolType } from "@/entities/School";
+import { SchoolType } from "@/types/basicTypes";
 import { KnexDataProvider } from "remult/remult-knex";
 import { City, CitySchools, School } from "../app/embed/Embed";
 import { CityStatus } from "../entities/City";
