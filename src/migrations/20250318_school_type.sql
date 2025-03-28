@@ -1,6 +1,6 @@
 ALTER TABLE `city`
 ADD COLUMN `kindergarten_count` INT(11) NOT NULL DEFAULT 0 AFTER `school_count`,
-ADD COLUMN `status_kindergarten` INT(11) NOT NULL DEFAULT 0 AFTER `status`,
+ADD COLUMN `status_kindergarten` INT(11) NOT NULL DEFAULT 0 AFTER `status_elementary`,
 CHANGE COLUMN `status` `status_elementary` INT(11) NOT NULL DEFAULT 0 ;
 
 
