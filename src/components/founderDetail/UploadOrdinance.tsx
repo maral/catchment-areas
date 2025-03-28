@@ -1,7 +1,7 @@
 "use client";
 
 import { OrdinanceController } from "@/controllers/OrdinanceController";
-import { SchoolType } from "@/entities/School";
+import { SchoolType, getRootPathBySchoolType } from "@/entities/School";
 import { Colors } from "@/styles/Themes";
 import { routes } from "@/utils/shared/constants";
 import { texts } from "@/utils/shared/texts";
@@ -25,17 +25,27 @@ interface FormValues {
   file: File | null;
 }
 
-export default function UploadOrdinance({ cityCode }: { cityCode: string }) {
+export default function UploadOrdinance({
+  cityCode,
+  schoolType,
+}: {
+  cityCode: string;
+  schoolType: SchoolType;
+}) {
   const router = useRouter();
 
   const onSubmit = async (values: FormValues) => {
     const data = new FormData();
+
+    const rootPath = getRootPathBySchoolType(schoolType);
 
     data.set("file", values.file!);
     data.set("validFrom", values.validFrom!.toISOString());
     data.set("validTo", values.validTo ? values.validTo.toISOString() : "");
     data.set("serialNumber", values.serialNumber);
     data.set("cityCode", cityCode);
+    data.set("schoolType", schoolType.toString());
+    data.set("redirectRootUrl", rootPath);
 
     const res = await fetch("/api/ordinances/add-from-upload", {
       method: "POST",
@@ -47,9 +57,9 @@ export default function UploadOrdinance({ cityCode }: { cityCode: string }) {
       if (result.success) {
         OrdinanceController.determineActiveOrdinanceByCityCode(
           Number(cityCode),
-          SchoolType.Elementary
+          schoolType
         );
-        router.push(`${routes.cities}/${cityCode}${routes.detail}`);
+        router.push(`${rootPath}/${cityCode}${routes.detail}`);
         return;
       }
     } else {

@@ -53,11 +53,24 @@ export enum CityStatus {
   Published,
 }
 
-export function getStatusPropertyBySchoolType(schoolType: SchoolType): string {
+export function getStatusPropertyBySchoolType(
+  schoolType: SchoolType
+): keyof City {
   switch (schoolType) {
     case SchoolType.Elementary:
       return "statusElementary";
     case SchoolType.Kindergarten:
       return "statusKindergarten";
+  }
+}
+
+export function getCountPropertyBySchoolType(
+  schoolType: SchoolType
+): keyof City {
+  switch (schoolType) {
+    case SchoolType.Elementary:
+      return "schoolCount";
+    case SchoolType.Kindergarten:
+      return "kindergartenCount";
   }
 }

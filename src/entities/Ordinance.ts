@@ -13,7 +13,7 @@ export class Ordinance extends EntityBase {
   @Field(() => City, { dbName: "city_code" })
   city!: City;
 
-  @Fields.object({ dbName: "school_type" })
+  @Fields.integer({ dbName: "school_type" })
   schoolType = SchoolType.Elementary;
 
   @Fields.string()

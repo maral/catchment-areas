@@ -12,7 +12,7 @@ export class OrdinanceMetadata extends EntityBase {
   @Fields.integer({ dbName: "city_code", allowNull: true })
   cityCode: number | null = null;
 
-  @Fields.object({ dbName: "school_type" })
+  @Fields.integer({ dbName: "school_type" })
   schoolType = SchoolType.Elementary;
 
   @Fields.string()

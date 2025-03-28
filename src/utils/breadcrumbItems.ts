@@ -7,6 +7,7 @@ import { City } from "../entities/City";
 import { Founder } from "../entities/Founder";
 import { Ordinance } from "../entities/Ordinance";
 import { modules, routes } from "./shared/constants";
+import { getRootPathBySchoolType, SchoolType } from "@/entities/School";
 
 export type BreadcrumbItem = {
   href: string;
@@ -27,31 +28,54 @@ export const citiesBreadcrumb: BreadcrumbItem = {
   title: texts.cities,
 };
 
+export const schoolTypeBreadcrumb: BreadcrumbItemFunction = async (
+  type: SchoolType
+) => {
+  if (type === SchoolType.Kindergarten) {
+    return {
+      href: `${routes.kindergarten}`,
+      title: texts.schoolsKindergarten,
+    };
+  }
+
+  return {
+    href: `${routes.elementary}`,
+    title: texts.schoolsElementary,
+  };
+};
+
 export const cityDetailBreadcrumb: BreadcrumbItemFunction = async (
   cityCode: string,
+  schoolType: SchoolType,
   from?: string[]
 ) => {
   const city = await api.withRemult(() =>
     citiesRepo.findFirst({ code: Number(cityCode) })
   );
+
+  const rootPath = getRootPathBySchoolType(schoolType);
+
   return {
     href:
       from && from.length >= 2
-        ? `${routes.cities}/${cityCode}${routes.detail}/${from[0]}/${from[1]}`
-        : `${routes.cities}/${cityCode}${routes.detail}`,
+        ? `${rootPath}/${cityCode}${routes.detail}/${from[0]}/${from[1]}`
+        : `${rootPath}/${cityCode}${routes.detail}`,
     title: city?.name,
   };
 };
 
 export const addOrdinanceBreadcrumb: BreadcrumbItemFunction = async (
   cityCode: string,
+  schoolType: SchoolType,
   from?: string[]
 ) => {
+  const rootPath = getRootPathBySchoolType(schoolType);
+
   return {
     href:
       from && from.length >= 2
-        ? `${routes.cities}/${cityCode}${routes.addOrdinance}/${from[0]}/${from[1]}`
-        : `${routes.cities}/${cityCode}${routes.addOrdinance}`,
+        ? `${rootPath}/${cityCode}${routes.addOrdinance}/${from[0]}/${from[1]}`
+        : `${rootPath}/${cityCode}${routes.addOrdinance}`,
     title: texts.addOrdinance,
   };
 };
@@ -59,7 +83,8 @@ export const addOrdinanceBreadcrumb: BreadcrumbItemFunction = async (
 export const editOrdinanceBreadcrumb = async (
   cityCode: number,
   founderId: number,
-  ordinanceId: number
+  ordinanceId: number,
+  schoolType: SchoolType
 ) => {
   const founder = await api.withRemult(() =>
     remult.repo(Founder).findId(founderId)
@@ -67,28 +92,37 @@ export const editOrdinanceBreadcrumb = async (
   const ordinance = await api.withRemult(() =>
     remult.repo(Ordinance).findId(ordinanceId)
   );
+
   return {
-    href: `${routes.cities}/${cityCode}${routes.editOrdinance}/${founderId}/${ordinanceId}`,
+    href: `${getRootPathBySchoolType(schoolType)}/${cityCode}${
+      routes.editOrdinance
+    }/${founderId}/${ordinanceId}`,
     title: `${texts.editOrdinance} - ${founder.shortName} (${ordinance.number})`,
   };
 };
 
 export const mapBreadcrumb: BreadcrumbItemFunction = async (
   cityCode: string,
-  ordinanceId: string
+  ordinanceId: string,
+  schoolType: SchoolType
 ) => {
   return {
-    href: `${routes.cities}/${cityCode}${routes.map}/${ordinanceId}`,
+    href: `${getRootPathBySchoolType(schoolType)}/${cityCode}${
+      routes.map
+    }/${ordinanceId}`,
     title: texts.map,
   };
 };
 
 export const founderMapBreadcrumb = async (
   cityCode: string,
-  ordinanceId: string
+  ordinanceId: string,
+  schoolType: SchoolType
 ) => {
   return {
-    href: `${routes.cities}/${cityCode}${routes.map}/${ordinanceId}`,
+    href: `${getRootPathBySchoolType(schoolType)}/${cityCode}${
+      routes.map
+    }/${ordinanceId}`,
     title: texts.map,
   };
 };
@@ -131,9 +165,7 @@ export const addUserBreadcrumb: BreadcrumbItem = {
 };
 
 // HELPER FUNCTIONS
-export const cityFromBreadcrumb: (
-  from?: string[]
-) => Promise<BreadcrumbItem[]> = async (from) => {
+export const cityFromBreadcrumb = async (type: SchoolType, from?: string[]) => {
   const breadcrumbItems: BreadcrumbItem[] = [];
   if (from && from.length >= 2) {
     if (from[0] === modules.regions) {
@@ -144,7 +176,7 @@ export const cityFromBreadcrumb: (
       breadcrumbItems.push(...regionsBreadcrumbs);
     }
   } else {
-    breadcrumbItems.push(citiesBreadcrumb);
+    breadcrumbItems.push(await schoolTypeBreadcrumb(type));
   }
   return breadcrumbItems;
 };

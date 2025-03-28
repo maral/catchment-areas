@@ -7,22 +7,24 @@ import {
   deserializeCities,
   loadCities,
 } from "@/components/table/fetchFunctions/loadCities";
+import { City } from "@/entities/City";
+import { SchoolType, getRootPathBySchoolType } from "@/entities/School";
 import type { ColumnDefinition } from "@/types/tableTypes";
 import { routes } from "@/utils/shared/constants";
 import { texts } from "@/utils/shared/texts";
-import { City } from "@/entities/City";
-import { deserializeOrdinanceMetadata } from "../../fetchFunctions/loadOrdinanceMetadata";
-import LinkButton from "../../../buttons/LinkButton";
 import { Badge } from "@tremor/react";
+import { deserializeOrdinanceMetadata } from "../../fetchFunctions/loadOrdinanceMetadata";
 
 export default function CitiesTable({
   initialData,
   newOrdinanceMetadata,
   count,
+  schoolType,
 }: {
   initialData: any[];
   newOrdinanceMetadata: any[];
   count?: number;
+  schoolType: SchoolType;
 }) {
   const newOrdinancesCityCodes = new Set(
     deserializeOrdinanceMetadata(newOrdinanceMetadata).map(
@@ -33,7 +35,11 @@ export default function CitiesTable({
     {
       title: texts.name,
       cellFactory: (item) => (
-        <CatchmentLink href={`${routes.cities}/${item.code}${routes.detail}`}>
+        <CatchmentLink
+          href={`${getRootPathBySchoolType(schoolType)}/${item.code}${
+            routes.detail
+          }`}
+        >
           {item.name}
         </CatchmentLink>
       ),
@@ -47,14 +53,23 @@ export default function CitiesTable({
       cellFactory: (item) => item.county?.name,
     },
     {
-      title: texts.numberOfSchools,
-      cellFactory: (item) => item.schoolCount,
+      title: texts.numberOfSchools(schoolType),
+      cellFactory: (item) =>
+        schoolType === SchoolType.Kindergarten
+          ? item.kindergartenCount
+          : item.schoolCount,
     },
     {
       title: texts.status,
       cellFactory: (item) => (
         <>
-          <CityStatusChip cityStatus={item.statusElementary} />
+          <CityStatusChip
+            cityStatus={
+              schoolType === SchoolType.Kindergarten
+                ? item.statusKindergarten
+                : item.statusElementary
+            }
+          />
           {newOrdinancesCityCodes.has(item.code) && (
             <>
               {" "}
@@ -75,7 +90,7 @@ export default function CitiesTable({
   ];
 
   const fetchItems = async (page: number, limit: number) => {
-    return await loadCities(page, limit);
+    return await loadCities(page, limit, schoolType);
   };
 
   return (

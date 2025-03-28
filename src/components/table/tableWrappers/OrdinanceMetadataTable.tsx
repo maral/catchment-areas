@@ -4,7 +4,7 @@ import CatchmentTable from "@/components/table/CatchmentTable";
 import { OrdinanceController } from "@/controllers/OrdinanceController";
 import { City } from "@/entities/City";
 import { OrdinanceMetadata } from "@/entities/OrdinanceMetadata";
-import { SchoolType } from "@/entities/School";
+import { getRootPathBySchoolType, SchoolType } from "@/entities/School";
 import { Colors } from "@/styles/Themes";
 import type { ColumnDefinition } from "@/types/tableTypes";
 import { routes } from "@/utils/shared/constants";
@@ -26,16 +26,20 @@ export default function OrdinanceMetadataTable({
   cityName,
   count,
   initialData,
+  schoolType,
 }: {
   cityCode: string;
   cityName: string;
   count: number;
   initialData: any[];
+  schoolType: SchoolType;
 }) {
   const [addingOrdinanceId, setAddingOrdinanceId] = useState("");
   const [key, setKey] = useState(0);
 
   const router = useRouter();
+
+  const rootPath = getRootPathBySchoolType(schoolType);
 
   const addOrdinanceFromCollection = async (ordinanceMetadataId: string) => {
     const response = await fetch("/api/ordinances/add-from-collection", {
@@ -46,15 +50,18 @@ export default function OrdinanceMetadataTable({
       body: JSON.stringify({
         cityCode,
         ordinanceMetadataId,
+        schoolType: schoolType,
+        redirectRootUrl: rootPath,
       }),
     });
 
     if (response.ok) {
       const result = await response.json();
+
       if (result.success) {
         OrdinanceController.determineActiveOrdinanceByCityCode(
           Number(cityCode),
-          SchoolType.Elementary
+          schoolType
         );
         const city = await remult
           .repo(City)
@@ -62,10 +69,10 @@ export default function OrdinanceMetadataTable({
         const founders = await remult.repo(Founder).find({ where: { city } });
 
         if (founders.length > 1) {
-          router.push(`${routes.cities}${cityCode}${routes.detail}`);
+          router.push(`${rootPath}${cityCode}${routes.detail}`);
         } else {
           router.push(
-            `${routes.cities}/${cityCode}${routes.editOrdinance}/${founders[0].id}/${result.ordinanceId}`
+            `${rootPath}/${cityCode}${routes.editOrdinance}/${founders[0].id}/${result.ordinanceId}`
           );
         }
       } else {
@@ -189,7 +196,7 @@ export default function OrdinanceMetadataTable({
 
   const fetchItems = async () => {
     const city = await citiesRepo.findId(Number(cityCode));
-    return await loadOrdinanceMetadata(city, 1, 50);
+    return await loadOrdinanceMetadata(city, 1, 50, schoolType);
   };
 
   return (

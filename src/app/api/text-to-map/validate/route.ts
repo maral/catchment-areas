@@ -9,12 +9,9 @@ export async function POST(request: NextRequest) {
     return getNotLoggedInResponse();
   }
 
-  const { lines, founderId } = await request.json();
-  const result = await validateStreetMarkdown(
-    lines,
-    founderId,
-    SchoolType.Elementary
-  );
+  const { lines, founderId, schoolType } = await request.json();
+
+  const result = await validateStreetMarkdown(lines, founderId, schoolType);
 
   if (result === null) {
     return NextResponse.json(

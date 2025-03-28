@@ -35,6 +35,7 @@ import LinkButton from "../buttons/LinkButton";
 import HeaderBox from "../common/HeaderBox";
 import Spinner from "../common/Spinner";
 import { Monaco, configureMonaco } from "./configureMonaco";
+import { SchoolType } from "@/entities/School";
 
 const owner = "street-markdown";
 
@@ -47,12 +48,14 @@ export default function Editor({
   ordinanceJson,
   founderJson,
   founderCount,
+  schoolType,
 }: {
   suggestions: SuggestionList[];
   streetMarkdownJson: any | null;
   ordinanceJson: any;
   founderJson: any;
   founderCount: number;
+  schoolType: SchoolType;
 }) {
   const [streetMarkdown, setStreetMarkdown] = useState<StreetMarkdown | null>(
     streetMarkdownJson ? streetMarkdownRepo.fromJson(streetMarkdownJson) : null
@@ -88,7 +91,7 @@ export default function Editor({
       } else {
         isValidating.current = true;
         const lines = monacoInstance.editor.getModels()[0].getLinesContent();
-        setMarkers(await getMarkersFromLines(lines, founder.id));
+        setMarkers(await getMarkersFromLines(lines, founder.id, schoolType));
         isValidating.current = false;
         if (shouldValidate.current) {
           shouldValidate.current = false;
@@ -324,7 +327,8 @@ async function getPreprocessedText(
 
 async function getMarkersFromLines(
   lines: string[],
-  founderId: number
+  founderId: number,
+  schoolType: SchoolType
 ): Promise<editor.IMarkerData[]> {
   const markers: editor.IMarkerData[] = [];
   const response = await fetch("/api/text-to-map/validate", {
@@ -332,7 +336,7 @@ async function getMarkersFromLines(
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ lines, founderId }),
+    body: JSON.stringify({ lines, founderId, schoolType }),
   });
   const { errors, warnings } = (await response.json()) as {
     errors: TextToMapError[];

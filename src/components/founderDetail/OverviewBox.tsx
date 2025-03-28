@@ -1,25 +1,27 @@
 "use client";
 
-import { Card, Subtitle, Title } from "@tremor/react";
 import OverviewBoxButtons from "@/components/founderDetail/OverviewBoxButtons";
+import { SchoolType } from "@/entities/School";
 import { texts } from "@/utils/shared/texts";
-import { Founder } from "@/entities/Founder";
+import { Card, Subtitle, Title } from "@tremor/react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { remult } from "remult";
-import CityStatusChip from "../CityStatusChip";
-import { useRouter } from "next/navigation";
 import { City } from "../../entities/City";
+import CityStatusChip from "../CityStatusChip";
 
 export default function OverviewBox({
   cityProp,
   activeOrdinanceId,
   urlFrom,
   className,
+  schoolType,
 }: {
   cityProp: any;
   activeOrdinanceId?: number;
   urlFrom?: string[];
   className?: string;
+  schoolType: SchoolType;
 }) {
   const [city, setCity] = useState<City>(remult.repo(City).fromJson(cityProp));
 
@@ -30,18 +32,28 @@ export default function OverviewBox({
     router.refresh();
   };
 
+  const status =
+    schoolType === SchoolType.Kindergarten
+      ? city.statusKindergarten
+      : city.statusElementary;
+
+  const count =
+    schoolType === SchoolType.Kindergarten
+      ? city.kindergartenCount
+      : city.schoolCount;
+
   return (
     <Card className={`${className ?? ""}`}>
       <div className="mb-4">
         <div className="flex justify-between w-60 my-1">
           <Subtitle className="text-tremor-content">{texts.status}:</Subtitle>
-          <CityStatusChip cityStatus={city.statusElementary} />
+          <CityStatusChip cityStatus={status} />
         </div>
         <div className="flex justify-between w-60 my-1">
           <Subtitle className="text-tremor-content">
-            {texts.numberOfSchools}:
+            {texts.numberOfSchools(schoolType)}:
           </Subtitle>
-          <Title className="mr-2">{city.schoolCount}</Title>
+          <Title className="mr-2">{count}</Title>
         </div>
       </div>
       <OverviewBoxButtons
@@ -49,6 +61,7 @@ export default function OverviewBox({
         fetchCity={fetchFounder}
         activeOrdinanceId={activeOrdinanceId}
         urlFrom={urlFrom}
+        schoolType={schoolType}
       />
     </Card>
   );
