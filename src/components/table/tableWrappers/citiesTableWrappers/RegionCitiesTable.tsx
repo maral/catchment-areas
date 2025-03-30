@@ -44,10 +44,6 @@ export default function RegionCitiesTable({
       cellFactory: (item) => item.county?.name,
     },
     {
-      title: texts.orp,
-      cellFactory: (item) => item.orp?.name,
-    },
-    {
       title: texts.numberOfSchools(SchoolType.Elementary),
       cellFactory: (item) => item.schoolCount,
     },
@@ -68,16 +64,12 @@ export default function RegionCitiesTable({
     },
   ];
 
-  const fetchItems = async (page: number, limit: number) => {
-    return await loadCitiesByRegion(regionCode, page, limit);
-  };
-
   return (
     <CatchmentTable
       columnDefinitions={columnDefinitions}
-      fetchItems={fetchItems}
       initialData={deserializeCities(initialData)}
       count={count}
+      showPagination={false}
     />
   );
 }

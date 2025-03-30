@@ -28,16 +28,12 @@ export async function loadCitiesByRegion(
   return await citiesRepo.find({
     limit,
     page,
-    where: { region },
+    where: {
+      region,
+      [getCountPropertyBySchoolType(SchoolType.Elementary)]: { $gte: 2 },
+    },
     orderBy: { name: "asc" },
   });
-}
-
-export async function getCitiesCountByRegion(
-  regionCode: number
-): Promise<number> {
-  const region = await remult.repo(Region).findId(regionCode);
-  return await citiesRepo.count({ region });
 }
 
 // TRANSFORM DATA

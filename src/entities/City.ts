@@ -7,9 +7,6 @@ import { Orp } from "./Orp";
 @Entity("cities", {
   allowApiCrud: true,
   dbName: "city",
-  backendPrefilter: () => ({
-    schoolCount: { $gt: 1 },
-  }),
 })
 export class City {
   @Fields.autoIncrement()

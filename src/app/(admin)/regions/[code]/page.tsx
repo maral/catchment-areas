@@ -1,7 +1,6 @@
 import { api } from "@/app/api/[...remult]/api";
 import HeaderBox from "@/components/common/HeaderBox";
 import {
-  getCitiesCountByRegion,
   loadCitiesByRegion,
   serializeCities,
 } from "@/components/table/fetchFunctions/loadCities";
@@ -18,7 +17,7 @@ export default async function RegionDetailPage({
   params: { code: string };
 }) {
   const regionCode = Number(code);
-  const { serializedCities, ordinances, count, region } = await api.withRemult(
+  const { serializedCities, ordinances, region } = await api.withRemult(
     async () => {
       const region = await remult.repo(Region).findId(regionCode);
       const cities = await loadCitiesByRegion(regionCode, 1, 50);
@@ -31,7 +30,6 @@ export default async function RegionDetailPage({
         region,
         ordinances,
         serializedCities: serializeCities(cities),
-        count: await getCitiesCountByRegion(regionCode),
       };
     }
   );
@@ -43,7 +41,6 @@ export default async function RegionDetailPage({
         regionCode={regionCode}
         initialData={serializedCities}
         simpleOrdinances={ordinances}
-        count={count}
       />
     </Card>
   );
