@@ -7,7 +7,11 @@ import {
   deserializeCities,
   loadCities,
 } from "@/components/table/fetchFunctions/loadCities";
-import { City } from "@/entities/City";
+import {
+  City,
+  getCountPropertyBySchoolType,
+  getStatusPropertyBySchoolType,
+} from "@/entities/City";
 import { getRootPathBySchoolType } from "@/entities/School";
 import { SchoolType } from "@/types/basicTypes";
 import type { ColumnDefinition } from "@/types/tableTypes";
@@ -19,12 +23,10 @@ import { deserializeOrdinanceMetadata } from "../../fetchFunctions/loadOrdinance
 export default function CitiesTable({
   initialData,
   newOrdinanceMetadata,
-  count,
   schoolType,
 }: {
   initialData: any[];
   newOrdinanceMetadata: any[];
-  count?: number;
   schoolType: SchoolType;
 }) {
   const newOrdinancesCityCodes = new Set(
@@ -50,26 +52,15 @@ export default function CitiesTable({
       cellFactory: (item) => item.region?.name,
     },
     {
-      title: texts.county,
-      cellFactory: (item) => item.county?.name,
-    },
-    {
       title: texts.numberOfSchools(schoolType),
-      cellFactory: (item) =>
-        schoolType === SchoolType.Kindergarten
-          ? item.kindergartenCount
-          : item.schoolCount,
+      cellFactory: (item) => item[getCountPropertyBySchoolType(schoolType)],
     },
     {
       title: texts.status,
       cellFactory: (item) => (
         <>
           <CityStatusChip
-            cityStatus={
-              schoolType === SchoolType.Kindergarten
-                ? item.statusKindergarten
-                : item.statusElementary
-            }
+            cityStatus={item[getStatusPropertyBySchoolType(schoolType)]}
           />
           {newOrdinancesCityCodes.has(item.code) && (
             <>
@@ -80,26 +71,13 @@ export default function CitiesTable({
         </>
       ),
     },
-    // {
-    //   title: "",
-    //   cellFactory: (item) =>
-    //     <TableActionButtons
-    //       item={item}
-    //       activeOrdinanceId={item.activeOrdinance?.id}
-    //     />
-    // },
   ];
-
-  const fetchItems = async (page: number, limit: number) => {
-    return await loadCities(page, limit, schoolType);
-  };
 
   return (
     <CatchmentTable
       columnDefinitions={columnDefinitions}
-      fetchItems={fetchItems}
       initialData={deserializeCities(initialData)}
-      count={count}
+      showPagination={false}
     />
   );
 }

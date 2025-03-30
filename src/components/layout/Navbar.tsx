@@ -1,22 +1,20 @@
 "use client";
 
-import { Icon, List, ListItem } from "@tremor/react";
-import Link from "next/link";
+import { Colors } from "@/styles/Themes";
+import { routes } from "@/utils/shared/constants";
+import { Role, isAllowedRoute } from "@/utils/shared/permissions";
 import { texts } from "@/utils/shared/texts";
 import {
   BuildingOffice2Icon,
-  BuildingOfficeIcon,
   MapIcon,
-  MapPinIcon,
   ShieldCheckIcon,
-  UserIcon,
+  UserIcon
 } from "@heroicons/react/24/solid";
-import { routes } from "@/utils/shared/constants";
-import { Colors } from "@/styles/Themes";
-import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { Icon, List, ListItem } from "@tremor/react";
 import { useSession } from "next-auth/react";
-import { Role, isAllowedRoute } from "@/utils/shared/permissions";
+import Image from "next/image";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 const listItemClass =
   "cursor-pointer hover:bg-white rounded-md px-2 justify-start transition-colors";

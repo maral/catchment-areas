@@ -53,9 +53,7 @@ export enum CityStatus {
   Published,
 }
 
-export function getStatusPropertyBySchoolType(
-  schoolType: SchoolType
-): keyof City {
+export function getStatusPropertyBySchoolType(schoolType: SchoolType) {
   switch (schoolType) {
     case SchoolType.Elementary:
       return "statusElementary";
@@ -64,9 +62,7 @@ export function getStatusPropertyBySchoolType(
   }
 }
 
-export function getCountPropertyBySchoolType(
-  schoolType: SchoolType
-): keyof City {
+export function getCountPropertyBySchoolType(schoolType: SchoolType) {
   switch (schoolType) {
     case SchoolType.Elementary:
       return "schoolCount";

@@ -18,10 +18,6 @@ export async function loadCities(
   });
 }
 
-export async function getCitiesCount(): Promise<number> {
-  return await citiesRepo.count();
-}
-
 // CITIES BY REGION
 export async function loadCitiesByRegion(
   regionCode: number,

@@ -1,7 +1,6 @@
 import { api } from "@/app/api/[...remult]/api";
 import HeaderBox from "@/components/common/HeaderBox";
 import {
-  getCitiesCount,
   loadCities,
   serializeCities,
 } from "@/components/table/fetchFunctions/loadCities";
@@ -24,19 +23,17 @@ export default async function Cities({
 
   const {
     serializedCities,
-    count,
     newOrdinanceMetadata,
     serializedNewOrdinanceMetadata,
   } = await api.withRemult(async () => {
     const newOrdinanceMetadata = await loadNewOrdinanceMetadata(schoolTypeCode);
     return {
       serializedCities: serializeCities(
-        await loadCities(1, 250, schoolTypeCode)
+        await loadCities(1, 1000, schoolTypeCode)
       ),
       newOrdinanceMetadata,
       serializedNewOrdinanceMetadata:
         serializeOrdinanceMetadata(newOrdinanceMetadata),
-      count: await getCitiesCount(),
     };
   });
 
@@ -56,7 +53,6 @@ export default async function Cities({
       <CitiesTable
         initialData={serializedCities}
         newOrdinanceMetadata={serializedNewOrdinanceMetadata}
-        count={count}
         schoolType={schoolTypeCode}
       />
     </Card>
