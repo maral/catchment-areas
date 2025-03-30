@@ -128,7 +128,9 @@ function convertDate(dateString?: string) {
 }
 
 export async function syncOrdinancesToDb() {
+  console.log("Syncing kindergarten ordinances to DB...");
   await syncOrdinancesToDbBySchoolType(SchoolType.Kindergarten);
+  console.log("Syncing elementary school ordinances to DB...");
   await syncOrdinancesToDbBySchoolType(SchoolType.Elementary);
 
   await KnexDataProvider.getDb().destroy();
@@ -138,7 +140,9 @@ export async function syncOrdinancesToDbBySchoolType(schoolType: SchoolType) {
   const currentYear = new Date().getFullYear();
   const XLSX_EXPORT_URL = `https://sbirkapp.gov.cz/vyhledavani/vysledek?format_exportu=xlsx&hlavni_typ=pp&nazev=&number=&oblast=skolske-obvody-${
     schoolType === SchoolType.Kindergarten ? "materske" : "zakladni"
-  }-skoly&ovm=&platnost=&typ=ozv&ucinnost_do=&ucinnost_od=${currentYear}-01-01&vydano_do=&vydano_od=&zverejneno_do=&zverejneno_od=`;
+  }-skoly&ovm=&platnost=&typ=ozv&ucinnost_do=&ucinnost_od=${
+    currentYear - (schoolType === SchoolType.Kindergarten ? 20 : 1)
+  }-01-01&vydano_do=&vydano_od=&zverejneno_do=&zverejneno_od=`;
 
   const url = await findLink(XLSX_EXPORT_URL, 15, 5000);
 
