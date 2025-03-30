@@ -19,7 +19,9 @@ import { api } from "../api/[...remult]/api";
 
 export default async function DataPage() {
   const { founders, ordinances } = await api.withRemult(async () => {
-    const cities = await CityController.loadPublishedCities();
+    const cities = await CityController.loadPublishedCities(
+      SchoolType.Elementary
+    );
     const ordinances = await CityController.loadActiveOrdinancesByCityCodes(
       cities.map((f) => f.code),
       SchoolType.Elementary

@@ -1,7 +1,7 @@
 import { SchoolType } from "@/types/basicTypes";
 import { KnexDataProvider } from "remult/remult-knex";
 import { City, CitySchools, School } from "../app/embed/Embed";
-import { CityStatus } from "../entities/City";
+import { CityStatus, getStatusColumnBySchoolType } from "../entities/City";
 
 export type SimpleOrdinance = {
   id: number;
@@ -85,17 +85,18 @@ export class CityController {
     )[0]?.[0]?.id;
   }
 
-  // TODO: add support for kindergartens
-  static async loadPublishedCities(): Promise<
-    (City & { regionName: string; schoolCount: number })[]
-  > {
+  static async loadPublishedCities(
+    schoolType: SchoolType
+  ): Promise<(City & { regionName: string; schoolCount: number })[]> {
     const knex = KnexDataProvider.getDb();
     return (
       await knex.raw(
         `SELECT c.code, c.name, r.name AS region_name, c.school_count
         FROM city c
         JOIN region r ON c.region_code = r.code
-        WHERE status_elementary = ${CityStatus.Published}
+        WHERE ${getStatusColumnBySchoolType(schoolType)} = ${
+          CityStatus.Published
+        }
         ORDER BY name ASC`
       )
     )[0].map((row: any) => ({
@@ -106,8 +107,9 @@ export class CityController {
     }));
   }
 
-  // TODO: add support for kindergartens
-  static async loadPublishedSchools(): Promise<CitySchools[]> {
+  static async loadPublishedSchools(
+    schoolType: SchoolType
+  ): Promise<CitySchools[]> {
     const knex = KnexDataProvider.getDb();
     const schools = await knex.raw(
       `SELECT c.name AS city_name, s.izo, s.name
@@ -115,7 +117,9 @@ export class CityController {
       JOIN founder f ON f.city_code = c.code
       JOIN school_founder sf ON f.id = sf.founder_id
       JOIN school s ON s.izo = sf.school_izo
-      WHERE c.status_elementary = ${CityStatus.Published}
+      WHERE c.${getStatusColumnBySchoolType(schoolType)} = ${
+        CityStatus.Published
+      }
       ORDER BY c.name ASC, s.name ASC`
     );
 

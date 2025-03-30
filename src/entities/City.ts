@@ -53,6 +53,12 @@ export enum CityStatus {
   Published,
 }
 
+export function getStatusColumnBySchoolType(schoolType: SchoolType) {
+  return schoolType === SchoolType.Elementary
+    ? "status_elementary"
+    : "status_kindergarten";
+}
+
 export function getStatusPropertyBySchoolType(schoolType: SchoolType) {
   switch (schoolType) {
     case SchoolType.Elementary:

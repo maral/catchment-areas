@@ -36,6 +36,7 @@ import LinkButton from "../buttons/LinkButton";
 import HeaderBox from "../common/HeaderBox";
 import Spinner from "../common/Spinner";
 import { Monaco, configureMonaco } from "./configureMonaco";
+import { getRootPathBySchoolType } from "../../entities/School";
 
 const owner = "street-markdown";
 
@@ -181,9 +182,11 @@ export default function Editor({
               color: Colors.Primary,
               icon: MapIcon,
             }}
-            href={`${routes.cities}/${ordinance.city.code}${routes.map}/${
-              founderCount > 1 ? `founder/${founder.id}/` : ""
-            }${ordinance.id}`}
+            href={`${getRootPathBySchoolType(schoolType)}/${
+              ordinance.city.code
+            }${routes.map}/${founderCount > 1 ? `founder/${founder.id}/` : ""}${
+              ordinance.id
+            }`}
           >
             {texts.map}
           </LinkButton>

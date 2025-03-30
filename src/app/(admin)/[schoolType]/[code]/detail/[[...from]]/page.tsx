@@ -5,15 +5,14 @@ import {
   loadOrdinancesByCityCode,
   serializeOrdinances,
 } from "@/components/table/fetchFunctions/loadOrdinances";
+import OrdinanceFoundersTable from "@/components/table/tableWrappers/OrdinanceFoundersTable";
 import OrdinancesTable from "@/components/table/tableWrappers/OrdinancesTable";
 import { City } from "@/entities/City";
-import { routes } from "@/utils/shared/constants";
+import { Founder } from "@/entities/Founder";
+import { getRootPathBySchoolType, getSchoolTypeCode } from "@/entities/School";
 import { Card } from "@tremor/react";
 import { notFound, redirect } from "next/navigation";
 import { remult } from "remult";
-import OrdinanceFoundersTable from "../../../../../../components/table/tableWrappers/OrdinanceFoundersTable";
-import { Founder } from "../../../../../../entities/Founder";
-import { getSchoolTypeCode, getRootPathBySchoolType } from "@/entities/School";
 
 export default async function CityDetailPage({
   params: { code, from, schoolType },
