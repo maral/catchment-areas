@@ -1,6 +1,4 @@
 import "@/app/globals.css";
-import "@/app/otherGlobals.css";
-import { Inter } from "next/font/google";
 import { GoogleTagManager } from "@next/third-parties/google";
 import Script from "next/script";
 
@@ -10,8 +8,6 @@ export const metadata = {
   title: "Spádové oblasti – NPI ČR",
   description: "Spádové oblasti základních škol na mapě.",
 };
-
-const inter = Inter({ subsets: ["latin"] });
 
 export default function RootLayout({
   children,
@@ -26,7 +22,7 @@ export default function RootLayout({
         data-domain="mapaspadovosti.zapojmevsechny.cz"
         src="https://npi-plausible.nomodo.app/js/script.js"
       />
-      <body className={`${inter.className} flex`}>{children}</body>
+      <body className="flex">{children}</body>
     </html>
   );
 }

@@ -140,7 +140,7 @@ module.exports = {
           "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
       },
       fontFamily: {
-        title: ["REM", "sans-serif"],
+        title: ["Bitter", "sans-serif"],
       },
       keyframes: {
         "accordion-down": {

@@ -62,13 +62,13 @@ const InnerMap = memo(
             Spádové oblasti
           </Link>
 
-          <Link href="https://www.npi.cz/" target="_blank" className="md:p-2">
+          <Link href="https://www.npi.cz/" target="_blank">
             <Image
               className="hidden md:block"
               src="logo_npi_svg_full.svg"
               alt="Logo NPI"
-              width={200}
-              height={29}
+              width={228}
+              height={33}
             />
             <Image
               className="block md:hidden"
