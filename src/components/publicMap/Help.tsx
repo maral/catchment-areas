@@ -1,9 +1,8 @@
 import { Dialog, Transition } from "@headlessui/react";
-import { XMarkIcon } from "@heroicons/react/24/outline";
-import { Icon } from "@tremor/react";
+import Image from "next/image";
 import { Fragment } from "react";
 import PublicButton from "../buttons/PublicButton";
-import Image from "next/image";
+import CloseModalButton from "./CloseModalButton";
 import { H3, P, Ul } from "./Typography";
 
 type HelpProps = {
@@ -14,11 +13,7 @@ type HelpProps = {
 export default function Help({ isOpen, closeModal }: HelpProps) {
   return (
     <Transition appear show={isOpen} as={Fragment}>
-      <Dialog
-        as="div"
-        className="relative z-[2000] w-full"
-        onClose={closeModal}
-      >
+      <Dialog as="div" className="relative z-2000 w-full" onClose={closeModal}>
         <Transition.Child
           as={Fragment}
           enter="ease-out duration-300"
@@ -43,12 +38,7 @@ export default function Help({ isOpen, closeModal }: HelpProps) {
               leaveTo="opacity-0 scale-95"
             >
               <Dialog.Panel className="w-full md:w-[736px] transform overflow-hidden rounded-2xl bg-white p-8 text-left text-slate-700 align-middle shadow-xl transition-all">
-                <button
-                  className="absolute right-6 top-6 transition-all hover:scale-110 md:right-6 md:top-6"
-                  onClick={closeModal}
-                >
-                  <Icon icon={XMarkIcon} color="sky" size="lg" />
-                </button>
+                <CloseModalButton closeModal={closeModal} />
                 <Dialog.Title
                   as="h2"
                   className="text-3xl font-medium leading-8 mb-12 pr-8"

@@ -1,5 +1,4 @@
 import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
-import { Icon } from "@tremor/react";
 import debounce from "lodash/debounce";
 import { useRef, useState } from "react";
 import {
@@ -9,7 +8,7 @@ import {
   InputProps,
   MenuListProps,
   MenuProps,
-  OptionProps
+  OptionProps,
 } from "react-select";
 import AsyncSelect from "react-select/async";
 import {
@@ -106,7 +105,7 @@ export function SearchInput({ onSelect }: SearchInputProps) {
       }}
       classNames={{
         control() {
-          return "shadow";
+          return "shadow-sm";
         },
       }}
       styles={{
@@ -135,7 +134,7 @@ function Input(props: InputProps<SuggestionOption>) {
 function DropdownIndicator(props: DropdownIndicatorProps<SuggestionOption>) {
   return (
     <components.DropdownIndicator {...props}>
-      <Icon icon={MagnifyingGlassIcon} />
+      <MagnifyingGlassIcon className="w-5 m-1.5 text-sky-500" />
     </components.DropdownIndicator>
   );
 }
@@ -145,7 +144,7 @@ function Option(props: OptionProps<SuggestionOption>) {
 
   return (
     <components.Option {...props}>
-      <div className="font-bold text-purple-500">{item.name}</div>
+      <div className="font-semibold text-sky-600">{item.name}</div>
       <div className="text-sm">{item.location}</div>
     </components.Option>
   );

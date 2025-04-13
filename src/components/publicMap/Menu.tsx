@@ -8,7 +8,6 @@ import {
   RocketLaunchIcon,
   SparklesIcon,
 } from "@heroicons/react/24/outline";
-import { Icon } from "@tremor/react";
 import "leaflet/dist/leaflet.css";
 import { Fragment, useEffect, useState } from "react";
 import { texts } from "../../utils/shared/texts";
@@ -36,10 +35,7 @@ export function Menu() {
 
   return (
     <>
-      <HeadlessMenu
-        as="div"
-        className="absolute top-[10px] left-[10px] z-[1001]"
-      >
+      <HeadlessMenu as="div" className="absolute top-[10px] left-[10px] z-1001">
         <HeadlessMenu.Button
           className="w-[50px] h-[50px] border rounded-md cursor-pointer bg-white hover:bg-slate-100 border-gray-300
 block px-3 py-2 transition-colors shadow text-slate-400 hover:text-slate-500 content-center"
@@ -56,7 +52,7 @@ block px-3 py-2 transition-colors shadow text-slate-400 hover:text-slate-500 con
           leaveFrom="transform opacity-100 scale-100"
           leaveTo="transform opacity-0 scale-95"
         >
-          <HeadlessMenu.Items className="absolute left-0 mt-2 w-60 origin-top-left divide-y divide-gray-100 rounded-md bg-white shadow-lg ring-1 ring-black/5 focus:outline-none">
+          <HeadlessMenu.Items className="absolute left-0 mt-2 w-60 origin-top-left divide-y divide-gray-100 rounded-md bg-white shadow-lg ring-1 ring-black/5 focus:outline-hidden">
             <div className="px-1 py-1 ">
               <Item icon={ArrowDownTrayIcon} href={"/data"}>
                 {texts.dataForDownload}
@@ -96,35 +92,30 @@ type ItemProps = {
 const Item = ({ icon, onClick, href, target, children }: ItemProps) => {
   const ButtonComponent = onClick ? "button" : "a";
   const disabled = !onClick && !href;
+  const Icon = icon!;
   return (
     <HeadlessMenu.Item>
       {({ active }) => (
         <ButtonComponent
           className={`${disabled && "text-slate-400"} ${
             active ? "bg-sky-100 text-sky-900" : "text-gray-900"
-          } transition-colors group flex w-full items-center rounded-md px-3 py-2`}
+          } transition-colors group flex w-full items-center rounded-md px-3 py-2 cursor-pointer`}
           onClick={onClick}
           href={href}
           target={target}
         >
           {icon && (
             <Icon
-              icon={icon}
-              color={disabled ? "gray" : "sky"}
-              className="p-0 pr-2"
-              size="md"
+              className={`w-5 h-5 mr-2 ${
+                disabled ? "text-gray-500" : "text-sky-500"
+              }`}
             />
           )}
           {children}
-          {disabled && <div className="flex-grow"></div>}
+          {disabled && <div className="grow"></div>}
           {disabled && (
-            <Icon
-              icon={RocketLaunchIcon}
-              color="gray"
-              className="p-0 pr-2"
-              size="md"
-              tooltip={texts.featureUnderConstruction}
-            />
+            <RocketLaunchIcon className="w-5 text-gray-500" />
+            // TODO: Add a tooltip w/ texts.featureUnderConstruction
           )}
         </ButtonComponent>
       )}

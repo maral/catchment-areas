@@ -142,7 +142,7 @@ export default function UploadOrdinance({
                 file:px-3 file:py-[0.32rem] file:text-neutral-700 file:transition
                 file:duration-150 file:ease-in-out file:[border-inline-end-width:1px]
                 file:[margin-inline-end:0.75rem] hover:file:bg-neutral-200
-                focus:border-primary focus:text-neutral-700 focus:shadow-te-primary focus:outline-none"
+                focus:border-primary focus:text-neutral-700 focus:shadow-te-primary focus:outline-hidden"
               type="file"
               id="file"
               onChange={(event) => {

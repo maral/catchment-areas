@@ -95,7 +95,7 @@ export default function EditUserForm({ user }: { user: UserInfo }) {
             <div>
               <InputSubtitle>{texts.role}</InputSubtitle>
               <Field
-                className="p-2 px-3 w-full shadow-sm text-sm text-gray-500 border border-gray-300 rounded-md outline-none focus:ring-2"
+                className="p-2 px-3 w-full shadow-xs text-sm text-gray-500 border border-gray-300 rounded-md outline-hidden focus:ring-2"
                 name="role"
                 as="select"
               >

@@ -46,7 +46,7 @@ export default async function DataPage() {
           jejich spádovým školám.
         </p>
       </div>
-      <div className="overflow-x-auto rounded-lg border shadow-sm">
+      <div className="overflow-x-auto rounded-lg border shadow-xs">
         <Table>
           <colgroup>
             <col span={1} style={{ width: "50%" }} />

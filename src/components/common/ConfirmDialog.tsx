@@ -72,7 +72,7 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
       <div className="bg-black opacity-50 fixed inset-0"></div>
       <div
         ref={modalRef}
-        className="bg-white fixed rounded left-6 right-6 p-6 w-[calc(100%-3rem)] sm:left-auto sm:right-auto sm:w-2/3 md:1/2 lg:w-[32rem] z-60 shadow-lg"
+        className="bg-white fixed rounded-sm left-6 right-6 p-6 w-[calc(100%-3rem)] sm:left-auto sm:right-auto sm:w-2/3 md:1/2 lg:w-[32rem] z-60 shadow-lg"
       >
         <Subtitle className="font-bold text-slate-500">{title}</Subtitle>
         <p className="text-sm mt-6">{message}</p>

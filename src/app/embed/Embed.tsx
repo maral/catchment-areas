@@ -105,7 +105,7 @@ export default function Embed({ schools, cities }: MunicipalityPageProps) {
             <select
               value={schoolIzo}
               onChange={(e) => setSchoolIzo(e.target.value)}
-              className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1"
+              className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1"
             >
               {schools.map((city, index) => (
                 <optgroup key={index} label={city.cityName}>
@@ -126,7 +126,7 @@ export default function Embed({ schools, cities }: MunicipalityPageProps) {
             <select
               value={cityCode}
               onChange={(e) => setCityCode(Number(e.target.value))}
-              className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1"
+              className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1"
             >
               {cities.map(({ code, name }) => (
                 <option key={code} value={code}>
@@ -177,7 +177,7 @@ export default function Embed({ schools, cities }: MunicipalityPageProps) {
       <EmbedCode url={url} />
 
       <iframe
-        className="mt-6 rounded-lg border shadow-sm"
+        className="mt-6 rounded-lg border shadow-xs"
         width="100%"
         height="500px"
         src={iframeUrl}

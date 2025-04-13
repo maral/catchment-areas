@@ -6,27 +6,21 @@ export default function PublicButton({
   href,
   target,
   size = "md",
-  color = "slate",
   variant = "outline",
   className,
   children,
 }: {
-  icon?: React.ForwardRefExoticComponent<
-    React.PropsWithoutRef<React.SVGProps<SVGSVGElement>> & {
-      title?: string;
-      titleId?: string;
-    } & React.RefAttributes<SVGSVGElement>
-  >;
+  icon?: React.ElementType;
   onClick?: () => void;
   href?: string;
   target?: string;
   variant?: "primary" | "outline";
   size?: "sm" | "md" | "lg";
-  color?: Color;
   className?: string;
   children?: React.ReactNode;
 }) {
   const ButtonComponent = onClick ? "button" : "a";
+  const IconComponent = icon ?? null;
 
   const colorClasses =
     variant === "primary"
@@ -44,12 +38,9 @@ export default function PublicButton({
       href={href}
       target={target}
     >
-      {icon && (
-        <Icon
-          icon={icon}
-          color={color}
-          size={size}
-          className={`p-0 relative top-[4px] ${children && "pr-2"}`}
+      {IconComponent && (
+        <IconComponent
+          className={`w-5 inline-block text-amber-500 relative top-[-2px] mr-2`}
         />
       )}
       {children}

@@ -44,12 +44,12 @@ const InnerMap = memo(
 
         <Menu />
 
-        <div className="absolute top-[10px] left-[70px] z-[1000] w-[min(430px,calc(100vw-80px))]">
+        <div className="absolute top-[10px] left-[70px] z-1000 w-[min(430px,calc(100vw-80px))]">
           <SearchInput onSelect={onSelect} />
         </div>
 
         <div
-          className="absolute z-[1000] bottom-0 left-0
+          className="absolute z-1000 bottom-0 left-0
           flex flex-col gap-1 items-center text-center
           p-2 bg-gray-50/60 rounded-tr-lg
           md:top-0 md:right-0 md:left-auto md:bottom-auto md:rounded-bl-lg md:rounded-tl-none
@@ -83,9 +83,8 @@ const InnerMap = memo(
         <PublicButton
           href={texts.URL_reportBug}
           target="_blank"
-          className="absolute bottom-[80px] md:bottom-[8px] left-[8px] z-[1000] bg-slate-50"
+          className="absolute bottom-[80px] md:bottom-[8px] left-[8px] z-1000 bg-slate-50"
           icon={ExclamationTriangleIcon}
-          color="amber"
         >
           {texts.reportBug}
         </PublicButton>

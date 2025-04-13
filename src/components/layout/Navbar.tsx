@@ -26,10 +26,10 @@ export default function Navbar({ className }: { className?: string }) {
       className={`${className ?? ""} bg-slate-100 border-r border-slate-300`}
     >
       <div className="flex flex-col p-4 h-screen">
-        <span className="flex-shrink-0 p-2 text-3xl font-title font-medium text-slate-700">
+        <span className="shrink-0 p-2 text-3xl font-title font-medium text-slate-700">
           {texts.catchmentAreas}
         </span>
-        <div className="flex-grow flex flex-col justify-between">
+        <div className="grow flex flex-col justify-between">
           <List className="mt-6">
             <MenuItem
               href={routes.elementary}
