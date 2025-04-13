@@ -1,10 +1,15 @@
 import Header from "@/components/common/Header";
 import { User } from "@/entities/User";
 import { texts } from "@/utils/shared/texts";
-import { Card } from "@tremor/react";
 import { remult } from "remult";
 import { api } from "../../../api/[...remult]/api";
 import EditUserForm from "./EditUserForm";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/shadcn/Card"; // Updated import
 
 export default async function UserDetail({
   params: { id },
@@ -16,11 +21,11 @@ export default async function UserDetail({
   });
 
   return (
-    <Card>
-      <div className="w-1/3 mx-auto my-12">
-        <div className="flex justify-center mb-10">
-          <Header className="shrink">{texts.editUser}</Header>
-        </div>
+    <Card className="w-1/2 mx-auto my-12">
+      <CardHeader>
+        <CardTitle>{texts.editUser}</CardTitle>
+      </CardHeader>
+      <CardContent>
         <EditUserForm
           user={{
             id,
@@ -30,7 +35,7 @@ export default async function UserDetail({
             role: user.role,
           }}
         />
-      </div>
+      </CardContent>
     </Card>
   );
 }

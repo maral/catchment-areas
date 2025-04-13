@@ -1,17 +1,21 @@
-import Header from "@/components/common/Header";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/shadcn/Card";
 import { texts } from "@/utils/shared/texts";
-import { Card } from "@tremor/react";
 import AddUserForm from "./AddUserForm";
 
 export default function AddUser() {
   return (
-    <Card>
-      <div className="w-1/3 mx-auto my-12">
-        <div className="flex justify-center mb-10">
-          <Header className="shrink">{texts.addUser}</Header>
-        </div>
+    <Card className="w-1/2 mx-auto my-12">
+      <CardHeader>
+        <CardTitle>{texts.addUser}</CardTitle>
+      </CardHeader>
+      <CardContent>
         <AddUserForm />
-      </div>
+      </CardContent>
     </Card>
   );
 }

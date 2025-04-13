@@ -4,7 +4,7 @@ import UsersTable from "@/components/table/tableWrappers/UsersTable";
 import HeaderBox from "@/components/common/HeaderBox";
 import { getUsersCount, loadUsers, serializeUsers } from "@/components/table/fetchFunctions/loadUsers";
 import { texts } from "@/utils/shared/texts";
-import { Card } from "@tremor/react";
+import { Card, CardHeader, CardContent } from "@/components/shadcn/Card"; // Updated import
 
 
 export default async function Users() {
@@ -17,13 +17,17 @@ export default async function Users() {
 
   return (
     <Card>
-      <HeaderBox title={texts.users}>
-        <UsersActions />
-      </HeaderBox>
-      <UsersTable
-        initialData={serializedUsers}
-        count={count}
-      />
+      <CardHeader>
+        <HeaderBox title={texts.users}>
+          <UsersActions />
+        </HeaderBox>
+      </CardHeader>
+      <CardContent>
+        <UsersTable
+          initialData={serializedUsers}
+          count={count}
+        />
+      </CardContent>
     </Card>
   );
 }

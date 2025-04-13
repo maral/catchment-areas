@@ -8,11 +8,12 @@ import CitiesTable from "@/components/table/tableWrappers/citiesTableWrappers/Ci
 import { getSchoolTypeCode } from "@/entities/School";
 import { SchoolType } from "@/types/basicTypes";
 import { texts } from "@/utils/shared/texts";
-import { Callout, Card } from "@tremor/react";
+import { Card, CardHeader, CardContent } from "@/components/shadcn/Card";
 import {
   loadNewOrdinanceMetadata,
   serializeOrdinanceMetadata,
 } from "../../../components/table/fetchFunctions/loadOrdinanceMetadata";
+import { Callout } from "@tremor/react";
 
 export default async function Cities({
   params: { schoolType },
@@ -44,17 +45,25 @@ export default async function Cities({
 
   return (
     <Card>
-      <HeaderBox title={pageTitle} />
-      {newOrdinanceMetadata.length > 0 && (
-        <Callout color={"yellow"} title={texts.newOrdinances} className="mb-4">
-          {texts.newOrdinancesAvailable(newOrdinanceMetadata.length)}
-        </Callout>
-      )}
-      <CitiesTable
-        initialData={serializedCities}
-        newOrdinanceMetadata={serializedNewOrdinanceMetadata}
-        schoolType={schoolTypeCode}
-      />
+      <CardHeader>
+        <HeaderBox title={pageTitle} />
+      </CardHeader>
+      <CardContent>
+        {newOrdinanceMetadata.length > 0 && (
+          <Callout
+            color={"yellow"}
+            title={texts.newOrdinances}
+            className="mb-4"
+          >
+            {texts.newOrdinancesAvailable(newOrdinanceMetadata.length)}
+          </Callout>
+        )}
+        <CitiesTable
+          initialData={serializedCities}
+          newOrdinanceMetadata={serializedNewOrdinanceMetadata}
+          schoolType={schoolTypeCode}
+        />
+      </CardContent>
     </Card>
   );
 }

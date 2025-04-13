@@ -3,7 +3,13 @@
 import OverviewBoxButtons from "@/components/founderDetail/OverviewBoxButtons";
 import { SchoolType } from "@/types/basicTypes";
 import { texts } from "@/utils/shared/texts";
-import { Card, Subtitle, Title } from "@tremor/react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/shadcn/Card"; // Updated import
+import { Subtitle, Title } from "@tremor/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { remult } from "remult";
@@ -44,25 +50,30 @@ export default function OverviewBox({
 
   return (
     <Card className={`${className ?? ""}`}>
-      <div className="mb-4">
-        <div className="flex justify-between w-60 my-1">
-          <Subtitle className="text-tremor-content">{texts.status}:</Subtitle>
-          <CityStatusChip cityStatus={status} />
+      <CardHeader>
+        <CardTitle>Podrobnosti</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="mb-4">
+          <div className="flex justify-between w-60 my-1">
+            <Subtitle className="text-tremor-content">{texts.status}:</Subtitle>
+            <CityStatusChip cityStatus={status} />
+          </div>
+          <div className="flex justify-between w-60 my-1">
+            <Subtitle className="text-tremor-content">
+              {texts.numberOfSchools(schoolType)}:
+            </Subtitle>
+            <Subtitle className="mr-2">{count}</Subtitle>
+          </div>
         </div>
-        <div className="flex justify-between w-60 my-1">
-          <Subtitle className="text-tremor-content">
-            {texts.numberOfSchools(schoolType)}:
-          </Subtitle>
-          <Title className="mr-2">{count}</Title>
-        </div>
-      </div>
-      <OverviewBoxButtons
-        city={city}
-        fetchCity={fetchFounder}
-        activeOrdinanceId={activeOrdinanceId}
-        urlFrom={urlFrom}
-        schoolType={schoolType}
-      />
+        <OverviewBoxButtons
+          city={city}
+          fetchCity={fetchFounder}
+          activeOrdinanceId={activeOrdinanceId}
+          urlFrom={urlFrom}
+          schoolType={schoolType}
+        />
+      </CardContent>
     </Card>
   );
 }
