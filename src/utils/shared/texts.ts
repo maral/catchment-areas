@@ -122,6 +122,7 @@ export const texts = {
   schoolsElementary: "Základní školy",
   schoolsKindergarten: "Mateřské školy",
   selectDate: "Vyberte datum...",
+  selectRole: "Vyberte roli",
   setActive: "Nastavit jako Aktivní",
   setAsInProgress: 'Označit jako "Rozpracováno"',
   setAsPublished: 'Označit jako "Zveřejněno"',

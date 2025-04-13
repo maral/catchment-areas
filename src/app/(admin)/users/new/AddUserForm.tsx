@@ -5,11 +5,12 @@ import {
   StyledErrorMessage,
   StyledForm,
 } from "@/components/common/Forms";
-import { Role, roles } from "@/utils/shared/permissions";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Colors } from "@/styles/Themes";
 import { routes } from "@/utils/shared/constants";
+import { Role, roles } from "@/utils/shared/permissions";
 import { texts } from "@/utils/shared/texts";
-import { Button, TextInput } from "@tremor/react";
 import { Field, Formik, FormikHelpers } from "formik";
 import { useRouter } from "next/navigation";
 import * as Yup from "yup";
@@ -72,18 +73,14 @@ export default function AddUserForm() {
               <Field
                 placeholder={texts.fillOutFullName}
                 name="name"
-                as={TextInput}
+                as={Input}
               />
               <StyledErrorMessage name="name" />
             </div>
 
             <div>
               <InputSubtitle>{texts.email}</InputSubtitle>
-              <Field
-                placeholder={texts.fillOutEmail}
-                name="email"
-                as={TextInput}
-              />
+              <Field placeholder={texts.fillOutEmail} name="email" as={Input} />
               <StyledErrorMessage name="email" />
               <p className="mt-2 italic text-sm text-gray-600">
                 {texts.microsoftAccountRequired}
@@ -109,6 +106,7 @@ export default function AddUserForm() {
             <Button
               className="w-full"
               color={Colors.Primary}
+              loading={isSubmitting}
               disabled={isSubmitting}
               type="submit"
             >

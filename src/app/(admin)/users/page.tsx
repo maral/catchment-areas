@@ -1,18 +1,19 @@
 import { api } from "@/app/api/[...remult]/api";
 import UsersActions from "@/components/UsersActions";
-import UsersTable from "@/components/table/tableWrappers/UsersTable";
 import HeaderBox from "@/components/common/HeaderBox";
-import { getUsersCount, loadUsers, serializeUsers } from "@/components/table/fetchFunctions/loadUsers";
+import {
+  loadUsers,
+  serializeUsers,
+} from "@/components/table/fetchFunctions/loadUsers";
+import UsersTable from "@/components/table/tableWrappers/UsersTable";
+import { Card, CardContent, CardHeader } from "@/components/ui/card"; // Updated import
 import { texts } from "@/utils/shared/texts";
-import { Card, CardHeader, CardContent } from "@/components/ui/card"; // Updated import
-
 
 export default async function Users() {
-  const { serializedUsers, count } = await api.withRemult(async () => {
+  const { serializedUsers } = await api.withRemult(async () => {
     return {
-      serializedUsers: serializeUsers(await loadUsers(1, 50)),
-      count: await getUsersCount()
-    }
+      serializedUsers: serializeUsers(await loadUsers()),
+    };
   });
 
   return (
@@ -23,10 +24,7 @@ export default async function Users() {
         </HeaderBox>
       </CardHeader>
       <CardContent>
-        <UsersTable
-          initialData={serializedUsers}
-          count={count}
-        />
+        <UsersTable initialData={serializedUsers} />
       </CardContent>
     </Card>
   );

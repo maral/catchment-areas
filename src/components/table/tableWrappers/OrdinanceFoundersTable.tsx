@@ -1,6 +1,5 @@
 "use client";
 
-import IconButton from "@/components/buttons/IconButton";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import CatchmentTable from "@/components/table/CatchmentTable";
 import { OrdinanceController } from "@/controllers/OrdinanceController";
@@ -20,8 +19,9 @@ import {
   TrashIcon,
 } from "@heroicons/react/24/solid";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { remult } from "remult";
+import { IconButton } from "../../ui/icon-button";
 import { deserializeOrdinances } from "../fetchFunctions/loadOrdinances";
 
 type Row = {
@@ -33,22 +33,15 @@ export default function OrdinanceFoundersTable({
   cityCode,
   initialFounders,
   initialOrdinances,
-  count,
   urlFrom,
   schoolType,
 }: {
   cityCode: number;
   initialOrdinances: any[];
   initialFounders: any[];
-  count?: number;
   urlFrom?: string[];
   schoolType: SchoolType;
 }) {
-  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
-  const [confirmFunction, setConfirmFunction] = useState<
-    (() => Promise<void>) | null
-  >(null);
-
   const data = useMemo(() => {
     const ordinances = deserializeOrdinances(initialOrdinances);
     const founders = remult.repo(Founder).fromJson(initialFounders);
@@ -157,7 +150,7 @@ export default function OrdinanceFoundersTable({
           >
             <IconButton
               icon={MapIcon}
-              color={Colors.Primary}
+              variant="default"
               tooltip={texts.viewOnMap}
               size="sm"
             />
@@ -173,25 +166,27 @@ export default function OrdinanceFoundersTable({
                   size="sm"
                   onClick={async () => {
                     await OrdinanceController.setActive(item.ordinance.id);
-                    window.location.reload();
+                    await fetchData();
                   }}
                 />
               )}
-              <IconButton
-                icon={TrashIcon}
-                color={Colors.Error}
-                tooltip={texts.delete}
-                size="sm"
-                onClick={() => {
-                  setConfirmFunction(() => async () => {
-                    await OrdinanceController.deleteOrdinance(
-                      item.ordinance.id
-                    );
-                    await fetchData();
-                  });
-                  setIsConfirmOpen(true);
+              <ConfirmDialog
+                title={texts.deleteOrdinanceTitle}
+                message={texts.deleteOrdinanceMessage}
+                onConfirm={async () => {
+                  await OrdinanceController.deleteOrdinance(item.ordinance.id);
+                  await fetchData();
                 }}
-              />
+                confirmButtonVariant="destructive"
+                confirmText={texts.delete}
+              >
+                <IconButton
+                  variant="destructive"
+                  icon={TrashIcon}
+                  tooltip={texts.delete}
+                  size="sm"
+                />
+              </ConfirmDialog>
             </>
           )}
         </span>
@@ -200,26 +195,6 @@ export default function OrdinanceFoundersTable({
   ];
 
   return (
-    <>
-      <CatchmentTable
-        columnDefinitions={columnDefinitions}
-        count={count}
-        showPagination={false}
-        initialData={data}
-      />
-      <ConfirmDialog
-        title={texts.deleteOrdinanceTitle}
-        message={texts.deleteOrdinanceMessage}
-        onConfirm={async () => {
-          if (confirmFunction) {
-            await confirmFunction();
-          }
-        }}
-        isOpen={isConfirmOpen}
-        setIsOpen={setIsConfirmOpen}
-        confirmColor={Colors.Error}
-        confirmText={texts.delete}
-      />
-    </>
+    <CatchmentTable columnDefinitions={columnDefinitions} initialData={data} />
   );
 }

@@ -18,7 +18,6 @@ import {
   SparklesIcon,
 } from "@heroicons/react/24/outline";
 import MonacoEditor, { useMonaco } from "@monaco-editor/react";
-import { Button, Icon } from "@tremor/react";
 import debounce from "lodash/debounce";
 import type { editor } from "monaco-editor";
 import {
@@ -37,6 +36,7 @@ import HeaderBox from "../common/HeaderBox";
 import Spinner from "../common/Spinner";
 import { Monaco, configureMonaco } from "./configureMonaco";
 import { getRootPathBySchoolType } from "../../entities/School";
+import { Button } from "../ui/button";
 
 const owner = "street-markdown";
 
@@ -178,44 +178,39 @@ export default function Editor({
       >
         <div className="flex items-center gap-2">
           <LinkButton
-            buttonProps={{
-              color: Colors.Primary,
-              icon: MapIcon,
-            }}
             href={`${getRootPathBySchoolType(schoolType)}/${
               ordinance.city.code
             }${routes.map}/${founderCount > 1 ? `founder/${founder.id}/` : ""}${
               ordinance.id
             }`}
           >
+            <MapIcon />
             {texts.map}
           </LinkButton>
           <Button
-            color={Colors.Secondary}
+            variant="secondary"
             onClick={() => setShowOriginal(!showOriginal)}
-            icon={showOriginal ? EyeSlashIcon : EyeIcon}
           >
+            {showOriginal ? <EyeSlashIcon /> : <EyeIcon />}
             {texts.originalText}
           </Button>
           <LinkButton
             buttonProps={{
-              color: Colors.Secondary,
               variant: "secondary",
-              icon: ArrowDownTrayIcon,
             }}
             prefetch={false}
             href={`/api/ordinances/download/by-id/${ordinance.id}`}
             target="_blank"
           >
+            <ArrowDownTrayIcon />
             {texts.ordinanceDocument}
           </LinkButton>
           <Button
-            color={Colors.Secondary}
             variant="secondary"
             onClick={() => preprocessText()}
-            icon={SparklesIcon}
             disabled={isPreprocessing}
           >
+            <SparklesIcon />
             {texts.gpt}
           </Button>{" "}
         </div>
@@ -270,12 +265,8 @@ function LoadingIndicator({ text }: { text: string }) {
 
 function Saved() {
   return (
-    <div className="inline-block px-3 py-1 text-xs font-medium leading-none text-center text-slate-600 bg-slate-200 rounded-full">
-      <Icon
-        icon={CloudArrowDownIcon}
-        size="xs"
-        className="text-green-500 px-0 py-0 mr-1 relative top-[2px]"
-      />
+    <div className="inline-flex items-center gap-1 px-3 py-1 text-xs font-medium text-slate-600 bg-slate-200 rounded-full">
+      <CloudArrowDownIcon className="w-4 text-green-500" />
       {texts.saved}
     </div>
   );

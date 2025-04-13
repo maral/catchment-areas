@@ -1,14 +1,28 @@
 "use client";
 
-import { Role, roles } from "@/utils/shared/permissions";
+import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Colors } from "@/styles/Themes";
 import { routes } from "@/utils/shared/constants";
+import { Role, roles } from "@/utils/shared/permissions";
 import { texts } from "@/utils/shared/texts";
-import { Button, Subtitle, TextInput } from "@tremor/react";
-import { Field, Formik } from "formik";
 import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
 import * as Yup from "yup";
-import { InputSubtitle, StyledForm } from "@/components/common/Forms";
 
 type UserInfo = {
   id: string;
@@ -32,6 +46,28 @@ const validationSchema = Yup.object({
 
 export default function EditUserForm({ user }: { user: UserInfo }) {
   const router = useRouter();
+  const form = useForm<FormValues>({
+    resolver: async (values) => {
+      const errors: Partial<Record<keyof FormValues, string>> = {};
+      try {
+        await validationSchema.validate(values, { abortEarly: false });
+      } catch (err) {
+        if (err instanceof Yup.ValidationError) {
+          err.inner.forEach((error) => {
+            if (error.path) {
+              errors[error.path as keyof FormValues] = error.message;
+            }
+          });
+        }
+      }
+      return { values, errors };
+    },
+    defaultValues: {
+      name: user.name,
+      futureEmail: user.futureEmail,
+      role: user.role,
+    },
+  });
   const onSubmit = async (values: FormValues) => {
     const data = new FormData();
 
@@ -57,66 +93,68 @@ export default function EditUserForm({ user }: { user: UserInfo }) {
   };
 
   return (
-    <Formik
-      initialValues={{
-        name: user.name,
-        futureEmail: user.futureEmail,
-        role: user.role,
-      }}
-      validationSchema={validationSchema}
-      onSubmit={onSubmit}
-    >
-      {({ isSubmitting }) => {
-        return (
-          <StyledForm>
-            <div>
-              <InputSubtitle>{texts.fullName}</InputSubtitle>
-              <Field
-                placeholder={texts.fillOutFullName}
-                name="name"
-                as={TextInput}
-              />
-            </div>
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)}>
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{texts.fullName}</FormLabel>
+              <Input {...field} placeholder={texts.fillOutFullName} />
+            </FormItem>
+          )}
+        />
 
-            <div>
-              <InputSubtitle>{texts.email}</InputSubtitle>
-              {user.futureEmail.length > 0 && (
-                <Field
-                  placeholder={texts.fillOutEmail}
-                  name="futureEmail"
-                  as={TextInput}
-                />
-              )}
-              {user.email.length > 0 && (
-                <p className="mt-3 text-gray-600 text-sm">{user.email}</p>
-              )}
-            </div>
+        {user.futureEmail.length > 0 && (
+          <FormField
+            control={form.control}
+            name="futureEmail"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{texts.email}</FormLabel>
+                <Input {...field} placeholder={texts.fillOutEmail} />
+              </FormItem>
+            )}
+          />
+        )}
+        {user.email.length > 0 && (
+          <p className="mt-3 text-gray-600 text-sm">{user.email}</p>
+        )}
 
-            <div>
-              <InputSubtitle>{texts.role}</InputSubtitle>
-              <Field
-                className="p-2 px-3 w-full shadow-xs text-sm text-gray-500 border border-gray-300 rounded-md outline-hidden focus:ring-2"
-                name="role"
-                as="select"
-              >
-                {roles.map((role, index) => (
-                  <option key={index} value={role.role} className="my-1">
-                    {role.label}
-                  </option>
-                ))}
-              </Field>
-            </div>
-            <Button
-              className="w-full"
-              color={Colors.Primary}
-              disabled={isSubmitting}
-              type="submit"
-            >
-              {texts.save}
-            </Button>
-          </StyledForm>
-        );
-      }}
-    </Formik>
+        <FormField
+          control={form.control}
+          name="role"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{texts.role}</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder={texts.selectRole} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {roles.map((role, index) => (
+                      <SelectItem key={index} value={role.role}>
+                        {role.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </FormControl>
+              </Select>
+            </FormItem>
+          )}
+        />
+
+        <Button
+          className="w-full"
+          color={Colors.Primary}
+          disabled={form.formState.isSubmitting}
+          type="submit"
+        >
+          {texts.save}
+        </Button>
+      </form>
+    </Form>
   );
 }

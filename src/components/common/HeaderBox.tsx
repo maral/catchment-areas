@@ -18,14 +18,12 @@ export default function HeaderBox({
   return (
     <div className={`flex justify-between items-center h-14 mb-4 ${className}`}>
       <div>
-        <Header>{ title }</Header>
+        <Header>{title}</Header>
       </div>
-      <div className={middleSlotClassName ?? ''}>
-        { middleSlot }
-      </div>
-      <div className={`flex items-center ${childrenWrapperClassName ?? ''}`}>
-        { children }
+      <div className={middleSlotClassName ?? ""}>{middleSlot}</div>
+      <div className={`flex items-center ${childrenWrapperClassName ?? ""}`}>
+        {children}
       </div>
     </div>
-  )
+  );
 }

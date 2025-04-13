@@ -5,10 +5,10 @@ import {
   serializeCities,
 } from "@/components/table/fetchFunctions/loadCities";
 import RegionCitiesTable from "@/components/table/tableWrappers/citiesTableWrappers/RegionCitiesTable";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { CityController } from "@/controllers/CityController";
 import { Region } from "@/entities/Region";
 import { SchoolType } from "@/types/basicTypes";
-import { Card } from "@tremor/react";
 import { remult } from "remult";
 
 export default async function RegionDetailPage({
@@ -36,12 +36,16 @@ export default async function RegionDetailPage({
 
   return (
     <Card>
-      <HeaderBox title={region?.name} />
-      <RegionCitiesTable
-        regionCode={regionCode}
-        initialData={serializedCities}
-        simpleOrdinances={ordinances}
-      />
+      <CardHeader>
+        <HeaderBox title={region?.name} />
+      </CardHeader>
+      <CardContent>
+        <RegionCitiesTable
+          regionCode={regionCode}
+          initialData={serializedCities}
+          simpleOrdinances={ordinances}
+        />
+      </CardContent>
     </Card>
   );
 }

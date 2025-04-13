@@ -41,13 +41,3 @@ export function deserializeOrdinanceMetadata(
 ): OrdinanceMetadata[] {
   return ordinancesMetadataRepo.fromJson(ordinancesMetadata);
 }
-
-export async function getOrdinanceMetadataCount(
-  city: City,
-  schoolType: SchoolType
-): Promise<number> {
-  return await ordinancesMetadataRepo.count({
-    city: city.name.toLocaleLowerCase("cs"),
-    schoolType,
-  });
-}

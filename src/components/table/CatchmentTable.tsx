@@ -1,73 +1,57 @@
 "use client";
 
-import type { ColumnDefinition, TableState } from "@/types/tableTypes";
+import type { ColumnDefinition } from "@/types/tableTypes";
+
+import { useCallback, useEffect, useState } from "react";
+import { texts } from "@/utils/shared/texts";
 import {
   Table,
   TableBody,
   TableCell,
   TableHead,
-  TableHeaderCell,
+  TableHeader,
   TableRow,
-} from "@tremor/react";
-import { useCallback, useEffect, useState } from "react";
-import Pagination from "./Pagination";
-import { texts } from "@/utils/shared/texts";
+} from "../ui/table";
 
 export default function CatchmentTable<T>({
   fetchItems,
   columnDefinitions,
   initialData,
-  count,
-  showPagination = true,
   noDataText = texts.noData,
 }: {
-  fetchItems?: (page: number, limit: number) => Promise<T[]>;
+  fetchItems?: () => Promise<T[]>;
   columnDefinitions: ColumnDefinition<T>[];
   initialData?: T[];
-  count?: number;
-  showPagination?: boolean;
   noDataText?: string;
 }) {
   const [items, setItems] = useState<T[]>(initialData ?? []);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [tableState, setTableState] = useState<TableState>({
-    page: 1,
-    pageSize: 250,
-  });
 
   const fetchData = useCallback(async () => {
     if (fetchItems) {
       setIsLoading(true);
-      const response = await fetchItems(tableState.page, tableState.pageSize);
+      const response = await fetchItems();
       setItems(response);
       setIsLoading(false);
     }
-  }, [
-    fetchItems,
-    setIsLoading,
-    setItems,
-    tableState.page,
-    tableState.pageSize,
-  ]);
+  }, [fetchItems, setIsLoading, setItems]);
 
   useEffect(() => {
     fetchData();
-  }, [tableState.page, tableState.pageSize, fetchData]);
-
-  const noData = isLoading === false && items.length === 0;
+  }, [fetchData]);
 
   return (
     <div>
       <Table>
-        <TableHead>
+        <TableHeader>
           <TableRow>
             {columnDefinitions.map((column, index) => (
-              <TableHeaderCell key={index} className="p-2">
+              <TableHead key={index} className="p-2 font-semibold">
                 {column.title}
-              </TableHeaderCell>
+              </TableHead>
             ))}
           </TableRow>
-        </TableHead>
+        </TableHeader>
 
         <TableBody className={`${isLoading ? "text-slate-500" : ""}`}>
           {items.length === 0 && (
@@ -91,13 +75,6 @@ export default function CatchmentTable<T>({
           ))}
         </TableBody>
       </Table>
-      {showPagination && !noData && (
-        <Pagination
-          tableState={tableState}
-          total={count ?? 0}
-          setTableState={setTableState}
-        />
-      )}
     </div>
   );
 }

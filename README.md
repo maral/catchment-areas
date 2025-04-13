@@ -1,4 +1,5 @@
 # Catchment areas
+
 Transforming catchment area definitions of Czech cities from PDFs into geo data.
 
 ## Running the app
@@ -14,6 +15,7 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 ## Overview
 
 The core idea of the project is automatically transforming Czech `ordinances` that specify `catchment areas` of schools into machine-readable geo data that could be shown on a map. This app is helping to transform ordinances of all Czech cities (with 2+ schools). There are two parts:
+
 1. public map of catchment areas
 2. administration of all founders and their ordinances
 
@@ -30,6 +32,7 @@ This project follows up on the work on [text-to-map](https://github.com/maral/te
 ### text-to-map library
 
 The library is written in TypeScript. It has the following components:
+
 - **open-data sync** - downloads necessary data like address points, cities, regions, streets, schools and school founders and stores it all in a database
 - **street-markdown parser** - the parser was created using [chevrotain](https://chevrotain.io/docs/) lexer/parser library
 
@@ -51,7 +54,7 @@ Microsoft login is the only provider for sign-in for editors and admins. It's ca
 
 Since it's a Next.js app, React is the render library. The app makes heavy use of the React Server Components - which lets you offload most of the async data operations to the server and on the client only a small JS is then needed. It's not particularly small yet, there is work to be done.
 
-As a component library we chose [tremor](https://www.tremor.so/), which looks beautiful, but is not optimized and leads to large JS bundles - either removal of tremor or a newer, more optimized version would be advisable. See the [relevant issue](https://github.com/tremorlabs/tremor/issues/605).
+As a component library we use [shadcn/ui](https://ui.shadcn.com/) - a set of components built on top of [Radix UI](https://www.radix-ui.com/docs/primitives/overview/introduction) and [Tailwind CSS](https://tailwindcss.com/docs/installation).
 
 The maps are created using [Leaflet](https://leafletjs.com/) and the code is ported from the [Prague's catchment areas web app](https://www.spadovostpraha.cz/) ([project's GitHub](https://github.com/maral/text-to-map-frontend)).
 

@@ -12,10 +12,10 @@ import { routes } from "@/utils/shared/constants";
 import { texts } from "@/utils/shared/texts";
 import { ArrowDownTrayIcon } from "@heroicons/react/24/outline";
 import { MapPinIcon } from "@heroicons/react/24/solid";
-import { Button } from "@tremor/react";
 import { useState } from "react";
 import { remult } from "remult";
 import LinkButton from "../buttons/LinkButton";
+import { Button } from "../ui/button";
 
 export default function OverviewBoxButtons({
   city,
@@ -86,25 +86,23 @@ export default function OverviewBoxButtons({
             : `${rootPath}/${city.code}${routes.map}/${activeOrdinanceId}`
         }
         buttonProps={{
-          icon: MapPinIcon,
-          color: Colors.Primary,
           className: "my-2 w-full",
           disabled: !activeOrdinanceId,
         }}
       >
+        <MapPinIcon />
         {texts.viewOnMap}
       </LinkButton>
       <LinkButton
         href={`${rootPath}/${city.code}${routes.download}/${activeOrdinanceId}`}
         buttonProps={{
-          icon: ArrowDownTrayIcon,
           variant: "secondary",
-          color: Colors.Secondary,
           className: "my-2 w-full",
           disabled: !activeOrdinanceId,
         }}
         target={!activeOrdinanceId ? "_self" : "_blank"}
       >
+        <ArrowDownTrayIcon />
         {texts.downloadJson}
       </LinkButton>
     </>

@@ -1,4 +1,3 @@
-import { Subtitle } from "@tremor/react";
 import { ErrorMessage, Form } from "formik";
 import { ComponentProps } from "react";
 
@@ -7,7 +6,7 @@ export function StyledForm({ children }: { children: React.ReactNode }) {
 }
 
 export function InputSubtitle({ children }: { children: React.ReactNode }) {
-  return <Subtitle className="mb-2">{children}</Subtitle>;
+  return <span className="mb-2">{children}</span>;
 }
 
 export function StyledErrorMessage(props: ComponentProps<typeof ErrorMessage>) {

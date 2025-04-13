@@ -10,9 +10,9 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card"; // Updated
 import { api } from "@/app/api/[...remult]/api";
 
 export default async function Regions() {
-  const { serializedRegions, count } = await api.withRemult(async () => {
+  const { serializedRegions } = await api.withRemult(async () => {
     return {
-      serializedRegions: serializeRegions(await loadRegions(1, 50)),
+      serializedRegions: serializeRegions(await loadRegions()),
       count: await getRegionsCount(),
     };
   });
@@ -23,7 +23,7 @@ export default async function Regions() {
         <HeaderBox title={texts.regions} />
       </CardHeader>
       <CardContent>
-        <RegionsTable initialData={serializedRegions} count={count} />
+        <RegionsTable initialData={serializedRegions} />
       </CardContent>
     </Card>
   );

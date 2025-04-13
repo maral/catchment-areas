@@ -10,9 +10,9 @@ import OrdinancesTable from "@/components/table/tableWrappers/OrdinancesTable";
 import { City } from "@/entities/City";
 import { Founder } from "@/entities/Founder";
 import { getRootPathBySchoolType, getSchoolTypeCode } from "@/entities/School";
-import { Card } from "@tremor/react";
 import { notFound, redirect } from "next/navigation";
 import { remult } from "remult";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 export default async function CityDetailPage({
   params: { code, from, schoolType },
@@ -61,30 +61,34 @@ export default async function CityDetailPage({
       {/* TOP PART OF THE VIEW */}
       <div className="h-full pb-5 flex">
         <Card className="grow m-1 mr-4 overflow-y-auto">
-          <OrdinanceHeader
-            cityCode={code}
-            urlFrom={from}
-            schoolType={schoolTypeCode}
-          />
-          {founders.length === 1 && (
-            <OrdinancesTable
-              founderId={founders[0].id}
-              cityCode={cityCode}
-              initialData={serializedOrdinances}
+          <CardHeader>
+            <OrdinanceHeader
+              cityCode={code}
               urlFrom={from}
               schoolType={schoolTypeCode}
             />
-          )}
+          </CardHeader>
+          <CardContent>
+            {founders.length === 1 && (
+              <OrdinancesTable
+                founderId={founders[0].id}
+                cityCode={cityCode}
+                initialData={serializedOrdinances}
+                urlFrom={from}
+                schoolType={schoolTypeCode}
+              />
+            )}
 
-          {founders.length > 1 && (
-            <OrdinanceFoundersTable
-              initialOrdinances={serializedOrdinances}
-              initialFounders={serializedFounders}
-              cityCode={cityCode}
-              urlFrom={from}
-              schoolType={schoolTypeCode}
-            />
-          )}
+            {founders.length > 1 && (
+              <OrdinanceFoundersTable
+                initialOrdinances={serializedOrdinances}
+                initialFounders={serializedFounders}
+                cityCode={cityCode}
+                urlFrom={from}
+                schoolType={schoolTypeCode}
+              />
+            )}
+          </CardContent>
         </Card>
         {/* overview box */}
         <OverviewBox

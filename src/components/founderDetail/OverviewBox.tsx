@@ -3,13 +3,7 @@
 import OverviewBoxButtons from "@/components/founderDetail/OverviewBoxButtons";
 import { SchoolType } from "@/types/basicTypes";
 import { texts } from "@/utils/shared/texts";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"; // Updated import
-import { Subtitle, Title } from "@tremor/react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"; // Updated import
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { remult } from "remult";
@@ -56,14 +50,12 @@ export default function OverviewBox({
       <CardContent>
         <div className="mb-4">
           <div className="flex justify-between w-60 my-1">
-            <Subtitle className="text-tremor-content">{texts.status}:</Subtitle>
+            <span>{texts.status}:</span>
             <CityStatusChip cityStatus={status} />
           </div>
           <div className="flex justify-between w-60 my-1">
-            <Subtitle className="text-tremor-content">
-              {texts.numberOfSchools(schoolType)}:
-            </Subtitle>
-            <Subtitle className="mr-2">{count}</Subtitle>
+            <span>{texts.numberOfSchools(schoolType)}:</span>
+            <span>{count}</span>
           </div>
         </div>
         <OverviewBoxButtons

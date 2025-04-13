@@ -1,10 +1,9 @@
 import { City } from "@/entities/City";
+import { routes } from "@/utils/shared/constants";
 import { texts } from "@/utils/shared/texts";
 import { MapIcon } from "@heroicons/react/24/solid";
-import { Colors } from "@/styles/Themes";
-import IconButton from "../buttons/IconButton";
 import Link from "next/link";
-import { routes } from "@/utils/shared/constants";
+import { IconButton } from "../ui/icon-button";
 
 export default function TableActionButtons({
   item,
@@ -19,12 +18,7 @@ export default function TableActionButtons({
         className="inline-block"
         href={`${routes.cities}/${item.code}${routes.map}/${activeOrdinanceId}`}
       >
-        <IconButton
-          icon={MapIcon}
-          color={Colors.Primary}
-          tooltip={texts.viewOnMap}
-          size="sm"
-        />
+        <IconButton icon={MapIcon} tooltip={texts.viewOnMap} size="sm" />
       </Link>
     </span>
   );

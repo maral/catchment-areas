@@ -1,21 +1,25 @@
 "use client";
 
-import React from "react";
-import { usePathname } from "next/navigation";
 import Appbar from "@/components/layout/Appbar";
-import Navbar from "@/components/layout/Navbar";
+import AppSidebar from "@/components/layout/AppSidebar";
 import UserMenu from "@/components/layout/UserMenu";
-import constants from "@/utils/shared/constants";
 import { useLocalStorage } from "@/utils/client/hooks";
+import constants from "@/utils/shared/constants";
+import { usePathname } from "next/navigation";
+import React from "react";
+import { SidebarProvider } from "../ui/sidebar";
 
 export default function AppMenu({
   children,
-  breadcrumbNav
+  breadcrumbNav,
 }: {
   children: React.ReactNode;
   breadcrumbNav: React.ReactNode;
 }) {
-  const [isNavbarOpen, setIsNavbarOpen] = useLocalStorage(constants.localStorageKey.isNavbarOpen, true);
+  const [isNavbarOpen, setIsNavbarOpen] = useLocalStorage(
+    constants.localStorageKey.isNavbarOpen,
+    true
+  );
 
   const pathname = usePathname();
 
@@ -26,23 +30,17 @@ export default function AppMenu({
   return (
     <>
       {/\/auth/g.test(pathname) ? (
-        <div className="grow flex flex-col h-screen">
-          {children}
-        </div>
+        <div className="grow flex flex-col h-screen">{children}</div>
       ) : (
-        <>
-          <Navbar
-            className={`${
-              isNavbarOpen ? "w-72" : "w-0"
-            } ease-in-out duration-150 h-screen`}
-          ></Navbar>
+        <SidebarProvider>
+          <AppSidebar />
           <div className="grow flex flex-col">
-            <Appbar toggleNavbar={toggleNavbar} breadcrumbNav={breadcrumbNav}>
+            <Appbar breadcrumbNav={breadcrumbNav}>
               <UserMenu />
             </Appbar>
             {children}
           </div>
-        </>
+        </SidebarProvider>
       )}
     </>
   );

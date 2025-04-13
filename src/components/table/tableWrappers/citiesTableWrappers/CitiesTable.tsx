@@ -3,10 +3,8 @@
 import CityStatusChip from "@/components/CityStatusChip";
 import CatchmentLink from "@/components/common/CatchmentLink";
 import CatchmentTable from "@/components/table/CatchmentTable";
-import {
-  deserializeCities,
-  loadCities,
-} from "@/components/table/fetchFunctions/loadCities";
+import { deserializeCities } from "@/components/table/fetchFunctions/loadCities";
+import { Badge } from "@/components/ui/badge";
 import {
   City,
   getCountPropertyBySchoolType,
@@ -17,7 +15,6 @@ import { SchoolType } from "@/types/basicTypes";
 import type { ColumnDefinition } from "@/types/tableTypes";
 import { routes } from "@/utils/shared/constants";
 import { texts } from "@/utils/shared/texts";
-import { Badge } from "@tremor/react";
 import { deserializeOrdinanceMetadata } from "../../fetchFunctions/loadOrdinanceMetadata";
 
 export default function CitiesTable({
@@ -65,7 +62,7 @@ export default function CitiesTable({
           {newOrdinancesCityCodes.has(item.code) && (
             <>
               {" "}
-              <Badge color={"yellow"}>{texts.newOrdinances}</Badge>
+              <Badge variant="warning">{texts.newOrdinances}</Badge>
             </>
           )}
         </>
@@ -77,7 +74,6 @@ export default function CitiesTable({
     <CatchmentTable
       columnDefinitions={columnDefinitions}
       initialData={deserializeCities(initialData)}
-      showPagination={false}
     />
   );
 }

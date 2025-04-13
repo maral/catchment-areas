@@ -3,11 +3,9 @@ import { remult } from "remult";
 
 const regionsRepo = remult.repo(Region);
 
-export async function loadRegions(page: number, limit: number): Promise<Region[]> {
+export async function loadRegions(): Promise<Region[]> {
   return await regionsRepo.find({
-    limit,
-    page,
-    orderBy: { shortName: "asc" }
+    orderBy: { shortName: "asc" },
   });
 }
 

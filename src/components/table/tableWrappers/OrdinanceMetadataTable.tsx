@@ -1,8 +1,11 @@
 "use client";
 
 import CatchmentTable from "@/components/table/CatchmentTable";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { OrdinanceController } from "@/controllers/OrdinanceController";
 import { City } from "@/entities/City";
+import { Founder } from "@/entities/Founder";
 import { OrdinanceMetadata } from "@/entities/OrdinanceMetadata";
 import { getRootPathBySchoolType } from "@/entities/School";
 import { Colors } from "@/styles/Themes";
@@ -12,12 +15,10 @@ import { routes } from "@/utils/shared/constants";
 import { formatStringOrDate } from "@/utils/shared/date";
 import { getOrdinanceDocumentDownloadLink } from "@/utils/shared/ordinanceMetadata";
 import { replacePlaceholders, texts } from "@/utils/shared/texts";
-import { Badge, Button } from "@tremor/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { remult } from "remult";
-import { Founder } from "../../../entities/Founder";
 import { loadOrdinanceMetadata } from "../fetchFunctions/loadOrdinanceMetadata";
 
 const citiesRepo = remult.repo(City);
@@ -25,13 +26,11 @@ const citiesRepo = remult.repo(City);
 export default function OrdinanceMetadataTable({
   cityCode,
   cityName,
-  count,
   initialData,
   schoolType,
 }: {
   cityCode: string;
   cityName: string;
-  count: number;
   initialData: any[];
   schoolType: SchoolType;
 }) {
@@ -119,14 +118,14 @@ export default function OrdinanceMetadataTable({
         <span className="whitespace-normal">
           {item.isNewOrdinance && (
             <>
-              <Badge color={"yellow"}>
+              <Badge variant="warning">
                 <strong className="uppercase">{texts.new}</strong>
               </Badge>{" "}
             </>
           )}
           {item.isRejected && (
             <>
-              <Badge color={"red"}>
+              <Badge variant="destructive">
                 <strong className="uppercase">{texts.rejected}</strong>
               </Badge>{" "}
             </>
@@ -159,7 +158,7 @@ export default function OrdinanceMetadataTable({
         <>
           {item.isRejected ? (
             <Button
-              color={Colors.Secondary}
+              variant="secondary"
               loading={addingOrdinanceId === item.id}
               onClick={() => {
                 unrejectOrdinance(item.id);
@@ -170,7 +169,6 @@ export default function OrdinanceMetadataTable({
           ) : (
             <>
               <Button
-                color={Colors.Primary}
                 loading={addingOrdinanceId === item.id}
                 onClick={() => {
                   setAddingOrdinanceId(item.id);
@@ -180,7 +178,7 @@ export default function OrdinanceMetadataTable({
                 {texts.add}
               </Button>{" "}
               <Button
-                color={Colors.Error}
+                variant="destructive"
                 loading={addingOrdinanceId === item.id}
                 onClick={() => {
                   rejectOrdinance(item.id);
@@ -205,9 +203,7 @@ export default function OrdinanceMetadataTable({
       key={key}
       columnDefinitions={columnDefinitions}
       initialData={initialData}
-      count={count}
       fetchItems={fetchItems}
-      showPagination={false}
       noDataText={replacePlaceholders(texts.noDataOrdinanceFromRegister, {
         city: cityName,
       })}

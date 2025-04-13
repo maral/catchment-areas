@@ -1,6 +1,6 @@
-import { Button } from "@tremor/react";
 import Link, { LinkProps } from "next/link";
 import { AnchorHTMLAttributes } from "react";
+import { Button } from "../ui/button";
 
 interface LinkButtonProps
   extends AnchorHTMLAttributes<HTMLAnchorElement>,
@@ -12,24 +12,18 @@ interface LinkButtonProps
 export default function LinkButton({
   href,
   children,
-  className,
   buttonProps,
   ...props
 }: LinkButtonProps) {
   return (
-    <div className={className ?? ''}>
+    <Button asChild {...buttonProps}>
       <Link
         href={buttonProps?.disabled ? {} : href}
         prefetch={false}
         {...props}
       >
-        <Button
-          className="w-full"
-          {...buttonProps}
-        >
-          {children}
-        </Button>
+        {children}
       </Link>
-    </div>
+    </Button>
   );
 }

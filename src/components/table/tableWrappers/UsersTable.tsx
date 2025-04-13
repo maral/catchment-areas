@@ -1,58 +1,46 @@
 "use client";
 
 import LinkButton from "@/components/buttons/LinkButton";
-import ConfirmDialog, {
-  ConfirmFunction,
-} from "@/components/common/ConfirmDialog";
+import ConfirmDialog from "@/components/common/ConfirmDialog";
 import CatchmentTable from "@/components/table/CatchmentTable";
+import { Button } from "@/components/ui/button";
 import { UserController } from "@/controllers/UserController";
 import { User } from "@/entities/User";
-import { Colors } from "@/styles/Themes";
 import type { ColumnDefinition } from "@/types/tableTypes";
 import { routes } from "@/utils/shared/constants";
+import { getRoleLabel } from "@/utils/shared/permissions";
 import { texts } from "@/utils/shared/texts";
 import { PencilSquareIcon, TrashIcon } from "@heroicons/react/24/solid";
-import { Button } from "@tremor/react";
-import { useState } from "react";
 import { deserializeUsers, loadUsers } from "../fetchFunctions/loadUsers";
-import { getRoleLabel } from "@/utils/shared/permissions";
 
-export default function UsersTable({
-  initialData,
-  count,
-}: {
-  initialData: any[];
-  count?: number;
-}) {
-  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
-  const [confirmFunction, setConfirmFunction] =
-    useState<ConfirmFunction | null>(null);
-
+export default function UsersTable({ initialData }: { initialData: any[] }) {
   const renderActionButtons = (item: User, fetchData: () => Promise<void>) => (
     <div className="flex">
       <LinkButton
         className="mr-2"
         href={`${routes.users}/${item.id}`}
         buttonProps={{
-          icon: PencilSquareIcon,
-          color: Colors.Secondary,
+          variant: "secondary",
         }}
       >
+        <PencilSquareIcon />
         {texts.edit}
       </LinkButton>
-      <Button
-        color={Colors.Error}
-        icon={TrashIcon}
-        onClick={() => {
-          setConfirmFunction(() => async () => {
-            await UserController.deleteUser(item.id);
-            await fetchData();
-          });
-          setIsConfirmOpen(true);
+      <ConfirmDialog
+        title={texts.deleteUserTitle}
+        message={texts.deleteUserMessage}
+        onConfirm={async () => {
+          await UserController.deleteUser(item.id);
+          await fetchData();
         }}
+        confirmButtonVariant="destructive"
+        confirmText={texts.delete}
       >
-        {texts.delete}
-      </Button>
+        <Button variant="destructive">
+          <TrashIcon />
+          {texts.delete}
+        </Button>
+      </ConfirmDialog>
     </div>
   );
 
@@ -85,28 +73,11 @@ export default function UsersTable({
   ];
 
   return (
-    <>
-      <CatchmentTable
-        columnDefinitions={columnDefinitions}
-        fetchItems={loadUsers}
-        count={count}
-        initialData={deserializeUsers(initialData)}
-      />
-
-      <ConfirmDialog
-        title={texts.deleteUserTitle}
-        message={texts.deleteUserMessage}
-        onConfirm={async () => {
-          if (confirmFunction) {
-            await confirmFunction();
-          }
-        }}
-        isOpen={isConfirmOpen}
-        setIsOpen={setIsConfirmOpen}
-        confirmColor={Colors.Error}
-        confirmText={texts.delete}
-      />
-    </>
+    <CatchmentTable
+      columnDefinitions={columnDefinitions}
+      fetchItems={loadUsers}
+      initialData={deserializeUsers(initialData)}
+    />
   );
 }
 

@@ -1,11 +1,8 @@
-import { Color, Icon } from "@tremor/react";
-
 export default function PublicButton({
   icon,
   onClick,
   href,
   target,
-  size = "md",
   variant = "outline",
   className,
   children,
@@ -15,7 +12,6 @@ export default function PublicButton({
   href?: string;
   target?: string;
   variant?: "primary" | "outline";
-  size?: "sm" | "md" | "lg";
   className?: string;
   children?: React.ReactNode;
 }) {

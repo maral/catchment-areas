@@ -4,16 +4,17 @@ import {
   loadCities,
   serializeCities,
 } from "@/components/table/fetchFunctions/loadCities";
-import CitiesTable from "@/components/table/tableWrappers/citiesTableWrappers/CitiesTable";
-import { getSchoolTypeCode } from "@/entities/School";
-import { SchoolType } from "@/types/basicTypes";
-import { texts } from "@/utils/shared/texts";
-import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import {
   loadNewOrdinanceMetadata,
   serializeOrdinanceMetadata,
-} from "../../../components/table/fetchFunctions/loadOrdinanceMetadata";
-import { Callout } from "@tremor/react";
+} from "@/components/table/fetchFunctions/loadOrdinanceMetadata";
+import CitiesTable from "@/components/table/tableWrappers/citiesTableWrappers/CitiesTable";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { getSchoolTypeCode } from "@/entities/School";
+import { SchoolType } from "@/types/basicTypes";
+import { texts } from "@/utils/shared/texts";
+import { NewspaperIcon } from "@heroicons/react/24/outline";
 
 export default async function Cities({
   params: { schoolType },
@@ -50,13 +51,13 @@ export default async function Cities({
       </CardHeader>
       <CardContent>
         {newOrdinanceMetadata.length > 0 && (
-          <Callout
-            color={"yellow"}
-            title={texts.newOrdinances}
-            className="mb-4"
-          >
-            {texts.newOrdinancesAvailable(newOrdinanceMetadata.length)}
-          </Callout>
+          <Alert className="mb-4" variant='warning'>
+            <NewspaperIcon className="h-4 w-4 mr-2" />
+            <AlertTitle>{texts.newOrdinances}</AlertTitle>
+            <AlertDescription>
+              {texts.newOrdinancesAvailable(newOrdinanceMetadata.length)}
+            </AlertDescription>
+          </Alert>
         )}
         <CitiesTable
           initialData={serializedCities}

@@ -1,10 +1,9 @@
-'use client';
+"use client";
 
-import { PlusIcon } from "@heroicons/react/24/solid";
-import { texts } from "@/utils/shared/texts";
 import LinkButton from "@/components/buttons/LinkButton";
 import { routes } from "@/utils/shared/constants";
-import { Colors } from "@/styles/Themes";
+import { texts } from "@/utils/shared/texts";
+import { PlusIcon } from "@heroicons/react/24/solid";
 
 export default function UsersActions() {
   return (
@@ -12,10 +11,10 @@ export default function UsersActions() {
       className="m-2"
       href={`${routes.users}${routes.new}`}
       buttonProps={{
-        color: Colors.Primary,
-        icon: PlusIcon,
+        variant: "default",
       }}
     >
+      <PlusIcon />
       {texts.addUser}
     </LinkButton>
   );

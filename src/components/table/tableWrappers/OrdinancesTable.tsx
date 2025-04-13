@@ -1,12 +1,10 @@
 "use client";
 
-import IconButton from "@/components/buttons/IconButton";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import CatchmentTable from "@/components/table/CatchmentTable";
 import { OrdinanceController } from "@/controllers/OrdinanceController";
 import { Ordinance } from "@/entities/Ordinance";
 import { getRootPathBySchoolType } from "@/entities/School";
-import { Colors } from "@/styles/Themes";
 import { SchoolType } from "@/types/basicTypes";
 import type { ColumnDefinition } from "@/types/tableTypes";
 import { routes } from "@/utils/shared/constants";
@@ -19,7 +17,7 @@ import {
   TrashIcon,
 } from "@heroicons/react/24/solid";
 import Link from "next/link";
-import { useState } from "react";
+import { IconButton } from "../../ui/icon-button";
 import {
   deserializeOrdinances,
   loadOrdinancesByCityCode,
@@ -29,7 +27,6 @@ export default function OrdinancesTable({
   cityCode,
   founderId,
   initialData,
-  count,
   urlFrom,
   schoolType,
 }: {
@@ -40,11 +37,6 @@ export default function OrdinancesTable({
   urlFrom?: string[];
   schoolType: SchoolType;
 }) {
-  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
-  const [confirmFunction, setConfirmFunction] = useState<
-    (() => Promise<void>) | null
-  >(null);
-
   const rootPath = getRootPathBySchoolType(schoolType);
 
   const columnDefinitions: ColumnDefinition<Ordinance>[] = [
@@ -78,7 +70,6 @@ export default function OrdinancesTable({
             prefetch={false}
           >
             <IconButton
-              color={Colors.Secondary}
               icon={PencilSquareIcon}
               tooltip={texts.edit}
               size="sm"
@@ -103,7 +94,7 @@ export default function OrdinancesTable({
           >
             <IconButton
               icon={MapIcon}
-              color={Colors.Primary}
+              variant="default"
               tooltip={texts.viewOnMap}
               size="sm"
             />
@@ -111,7 +102,6 @@ export default function OrdinancesTable({
           {!item.isActive && (
             <IconButton
               icon={PlayIcon}
-              color={Colors.Secondary}
               tooltip={texts.setActive}
               size="sm"
               onClick={async () => {
@@ -120,19 +110,23 @@ export default function OrdinancesTable({
               }}
             />
           )}
-          <IconButton
-            icon={TrashIcon}
-            color={Colors.Error}
-            tooltip={texts.delete}
-            size="sm"
-            onClick={() => {
-              setConfirmFunction(() => async () => {
-                await OrdinanceController.deleteOrdinance(item.id);
-                await fetchData();
-              });
-              setIsConfirmOpen(true);
+          <ConfirmDialog
+            title={texts.deleteOrdinanceTitle}
+            message={texts.deleteOrdinanceMessage}
+            onConfirm={async () => {
+              await OrdinanceController.deleteOrdinance(item.id);
+              await fetchData();
             }}
-          />
+            confirmButtonVariant="destructive"
+            confirmText={texts.delete}
+          >
+            <IconButton
+              variant="destructive"
+              icon={TrashIcon}
+              tooltip={texts.delete}
+              size="sm"
+            />
+          </ConfirmDialog>
         </span>
       ),
     },
@@ -143,27 +137,10 @@ export default function OrdinancesTable({
   };
 
   return (
-    <>
-      <CatchmentTable
-        columnDefinitions={columnDefinitions}
-        fetchItems={fetchItems}
-        count={count}
-        showPagination={false}
-        initialData={deserializeOrdinances(initialData)}
-      />
-      <ConfirmDialog
-        title={texts.deleteOrdinanceTitle}
-        message={texts.deleteOrdinanceMessage}
-        onConfirm={async () => {
-          if (confirmFunction) {
-            await confirmFunction();
-          }
-        }}
-        isOpen={isConfirmOpen}
-        setIsOpen={setIsConfirmOpen}
-        confirmColor={Colors.Error}
-        confirmText={texts.delete}
-      />
-    </>
+    <CatchmentTable
+      columnDefinitions={columnDefinitions}
+      fetchItems={fetchItems}
+      initialData={deserializeOrdinances(initialData)}
+    />
   );
 }

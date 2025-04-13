@@ -1,7 +1,7 @@
 import { Colors } from "@/styles/Themes";
 import { texts } from "@/utils/shared/texts";
-import { Badge, BadgeProps } from "@tremor/react";
 import { CityStatus } from "@/entities/City";
+import { Badge } from "@/components/ui/badge";
 
 export default function CityStatusChip({
   cityStatus,
@@ -10,37 +10,37 @@ export default function CityStatusChip({
 }) {
   const getStatus = (): {
     text: string;
-    color: BadgeProps["color"];
+    color: "default" | "secondary" | "destructive" | "outline" | "warning";
   } => {
     switch (cityStatus) {
       case CityStatus.Published:
         return {
           text: texts.statusPublished,
-          color: Colors.Primary,
+          color: "default",
         };
       case CityStatus.InProgress:
         return {
           text: texts.statusInProgress,
-          color: Colors.Secondary,
+          color: "secondary",
         };
       case CityStatus.NoActiveOrdinance:
         return {
           text: texts.statusNoActiveOrdinance,
-          color: Colors.Warning,
+          color: "warning",
         };
       case CityStatus.NoOrdinance:
         return {
           text: texts.statusNoOrdinance,
-          color: Colors.Error,
+          color: "destructive",
         };
       default: {
         return {
           text: texts.unknownStatus,
-          color: Colors.Error,
+          color: "destructive",
         };
       }
     }
   };
 
-  return <Badge color={getStatus().color}>{getStatus().text}</Badge>;
+  return <Badge variant={getStatus().color}>{getStatus().text}</Badge>;
 }

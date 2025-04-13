@@ -1,12 +1,13 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { OrdinanceController } from "@/controllers/OrdinanceController";
 import { getRootPathBySchoolType } from "@/entities/School";
 import { Colors } from "@/styles/Themes";
 import { SchoolType } from "@/types/basicTypes";
 import { routes } from "@/utils/shared/constants";
 import { texts } from "@/utils/shared/texts";
-import { Button, DatePicker, TextInput } from "@tremor/react";
 import { cs } from "date-fns/locale";
 import { Field, FieldProps, Formik } from "formik";
 import { useRouter } from "next/navigation";
@@ -17,7 +18,11 @@ import {
   StyledErrorMessage,
   StyledForm,
 } from "../common/Forms";
-import Header from "../common/Header";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { CalendarIcon } from "@heroicons/react/24/outline";
+import { Calendar } from "../ui/calendar";
+import { cn } from "../../lib/utils";
+import { format } from "date-fns";
 
 interface FormValues {
   validFrom: Date | undefined;
@@ -103,8 +108,6 @@ export default function UploadOrdinance({
     >
       {({ isSubmitting, setFieldValue }) => (
         <StyledForm>
-          <Header className="shrink">{texts.addOrdinanceManually}</Header>
-
           <div>
             <InputSubtitle>{texts.validFrom}</InputSubtitle>
             <Field name="validFrom">
@@ -125,7 +128,7 @@ export default function UploadOrdinance({
               type="text"
               name="serialNumber"
               placeholder={texts.ordinanceNumber}
-              as={TextInput}
+              as={Input}
             />
             <StyledErrorMessage name="serialNumber" />
           </div>
@@ -167,20 +170,34 @@ export default function UploadOrdinance({
 }
 
 function DatePickerWrapper({
-  field: { name },
-  form: { setFieldValue, setFieldTouched },
+  field: { value, onChange },
   meta: { touched, error },
 }: FieldProps<Date | undefined, FormValues>) {
   return (
     <div>
-      <DatePicker
-        locale={cs}
-        placeholder={texts.selectDate}
-        onValueChange={(value) => {
-          setFieldTouched(name, true);
-          setFieldValue(name, value ?? null);
-        }}
-      />
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button
+            variant={"outline"}
+            className={cn(
+              "w-[280px] justify-start text-left font-normal",
+              !value && "text-muted-foreground"
+            )}
+          >
+            <CalendarIcon />
+            {value ? format(value, cs.code) : <span>{texts.selectDate}</span>}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0">
+          <Calendar
+            mode="single"
+            locale={cs}
+            selected={value}
+            onSelect={onChange}
+            initialFocus
+          />
+        </PopoverContent>
+      </Popover>
       {touched && error ? <ErrorWrapper>{error}</ErrorWrapper> : null}
     </div>
   );

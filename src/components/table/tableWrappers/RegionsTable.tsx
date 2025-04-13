@@ -8,13 +8,7 @@ import { Region } from "@/entities/Region";
 import { deserializeRegions, loadRegions } from "../fetchFunctions/loadRegions";
 import { routes } from "@/utils/shared/constants";
 
-export default function RegionsTable({
-  initialData,
-  count,
-}: {
-  initialData: any[];
-  count?: number;
-}) {
+export default function RegionsTable({ initialData }: { initialData: any[] }) {
   const columnDefinitions: ColumnDefinition<Region>[] = [
     {
       title: texts.name,
@@ -27,19 +21,14 @@ export default function RegionsTable({
     {
       title: texts.shortName,
       cellFactory: (item) => item.shortName,
-    }
+    },
   ];
-
-  const fetchItems = async (page: number, limit: number) => {
-    return loadRegions(page, limit);
-  }
 
   return (
     <CatchmentTable
       columnDefinitions={columnDefinitions}
-      fetchItems={fetchItems}
+      fetchItems={loadRegions}
       initialData={deserializeRegions(initialData)}
-      count={count}
     />
   );
 }
