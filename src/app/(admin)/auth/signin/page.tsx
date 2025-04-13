@@ -2,7 +2,7 @@
 
 import MicrosoftButton from "@/components/buttons/MicrosoftButton";
 import { routes } from "@/utils/shared/constants";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/shadcn/Card"; // Updated import
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"; // Updated import
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";

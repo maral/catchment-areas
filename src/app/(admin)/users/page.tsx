@@ -4,7 +4,7 @@ import UsersTable from "@/components/table/tableWrappers/UsersTable";
 import HeaderBox from "@/components/common/HeaderBox";
 import { getUsersCount, loadUsers, serializeUsers } from "@/components/table/fetchFunctions/loadUsers";
 import { texts } from "@/utils/shared/texts";
-import { Card, CardHeader, CardContent } from "@/components/shadcn/Card"; // Updated import
+import { Card, CardHeader, CardContent } from "@/components/ui/card"; // Updated import
 
 
 export default async function Users() {

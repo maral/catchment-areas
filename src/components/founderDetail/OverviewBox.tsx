@@ -8,7 +8,7 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-} from "@/components/shadcn/Card"; // Updated import
+} from "@/components/ui/card"; // Updated import
 import { Subtitle, Title } from "@tremor/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";

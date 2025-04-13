@@ -1,7 +1,5 @@
-import CatchmentLink from "@/components/common/CatchmentLink";
-import { routes } from "@/utils/shared/constants";
 import Link from "next/link";
-import { Button } from "../components/shadcn/Button";
+import { Button } from "../components/ui/button";
 
 export default function NotFoundPage() {
   return (

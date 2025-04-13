@@ -8,7 +8,7 @@ import CitiesTable from "@/components/table/tableWrappers/citiesTableWrappers/Ci
 import { getSchoolTypeCode } from "@/entities/School";
 import { SchoolType } from "@/types/basicTypes";
 import { texts } from "@/utils/shared/texts";
-import { Card, CardHeader, CardContent } from "@/components/shadcn/Card";
+import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import {
   loadNewOrdinanceMetadata,
   serializeOrdinanceMetadata,

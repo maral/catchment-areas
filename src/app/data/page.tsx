@@ -1,4 +1,4 @@
-import { Button } from "@/components/shadcn/Button";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -6,7 +6,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/shadcn/Table";
+} from "@/components/ui/table";
 import { CityController } from "@/controllers/CityController";
 import { SchoolType } from "@/types/basicTypes";
 import { texts } from "@/utils/shared/texts";

@@ -3,7 +3,7 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-} from "@/components/shadcn/Card";
+} from "@/components/ui/card";
 import { texts } from "@/utils/shared/texts";
 import AddUserForm from "./AddUserForm";
 

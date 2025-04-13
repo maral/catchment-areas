@@ -9,7 +9,7 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-} from "@/components/shadcn/Card"; // Updated import
+} from "@/components/ui/card"; // Updated import
 
 export default async function UserDetail({
   params: { id },

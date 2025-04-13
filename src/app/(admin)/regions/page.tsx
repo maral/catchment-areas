@@ -6,7 +6,7 @@ import {
 } from "@/components/table/fetchFunctions/loadRegions";
 import RegionsTable from "@/components/table/tableWrappers/RegionsTable";
 import { texts } from "@/utils/shared/texts";
-import { Card, CardContent, CardHeader } from "@/components/shadcn/Card"; // Updated import
+import { Card, CardContent, CardHeader } from "@/components/ui/card"; // Updated import
 import { api } from "@/app/api/[...remult]/api";
 
 export default async function Regions() {

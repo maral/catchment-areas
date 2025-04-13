@@ -4,14 +4,14 @@ import { PageType } from "@/types/mapTypes";
 import { ChangeEvent, useEffect, useState } from "react";
 import { getDefaultParams } from "@/utils/shared/defaultParams";
 import Link from "next/link";
-import { Label } from "@/components/shadcn/Label";
-import { Checkbox } from "@/components/shadcn/Checkbox";
-import { Button } from "@/components/shadcn/Button";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
 import { ChevronLeftIcon } from "@heroicons/react/24/outline";
-import { RadioGroup, RadioGroupItem } from "../../components/shadcn/RadioGroup";
+import { RadioGroup, RadioGroupItem } from "../../components/ui/radio-group";
 import { texts } from "../../utils/shared/texts";
-import { Card, CardContent, CardHeader } from "../../components/shadcn/Card";
-import { ColorPicker } from "../../components/shadcn/ColorPicker";
+import { Card, CardContent, CardHeader } from "../../components/ui/card";
+import { ColorPicker } from "../../components/ui/color-picker";
 import useDebounceEffect from "../../utils/client/hooks";
 
 export type CitySchools = {
