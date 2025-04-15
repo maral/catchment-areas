@@ -2,6 +2,13 @@
 
 @import "tailwindcss";
 
+/*
+TODO:
+- make forms work
+- align sidebar colors (at least bg)
+- upgrade to Next.js 15 + React 19
+*/
+
 @custom-variant dark (&:is(.dark *));
 @config '../../tailwind.config.js';
 
