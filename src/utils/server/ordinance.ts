@@ -14,7 +14,7 @@ async function insertOrdinance(
   result: TextExtractionResult,
   schoolTypeCode: number
 ): Promise<number | null> {
-  if (!result.text || !result.fileName) {
+  if (!result.fileName) {
     return null;
   }
 
@@ -26,7 +26,7 @@ async function insertOrdinance(
     const city = await citiesRepo.findId(cityCode);
     return ordinanceRepo.insert({
       number: serialNumber,
-      originalText: result.text ?? undefined,
+      originalText: result.text ?? "",
       validFrom: validFrom,
       validTo: validTo,
       fileName: result.fileName ?? "",
@@ -73,6 +73,11 @@ export async function insertOrdinanceAndGetResponse(
     );
     return {
       success: true,
+      ...(result.text
+        ? {}
+        : {
+            message: `Nepodporovaný formát ${result.fileType}, přidána vyhláška s prázdným původním textem.`,
+          }),
       ordinanceId,
     };
   } else {

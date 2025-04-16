@@ -1,12 +1,12 @@
+import { api } from "@/app/api/[...remult]/api";
+import { Founder } from "@/entities/Founder";
 import { Ordinance } from "@/entities/Ordinance";
 import { StreetMarkdown, StreetMarkdownState } from "@/entities/StreetMarkdown";
 import { User } from "@/entities/User";
+import { getNotLoggedInResponse, isLoggedIn } from "@/utils/server/auth";
 import { NextRequest, NextResponse } from "next/server";
 import { ChatCompletionRequestMessage, Configuration, OpenAIApi } from "openai";
 import { remult } from "remult";
-import { api } from "@/app/api/[...remult]/api";
-import { getNotLoggedInResponse, isLoggedIn } from "@/utils/server/auth";
-import { Founder } from "../../../../entities/Founder";
 
 interface SchoolResult {
   school: string;
@@ -20,22 +20,6 @@ const configuration = new Configuration({
 
 const openai = new OpenAIApi(configuration);
 
-const getGptAnswer = async (
-  messages: ChatCompletionRequestMessage[]
-): Promise<string | undefined> => {
-  try {
-    const result = await openai.createChatCompletion({
-      model: "gpt-3.5-turbo-16k",
-      messages: messages,
-      temperature: 0.1,
-    });
-    return result.data.choices.pop()?.message?.content;
-  } catch (error) {
-    console.log(error);
-    return undefined;
-  }
-};
-
 export async function POST(request: NextRequest) {
   if (!(await isLoggedIn())) {
     return getNotLoggedInResponse();
@@ -48,39 +32,7 @@ export async function POST(request: NextRequest) {
     return await ordinanceRepo.findId(ordinanceId);
   });
 
-  const messages: ChatCompletionRequestMessage[] = [
-    {
-      role: "system",
-      content: systemPrompt,
-    },
-    {
-      role: "user",
-      content: ordinance.originalText,
-    },
-  ];
-
-  const answer = await getGptAnswer(messages);
-
-  let processedText = "";
-  if (answer) {
-    const result: SchoolResult[] = JSON.parse(answer);
-    for (const school of result) {
-      processedText += school.school + "\n";
-      if (school.streets) {
-        for (const street of school.streets) {
-          processedText += street + "\n";
-        }
-      }
-      if (school.municipalityParts) {
-        for (const municipalityPart of school.municipalityParts) {
-          processedText += "část obce " + municipalityPart + "\n";
-        }
-      }
-      processedText += "\n";
-    }
-  } else {
-    processedText = ordinance.originalText;
-  }
+  const processedText = await getProcessedText(ordinance.originalText);
 
   const streetMarkdownRepo = remult.repo(StreetMarkdown);
   const streetMarkdown = await api.withRemult(async () => {
@@ -114,6 +66,63 @@ export async function POST(request: NextRequest) {
     autosaveStreetMarkdownId: streetMarkdown.id,
   });
 }
+
+async function getProcessedText(originalText: string) {
+  if (originalText.length < 50) {
+    return originalText;
+  }
+
+  const messages: ChatCompletionRequestMessage[] = [
+    {
+      role: "system",
+      content: systemPrompt,
+    },
+    {
+      role: "user",
+      content: originalText,
+    },
+  ];
+
+  const answer = await getGptAnswer(messages);
+
+  let processedText = "";
+  if (answer) {
+    const result: SchoolResult[] = JSON.parse(answer);
+    for (const school of result) {
+      processedText += school.school + "\n";
+      if (school.streets) {
+        for (const street of school.streets) {
+          processedText += street + "\n";
+        }
+      }
+      if (school.municipalityParts) {
+        for (const municipalityPart of school.municipalityParts) {
+          processedText += "část obce " + municipalityPart + "\n";
+        }
+      }
+      processedText += "\n";
+    }
+    return processedText;
+  } else {
+    return originalText;
+  }
+}
+
+const getGptAnswer = async (
+  messages: ChatCompletionRequestMessage[]
+): Promise<string | undefined> => {
+  try {
+    const result = await openai.createChatCompletion({
+      model: "gpt-3.5-turbo-16k",
+      messages: messages,
+      temperature: 0.1,
+    });
+    return result.data.choices.pop()?.message?.content;
+  } catch (error) {
+    console.log(error);
+    return undefined;
+  }
+};
 
 const chunkLength = 4800;
 const overlapLength = 1200;
