@@ -1,3 +1,4 @@
+import { SchoolType } from "@/types/basicTypes";
 import { syncOrdinancesToDb } from "@/utils/server/ordinanceMetadataSync";
 import {
   FeatureCollection,
@@ -36,7 +37,8 @@ export class OrdinanceControllerServer {
   }
 
   static async getActiveOrdinanceIdsByCityCodes(
-    cityCodes: number[]
+    cityCodes: number[],
+    schoolType: SchoolType
   ): Promise<{ cityCode: number; ordinanceId: number }[]> {
     const knex = KnexDataProvider.getDb();
 
@@ -45,8 +47,8 @@ export class OrdinanceControllerServer {
         `SELECT city_code, id FROM ordinance
           WHERE city_code IN (${cityCodes
             .map((_) => "?")
-            .join(",")}) AND is_active = 1`,
-        [...cityCodes]
+            .join(",")}) AND is_active = 1 AND school_type = ?`,
+        [...cityCodes, schoolType]
       )
     )[0]?.map((row: any) => ({
       cityCode: row.city_code,
