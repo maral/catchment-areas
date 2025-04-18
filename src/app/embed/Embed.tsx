@@ -10,7 +10,12 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeftIcon } from "@heroicons/react/24/outline";
 import { RadioGroup, RadioGroupItem } from "../../components/ui/radio-group";
 import { texts } from "../../utils/shared/texts";
-import { Card, CardContent, CardHeader } from "../../components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "../../components/ui/card";
 import { ColorPicker } from "../../components/ui/color-picker";
 import useDebounceEffect from "../../utils/client/hooks";
 
@@ -76,7 +81,7 @@ export default function Embed({ schools, cities }: MunicipalityPageProps) {
         </Link>
       </Button>
 
-      <h1 className="text-3xl font-bold mt-8 mb-8">
+      <h1 className="text-3xl font-title font-bold mt-8 mb-8">
         Vložte si mapu školy nebo města na svůj web
       </h1>
 
@@ -189,8 +194,8 @@ export default function Embed({ schools, cities }: MunicipalityPageProps) {
 const EmbedCode = ({ url }: { url: string }) => {
   return (
     <Card className="my-6">
-      <CardHeader className="p-4 rounded-t-lg overflow-hidden bg-slate-50 border-b font-medium text-sm">
-        Kód pro vložení do stránky
+      <CardHeader className="border-b grid-rows-[auto]">
+        <CardTitle>Kód pro vložení do stránky</CardTitle>
       </CardHeader>
       <CardContent className="p-4">
         <pre className="mb-0 text-wrap">

@@ -14,6 +14,7 @@ import {
 } from "@/types/mapTypes";
 import { colors, markerRadius, markerWeight } from "./mapUtils";
 import L, { Marker } from "leaflet";
+import { ButtonVariant, buttonVariants } from "@/components/ui/button";
 
 const unmappedMarkerColor = "#ff0000";
 
@@ -268,9 +269,9 @@ export const createCityMarker = (
   const marker = L.marker([city.lat, city.lng], {
     icon: city.isPublished ? publicIcon : notReadyIcon,
   }).bindPopup(
-    `<div class="text-center"><span class="text-base font-semibold">${
+    `<div class="flex flex-col gap-2 items-stretch"><h4 class="text-base text-center font-title">${
       city.name
-    }</span><br> ${
+    }</h4>${
       city.isPublished
         ? `${createCityMarkerButtons(city.code)}`
         : "zatím není připraveno"
@@ -307,16 +308,16 @@ const createAddressMarkerButton = () => `
 </button></div>`;
 
 const createCityMarkerButtons = (cityCode: number) => `
-<div class="text-center mt-3"><a href="/m/${cityCode}?controls=1" target="_blank" class="city-marker block ${getButtonClasses()} mt-2">
+<div class="flex flex-col gap-2"><a href="/m/${cityCode}?controls=1" target="_blank" class="city-marker ${getButtonClasses()}">
   ${getNewWindowHeroicon()} Zobrazit v novém okně
-</a><a href="/api/ordinances/download/by-city-code/${cityCode}" target="_blank" class="city-marker block ${getButtonClasses(
-  "slate"
-)} mt-2">
+</a><a href="/api/ordinances/download/by-city-code/${cityCode}" target="_blank" class="city-marker ${getButtonClasses(
+  "secondary"
+)}">
   ${getDownloadHeroicon()} Stáhnout vyhlášku
 </a></div>`;
 
-const getButtonClasses = (color = "emerald") => {
-  return `border rounded px-2 py-1 text-xs bg-${color}-500 border-${color}-500 text-white hover:bg-${color}-600 hover:border-${color}-700`;
+const getButtonClasses = (variant: ButtonVariant = "default") => {
+  return buttonVariants({ size: "xs", variant });
 };
 
 const getDownloadHeroicon =

@@ -48,6 +48,10 @@ TODO:
 
   .leaflet-container a.city-marker {
     color: white !important;
+
+    &.bg-secondary {
+      color: #171717 !important;
+    }
   }
 }
 
