@@ -91,7 +91,10 @@ export async function getOrCreateDataForMapByCityCodes(
   schoolType: SchoolType
 ): Promise<DataForMapByCityCodes | null> {
   const ordinanceIds =
-    await OrdinanceControllerServer.getActiveOrdinanceIdsByCityCodes(cityCodes);
+    await OrdinanceControllerServer.getActiveOrdinanceIdsByCityCodes(
+      cityCodes,
+      schoolType
+    );
 
   const municipalitiesByCityCodes: DataForMapByCityCodes = {};
 

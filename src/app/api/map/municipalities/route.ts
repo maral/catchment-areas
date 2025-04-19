@@ -6,12 +6,13 @@ import { api } from "../../[...remult]/api";
 
 interface RequestBody {
   cityCodes: number[];
+  schoolType: SchoolType;
 }
 
 export async function POST(request: NextRequest) {
-  const { cityCodes }: RequestBody = await request.json();
+  const { cityCodes, schoolType }: RequestBody = await request.json();
   const dataForMapByCityCodes = await api.withRemult(async () =>
-    getOrCreateDataForMapByCityCodes(cityCodes, SchoolType.Elementary)
+    getOrCreateDataForMapByCityCodes(cityCodes, schoolType)
   );
 
   if (dataForMapByCityCodes === null) {

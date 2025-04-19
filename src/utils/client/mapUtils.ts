@@ -28,6 +28,7 @@ import L, {
 } from "leaflet";
 import shuffleSeed from "shuffle-seed";
 import { createMarkers } from "./markers";
+import { SchoolType } from "@/types/basicTypes";
 
 export const colors = [
   "#d33d81", // pink
@@ -242,14 +243,15 @@ const deselectSchool = (school: SchoolMarker) => {
 };
 
 export const loadMunicipalitiesByCityCodes = async (
-  cityCodes: number[]
+  cityCodes: number[],
+  schoolType: SchoolType
 ): Promise<DataForMapByCityCodes | null> => {
   const response = await fetch("/api/map/municipalities", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ cityCodes }),
+    body: JSON.stringify({ cityCodes, schoolType }),
   });
 
   if (response.ok) {

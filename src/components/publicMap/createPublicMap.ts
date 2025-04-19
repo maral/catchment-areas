@@ -13,6 +13,7 @@ import { SuggestionItem, SuggestionPosition } from "@/types/suggestionTypes";
 import { onCitiesLoaded, triggerCityLoaded } from "@/utils/client/events";
 import { Municipality } from "text-to-map";
 import { createCityMarker, createSvgIcon } from "@/utils/client/markers";
+import { SchoolType } from "@/types/basicTypes";
 
 const citiesMap: Record<string, CityOnMap> = {};
 let map: LeafletMap;
@@ -226,7 +227,8 @@ const loadNewCities = async (
 
   try {
     const result = await loadMunicipalitiesByCityCodes(
-      newCities.map((c) => c.code)
+      newCities.map((c) => c.code),
+      SchoolType.Elementary
     );
 
     if (result) {
