@@ -279,7 +279,6 @@ const onSuggestionSelect = (item: SuggestionItem) => {
   map.flyTo([item.position.lat, item.position.lon], 14, {
     duration: flyingTime / 1000,
   });
-  console.log(item);
   const tempMarker = new L.Marker(position, { icon: tempMarkerIcon })
     .bindPopup(`${createAddress(item)}<br><br><em>Načítám podrobnosti...</em>`)
     .addTo(map);
@@ -320,12 +319,8 @@ const selectAddress = (
       );
 
       if (addressPoint) {
-        console.log(
-          `Found marker in ${city.name}, address is ${addressPoint.address}.`
-        );
         const markers = loadedCity.addressMarkers[addressPoint.address];
         if (markers && markers.length > 0) {
-          console.log(`Found ${markers.length} markers.`);
           tempMarkerIcon;
           setTimeout(() => {
             tempMarker.remove();
@@ -338,8 +333,6 @@ const selectAddress = (
           break;
         }
       }
-    } else {
-      console.log(`${city.name} is not loaded`);
     }
   }
 

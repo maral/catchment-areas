@@ -4,7 +4,6 @@ import { StreetMarkdownController } from "@/controllers/StreetMarkdownController
 import { Founder, FounderType } from "@/entities/Founder";
 import { Ordinance } from "@/entities/Ordinance";
 import { StreetMarkdown } from "@/entities/StreetMarkdown";
-import { Colors } from "@/styles/Themes";
 import { SchoolType } from "@/types/basicTypes";
 import { routes } from "@/utils/shared/constants";
 import { texts } from "@/utils/shared/texts";
@@ -31,12 +30,12 @@ import {
 } from "react";
 import { remult } from "remult";
 import { MapDataController } from "../../controllers/MapDataController";
+import { getRootPathBySchoolType } from "../../entities/School";
 import LinkButton from "../buttons/LinkButton";
 import HeaderBox from "../common/HeaderBox";
 import Spinner from "../common/Spinner";
-import { Monaco, configureMonaco } from "./configureMonaco";
-import { getRootPathBySchoolType } from "../../entities/School";
 import { Button } from "../ui/button";
+import { Monaco, configureMonaco } from "./configureMonaco";
 
 const owner = "street-markdown";
 

@@ -6,31 +6,15 @@ const citiesRepo = remult.repo(City);
 
 // CITIES
 export async function loadCities(
-  page: number,
-  limit: number,
-  schoolType: SchoolType
+  schoolType: SchoolType,
+  regionCode: number | undefined
 ): Promise<City[]> {
   return await citiesRepo.find({
-    where: { [getCountPropertyBySchoolType(schoolType)]: { $gte: 2 } },
-    limit,
-    page,
-    orderBy: { name: "asc" },
-  });
-}
-
-// CITIES BY REGION
-export async function loadCitiesByRegion(
-  regionCode: number,
-  page: number,
-  limit: number
-): Promise<City[]> {
-  const region = await remult.repo(Region).findId(regionCode);
-  return await citiesRepo.find({
-    limit,
-    page,
     where: {
-      region,
-      [getCountPropertyBySchoolType(SchoolType.Elementary)]: { $gte: 2 },
+      [getCountPropertyBySchoolType(schoolType)]: { $gte: 2 },
+      ...(regionCode
+        ? { region: await remult.repo(Region).findFirst({ code: regionCode }) }
+        : {}),
     },
     orderBy: { name: "asc" },
   });

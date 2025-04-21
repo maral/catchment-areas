@@ -10,6 +10,7 @@ export const texts = {
   addOrdinance: "Přidat vyhlášku",
   addOrdinanceFromCollection: "Přidat vyhlášku ze sbírky právních předpisů",
   addressPoints: "Adresní místa",
+  allRegions: "Všechny kraje",
   approvedAt: "Datum schválení",
   author: "Autor",
   cancel: "Zrušit",

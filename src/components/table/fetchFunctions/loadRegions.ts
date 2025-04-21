@@ -9,10 +9,6 @@ export async function loadRegions(): Promise<Region[]> {
   });
 }
 
-export async function getRegionsCount(): Promise<number> {
-  return await regionsRepo.count();
-}
-
 export function serializeRegions(regions: Region[]): any[] {
   return regionsRepo.toJson(regions);
 }

@@ -15,9 +15,9 @@ import { remult } from "remult";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 export default async function CityDetailPage({
-  params: { code, from, schoolType },
+  params: { schoolType, code },
 }: {
-  params: { code: string; from?: string[]; schoolType: string };
+  params: { schoolType: string; code: string };
 }) {
   const cityCode = Number(code);
 
@@ -50,9 +50,7 @@ export default async function CityDetailPage({
 
   if (serializedOrdinances.length === 0) {
     redirect(
-      `${getRootPathBySchoolType(schoolTypeCode)}/${code}/add-ordinance${
-        from ? `/${from.join("/")}` : ""
-      }`
+      `${getRootPathBySchoolType(schoolTypeCode)}/${code}/add-ordinance`
     );
   }
 
@@ -62,11 +60,7 @@ export default async function CityDetailPage({
       <div className="h-full pb-5 flex">
         <Card className="grow m-1 mr-4 overflow-y-auto">
           <CardHeader>
-            <OrdinanceHeader
-              cityCode={code}
-              urlFrom={from}
-              schoolType={schoolTypeCode}
-            />
+            <OrdinanceHeader cityCode={code} schoolType={schoolTypeCode} />
           </CardHeader>
           <CardContent>
             {founders.length === 1 && (
@@ -74,7 +68,6 @@ export default async function CityDetailPage({
                 founderId={founders[0].id}
                 cityCode={cityCode}
                 initialData={serializedOrdinances}
-                urlFrom={from}
                 schoolType={schoolTypeCode}
               />
             )}
@@ -84,7 +77,6 @@ export default async function CityDetailPage({
                 initialOrdinances={serializedOrdinances}
                 initialFounders={serializedFounders}
                 cityCode={cityCode}
-                urlFrom={from}
                 schoolType={schoolTypeCode}
               />
             )}
@@ -94,7 +86,6 @@ export default async function CityDetailPage({
         <OverviewBox
           activeOrdinanceId={activeOrdinanceId}
           cityProp={cityJson}
-          urlFrom={from}
           schoolType={schoolTypeCode}
           className="flex-1 m-1 ml-2"
         />

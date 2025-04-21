@@ -1,5 +1,4 @@
 import { api } from "@/app/api/[...remult]/api";
-import { Region } from "@/entities/Region";
 import { getRootPathBySchoolType } from "@/entities/School";
 import { User } from "@/entities/User";
 import { SchoolType } from "@/types/basicTypes";
@@ -8,7 +7,7 @@ import { remult } from "remult";
 import { City } from "../entities/City";
 import { Founder } from "../entities/Founder";
 import { Ordinance } from "../entities/Ordinance";
-import { modules, routes } from "./shared/constants";
+import { routes } from "./shared/constants";
 
 export type BreadcrumbItem = {
   href: string;
@@ -20,18 +19,9 @@ export type BreadcrumbItemFunction = (
 ) => Promise<BreadcrumbItem>;
 
 const citiesRepo = remult.repo(City);
-const regionsRepo = remult.repo(Region);
 const usersRepo = remult.repo(User);
 
-// CITIES
-export const citiesBreadcrumb: BreadcrumbItem = {
-  href: routes.cities,
-  title: texts.cities,
-};
-
-export const schoolTypeBreadcrumb: BreadcrumbItemFunction = async (
-  type: SchoolType
-) => {
+export const schoolTypeBreadcrumb = (type: SchoolType) => {
   if (type === SchoolType.Kindergarten) {
     return {
       href: `${routes.kindergarten}`,
@@ -47,8 +37,7 @@ export const schoolTypeBreadcrumb: BreadcrumbItemFunction = async (
 
 export const cityDetailBreadcrumb: BreadcrumbItemFunction = async (
   cityCode: string,
-  schoolType: SchoolType,
-  from?: string[]
+  schoolType: SchoolType
 ) => {
   const city = await api.withRemult(() =>
     citiesRepo.findFirst({ code: Number(cityCode) })
@@ -57,26 +46,19 @@ export const cityDetailBreadcrumb: BreadcrumbItemFunction = async (
   const rootPath = getRootPathBySchoolType(schoolType);
 
   return {
-    href:
-      from && from.length >= 2
-        ? `${rootPath}/${cityCode}${routes.detail}/${from[0]}/${from[1]}`
-        : `${rootPath}/${cityCode}${routes.detail}`,
+    href: `${rootPath}/${cityCode}${routes.detail}`,
     title: city?.name,
   };
 };
 
-export const addOrdinanceBreadcrumb: BreadcrumbItemFunction = async (
+export const addOrdinanceBreadcrumb = (
   cityCode: string,
-  schoolType: SchoolType,
-  from?: string[]
+  schoolType: SchoolType
 ) => {
   const rootPath = getRootPathBySchoolType(schoolType);
 
   return {
-    href:
-      from && from.length >= 2
-        ? `${rootPath}/${cityCode}${routes.addOrdinance}/${from[0]}/${from[1]}`
-        : `${rootPath}/${cityCode}${routes.addOrdinance}`,
+    href: `${rootPath}/${cityCode}${routes.addOrdinance}`,
     title: texts.addOrdinance,
   };
 };
@@ -102,7 +84,7 @@ export const editOrdinanceBreadcrumb = async (
   };
 };
 
-export const mapBreadcrumb: BreadcrumbItemFunction = async (
+export const mapBreadcrumb = (
   cityCode: string,
   ordinanceId: string,
   schoolType: SchoolType
@@ -115,7 +97,7 @@ export const mapBreadcrumb: BreadcrumbItemFunction = async (
   };
 };
 
-export const founderMapBreadcrumb = async (
+export const founderMapBreadcrumb = (
   cityCode: string,
   ordinanceId: string,
   schoolType: SchoolType
@@ -125,22 +107,6 @@ export const founderMapBreadcrumb = async (
       routes.map
     }/${ordinanceId}`,
     title: texts.map,
-  };
-};
-
-// REGIONS
-export const regionsBreadcrumb: BreadcrumbItem = {
-  href: routes.regions,
-  title: texts.regions,
-};
-
-export const regionDetailBreadcrumb: BreadcrumbItemFunction = async (
-  regionCode: string
-) => {
-  const region = await api.withRemult(() => regionsRepo.findId(regionCode));
-  return {
-    href: `${routes.regions}/${regionCode}`,
-    title: region?.name,
   };
 };
 
@@ -163,35 +129,4 @@ export const userDetailBreadcrumb: BreadcrumbItemFunction = async (
 export const addUserBreadcrumb: BreadcrumbItem = {
   href: `${routes.users}${routes.new}}`,
   title: texts.addUser,
-};
-
-// HELPER FUNCTIONS
-export const cityFromBreadcrumb = async (type: SchoolType, from?: string[]) => {
-  const breadcrumbItems: BreadcrumbItem[] = [];
-  if (from && from.length >= 2) {
-    if (from[0] === modules.regions) {
-      const regionsBreadcrumbs = await Promise.all([
-        regionsBreadcrumb,
-        regionDetailBreadcrumb(from[1]),
-      ]);
-      breadcrumbItems.push(...regionsBreadcrumbs);
-    }
-  } else {
-    breadcrumbItems.push(await schoolTypeBreadcrumb(type));
-  }
-  return breadcrumbItems;
-};
-
-export const getOrdinanceIdFromFrom: (from?: string[]) => string | undefined = (
-  from
-) => {
-  let ordinanceId: string | undefined;
-  if (from) {
-    if (from.length === 1) {
-      ordinanceId = from[0];
-    } else if (from.length >= 3) {
-      ordinanceId = from[2];
-    }
-  }
-  return ordinanceId;
 };

@@ -40,7 +40,6 @@ function parseContentDisposition(contentDisposition?: string) {
 function download(url: string, fileName: string): Promise<string> {
   return new Promise<string>((resolve, reject) => {
     get(url, async function (response) {
-      console.log(response.headers);
       const givenFileName = parseContentDisposition(
         response.headers["content-disposition"]
       );
@@ -80,7 +79,6 @@ async function recognizeImage(imagePath: string): Promise<string> {
   const {
     data: { text },
   } = await worker.recognize(imagePath);
-  console.log(text);
   await worker.terminate();
   return text;
 }

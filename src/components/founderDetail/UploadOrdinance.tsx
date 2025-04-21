@@ -1,26 +1,25 @@
 "use client";
 
 import { Button, buttonVariants } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Calendar } from "@/components/ui/calendar";
 import { Form, FormField, FormItem, FormLabel } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
-import { CalendarIcon } from "@heroicons/react/24/outline";
-import { Colors } from "@/styles/Themes";
+import { getRootPathBySchoolType } from "@/entities/School";
+import { cn } from "@/lib/utils";
 import { SchoolType } from "@/types/basicTypes";
 import { routes } from "@/utils/shared/constants";
 import { texts } from "@/utils/shared/texts";
-import { cn } from "@/lib/utils";
+import { CalendarIcon } from "@heroicons/react/24/outline";
 import { format } from "date-fns";
 import { cs } from "date-fns/locale";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import * as Yup from "yup";
-import { getRootPathBySchoolType } from "@/entities/School";
 
 type FormValues = {
   validFrom: Date | undefined;
@@ -175,7 +174,6 @@ export default function UploadOrdinance({
 
         <Button
           className="w-full"
-          color={Colors.Primary}
           disabled={form.formState.isSubmitting}
           type="submit"
         >

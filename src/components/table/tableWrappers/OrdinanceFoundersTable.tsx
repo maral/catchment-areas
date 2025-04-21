@@ -6,7 +6,6 @@ import { OrdinanceController } from "@/controllers/OrdinanceController";
 import { Founder } from "@/entities/Founder";
 import { Ordinance } from "@/entities/Ordinance";
 import { getRootPathBySchoolType } from "@/entities/School";
-import { Colors } from "@/styles/Themes";
 import { SchoolType } from "@/types/basicTypes";
 import type { ColumnDefinition } from "@/types/tableTypes";
 import { routes } from "@/utils/shared/constants";
@@ -33,13 +32,11 @@ export default function OrdinanceFoundersTable({
   cityCode,
   initialFounders,
   initialOrdinances,
-  urlFrom,
   schoolType,
 }: {
   cityCode: number;
   initialOrdinances: any[];
   initialFounders: any[];
-  urlFrom?: string[];
   schoolType: SchoolType;
 }) {
   const data = useMemo(() => {
@@ -96,15 +93,10 @@ export default function OrdinanceFoundersTable({
           {item.founder !== null && (
             <Link
               className="inline-block"
-              href={
-                urlFrom && urlFrom.length >= 2
-                  ? `${rootPath}/${cityCode}${routes.editOrdinance}/${item.founder.id}/${urlFrom[0]}/${urlFrom[1]}/${item.ordinance.id}`
-                  : `${rootPath}/${cityCode}${routes.editOrdinance}/${item.founder.id}/${item.ordinance.id}`
-              }
+              href={`${rootPath}/${cityCode}${routes.editOrdinance}/${item.founder.id}/${item.ordinance.id}`}
               prefetch={false}
             >
               <IconButton
-                color={Colors.Secondary}
                 icon={PencilSquareIcon}
                 tooltip={texts.edit}
                 size="sm"
@@ -161,7 +153,6 @@ export default function OrdinanceFoundersTable({
               {!item.ordinance.isActive && (
                 <IconButton
                   icon={PlayIcon}
-                  color={Colors.Secondary}
                   tooltip={texts.setActive}
                   size="sm"
                   onClick={async () => {

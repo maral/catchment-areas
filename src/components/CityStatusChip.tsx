@@ -1,7 +1,6 @@
-import { Colors } from "@/styles/Themes";
-import { texts } from "@/utils/shared/texts";
-import { CityStatus } from "@/entities/City";
 import { Badge } from "@/components/ui/badge";
+import { CityStatus } from "@/entities/City";
+import { texts } from "@/utils/shared/texts";
 
 export default function CityStatusChip({
   cityStatus,

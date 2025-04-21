@@ -19,14 +19,10 @@ export default async function MapPage({
     )
   );
 
-  console.log(data);
-
   if (data === null) {
     console.log("municipalities not found");
     notFound();
   }
-
-  console.log("rendering map page");
 
   return (
     <CatchmentMap

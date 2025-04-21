@@ -8,7 +8,6 @@ import { City } from "@/entities/City";
 import { Founder } from "@/entities/Founder";
 import { OrdinanceMetadata } from "@/entities/OrdinanceMetadata";
 import { getRootPathBySchoolType } from "@/entities/School";
-import { Colors } from "@/styles/Themes";
 import { SchoolType } from "@/types/basicTypes";
 import type { ColumnDefinition } from "@/types/tableTypes";
 import { routes } from "@/utils/shared/constants";

@@ -1,7 +1,6 @@
 import BreadcrumbNav from "@/components/BreadcrumbNav";
 import {
   cityDetailBreadcrumb,
-  citiesBreadcrumb,
   schoolTypeBreadcrumb,
   mapBreadcrumb,
 } from "@/utils/breadcrumbItems";
@@ -16,7 +15,7 @@ export default async function MapBreadcrumb({
   const breadcrumbItems = await Promise.all([
     schoolTypeBreadcrumb(schoolTypeCode),
     cityDetailBreadcrumb(code, schoolTypeCode),
-    mapBreadcrumb(code, ordinanceId),
+    mapBreadcrumb(code, ordinanceId, schoolTypeCode),
   ]);
 
   return <BreadcrumbNav items={breadcrumbItems} />;

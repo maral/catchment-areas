@@ -1,13 +1,12 @@
 "use client";
 
-import { Colors } from "@/styles/Themes";
 import { routes } from "@/utils/shared/constants";
 import { Role, isAllowedRoute } from "@/utils/shared/permissions";
 import { texts } from "@/utils/shared/texts";
 import {
-  BuildingOffice2Icon,
+  AcademicCapIcon,
   MapIcon,
-  ShieldCheckIcon,
+  PuzzlePieceIcon,
   UserIcon,
 } from "@heroicons/react/24/solid";
 import { useSession } from "next-auth/react";
@@ -25,8 +24,6 @@ import {
   SidebarMenuItem,
 } from "../ui/sidebar";
 
-const listItemClass =
-  "cursor-pointer hover:bg-white rounded-md px-2 justify-start transition-colors";
 const spanClass = "ml-2 text-lg";
 
 export default function AppSidebar({ className }: { className?: string }) {
@@ -41,22 +38,17 @@ export default function AppSidebar({ className }: { className?: string }) {
         <SidebarGroup>
           <SidebarMenu>
             <MenuItem
-              href={routes.elementary}
-              icon={ShieldCheckIcon}
-              text={texts.schoolsElementary}
-              requiredRole={Role.Editor}
-            />
-            <MenuItem
               href={routes.kindergarten}
-              icon={ShieldCheckIcon}
+              icon={PuzzlePieceIcon}
               text={texts.schoolsKindergarten}
               requiredRole={Role.Editor}
             />
 
             <MenuItem
-              href={routes.regions}
-              icon={BuildingOffice2Icon}
-              text={texts.regions}
+              href={routes.elementary}
+              icon={AcademicCapIcon}
+              text={texts.schoolsElementary}
+              requiredRole={Role.Editor}
             />
 
             <MenuItem

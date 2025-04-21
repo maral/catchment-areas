@@ -21,11 +21,6 @@ export const routes = {
   new: "/new",
 };
 
-export const modules = {
-  regions: "regions",
-  users: "users",
-};
-
 export const textToMapOptions: OpenDataSyncOptionsPartial = {
   dataDir: "./data",
 };

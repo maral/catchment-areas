@@ -68,7 +68,7 @@ export async function insertOrdinanceAndGetResponse(
 
   if (ordinanceId) {
     revalidatePath(
-      `${redirectRootUrl}/[code]${routes.detail}/[[...from]]`,
+      `${redirectRootUrl}/[code]${routes.detail}/[ordinanceId]`,
       "page"
     );
     return {

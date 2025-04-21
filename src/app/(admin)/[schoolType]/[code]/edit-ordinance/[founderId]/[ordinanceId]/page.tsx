@@ -5,7 +5,6 @@ import { StreetMarkdownController } from "@/controllers/StreetMarkdownController
 import { Founder } from "@/entities/Founder";
 import { Ordinance } from "@/entities/Ordinance";
 import { StreetMarkdown } from "@/entities/StreetMarkdown";
-import { getOrdinanceIdFromFrom } from "@/utils/breadcrumbItems";
 import { isPrefetch } from "@/utils/server/headers";
 import { notFound } from "next/navigation";
 import { remult } from "remult";
@@ -15,17 +14,15 @@ import { getSchoolTypeCode } from "@/entities/School";
 export const dynamic = "force-dynamic";
 
 export default async function EditorPage({
-  params: { code, founderId, from, schoolType },
+  params: { schoolType, code, founderId, ordinanceId },
 }: {
   params: {
+    schoolType: string;
     code: string;
     founderId: string;
-    from?: string[];
-    schoolType: string;
+    ordinanceId: string;
   };
 }) {
-  const ordinanceId = getOrdinanceIdFromFrom(from);
-
   const {
     ordinanceJson,
     founderJson,

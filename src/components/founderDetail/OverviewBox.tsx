@@ -13,13 +13,11 @@ import CityStatusChip from "../CityStatusChip";
 export default function OverviewBox({
   cityProp,
   activeOrdinanceId,
-  urlFrom,
   className,
   schoolType,
 }: {
   cityProp: any;
   activeOrdinanceId?: number;
-  urlFrom?: string[];
   className?: string;
   schoolType: SchoolType;
 }) {
@@ -62,7 +60,6 @@ export default function OverviewBox({
           city={city}
           fetchCity={fetchFounder}
           activeOrdinanceId={activeOrdinanceId}
-          urlFrom={urlFrom}
           schoolType={schoolType}
         />
       </CardContent>

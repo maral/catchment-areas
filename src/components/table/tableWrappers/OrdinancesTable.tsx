@@ -27,14 +27,12 @@ export default function OrdinancesTable({
   cityCode,
   founderId,
   initialData,
-  urlFrom,
   schoolType,
 }: {
   cityCode: number;
   founderId: number;
   initialData: any[];
   count?: number;
-  urlFrom?: string[];
   schoolType: SchoolType;
 }) {
   const rootPath = getRootPathBySchoolType(schoolType);
@@ -62,11 +60,7 @@ export default function OrdinancesTable({
         <span className="whitespace-nowrap flex gap-2">
           <Link
             className="inline-block"
-            href={
-              urlFrom && urlFrom.length >= 2
-                ? `${rootPath}/${cityCode}${routes.editOrdinance}/${founderId}/${urlFrom[0]}/${urlFrom[1]}/${item.id}`
-                : `${rootPath}/${cityCode}${routes.editOrdinance}/${founderId}/${item.id}`
-            }
+            href={`${rootPath}/${cityCode}${routes.editOrdinance}/${founderId}/${item.id}`}
             prefetch={false}
           >
             <IconButton

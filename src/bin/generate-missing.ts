@@ -4,7 +4,6 @@ import { KnexDataProvider } from "remult/remult-knex";
 import { CityController } from "../controllers/CityController";
 import { getOrCreateDataForMapByCityCode } from "../utils/server/textToMap";
 
-// TODO: add support for kindergartens
 const main = async () => {
   console.log("Starting...");
   const api = getAdminRemultAPI();

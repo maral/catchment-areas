@@ -40,6 +40,10 @@ export default function CatchmentTable<T>({
     fetchData();
   }, [fetchData]);
 
+  useEffect(() => {
+    setItems(initialData ?? []);
+  }, [initialData]);
+
   return (
     <div>
       <Table>

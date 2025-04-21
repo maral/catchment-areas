@@ -6,7 +6,6 @@ import {
   getStatusPropertyBySchoolType,
 } from "@/entities/City";
 import { getRootPathBySchoolType } from "@/entities/School";
-import { Colors } from "@/styles/Themes";
 import { SchoolType } from "@/types/basicTypes";
 import { routes } from "@/utils/shared/constants";
 import { texts } from "@/utils/shared/texts";
@@ -21,13 +20,11 @@ export default function OverviewBoxButtons({
   city,
   fetchCity,
   activeOrdinanceId,
-  urlFrom,
   schoolType,
 }: {
   city: City;
   fetchCity: () => Promise<void>;
   activeOrdinanceId?: number;
-  urlFrom?: string[];
   schoolType: SchoolType;
 }) {
   const [loading, setLoading] = useState<boolean>(false);
@@ -61,7 +58,6 @@ export default function OverviewBoxButtons({
       {city[statusParam] == CityStatus.Published ? (
         <Button
           className="my-2 w-full"
-          color={Colors.Secondary}
           variant="secondary"
           loading={loading}
           onClick={setAsInProgress}
@@ -71,8 +67,6 @@ export default function OverviewBoxButtons({
       ) : (
         <Button
           className="my-2 w-full"
-          color={Colors.Primary}
-          variant="secondary"
           loading={loading}
           onClick={setAsPublished}
         >
@@ -80,11 +74,7 @@ export default function OverviewBoxButtons({
         </Button>
       )}
       <LinkButton
-        href={
-          urlFrom && urlFrom.length >= 2
-            ? `${rootPath}/${city.code}${routes.map}/${urlFrom[0]}/${urlFrom[1]}/${activeOrdinanceId}`
-            : `${rootPath}/${city.code}${routes.map}/${activeOrdinanceId}`
-        }
+        href={`${rootPath}/${city.code}${routes.map}/${activeOrdinanceId}`}
         buttonProps={{
           className: "my-2 w-full",
           disabled: !activeOrdinanceId,

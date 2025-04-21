@@ -10,24 +10,16 @@ import HeaderBox from "../common/HeaderBox";
 
 export default function OrdinanceHeader({
   cityCode,
-  urlFrom,
   schoolType,
 }: {
   cityCode: string;
-  urlFrom?: string[];
   schoolType: SchoolType;
 }) {
   const rootPath = getRootPathBySchoolType(schoolType);
 
   return (
     <HeaderBox title={texts.ordinances}>
-      <LinkButton
-        href={
-          urlFrom && urlFrom.length >= 2
-            ? `${rootPath}/${cityCode}${routes.addOrdinance}/${urlFrom[0]}/${urlFrom[1]}`
-            : `${rootPath}/${cityCode}${routes.addOrdinance}`
-        }
-      >
+      <LinkButton href={`${rootPath}/${cityCode}${routes.addOrdinance}`}>
         <PlusIcon />
         {texts.addOrdinance}
       </LinkButton>

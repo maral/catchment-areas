@@ -10,7 +10,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Colors } from "@/styles/Themes";
 import { routes } from "@/utils/shared/constants";
 import { Role, roles } from "@/utils/shared/permissions";
 import { texts } from "@/utils/shared/texts";
@@ -147,7 +146,6 @@ export default function EditUserForm({ user }: { user: UserInfo }) {
 
         <Button
           className="w-full"
-          color={Colors.Primary}
           disabled={form.formState.isSubmitting}
           type="submit"
         >

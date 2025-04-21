@@ -37,7 +37,7 @@ export default async function DataPage() {
             Zpět na mapu
           </Link>
         </Button>
-        <h1 className="text-3xl font-bold mt-4 mb-2">
+        <h1 className="text-3xl font-title font-semibold mt-4 mb-2">
           {texts.dataForDownload}
         </h1>
         <p className="text-muted-foreground">
