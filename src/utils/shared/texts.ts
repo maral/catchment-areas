@@ -82,6 +82,7 @@ export const texts = {
   ordinanceFile: "Soubor vyhlášky",
   ordinanceName: "Název vyhlášky",
   ordinanceNumber: "Číslo vyhlášky",
+  ordinanceNumberExample: "např. 3/2025",
   ordinances: "Vyhlášky",
   ordinanceUploaded: "Vyhláška nahrána",
   originalText: "Původní text",

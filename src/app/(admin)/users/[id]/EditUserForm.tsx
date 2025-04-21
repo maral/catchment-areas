@@ -1,13 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-} from "@/components/ui/form";
+import { Form, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -68,6 +62,7 @@ export default function EditUserForm({ user }: { user: UserInfo }) {
       role: user.role,
     },
   });
+
   const onSubmit = async (values: FormValues) => {
     const data = new FormData();
 
@@ -94,7 +89,10 @@ export default function EditUserForm({ user }: { user: UserInfo }) {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)}>
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="flex flex-col space-y-4 items-stretch"
+      >
         <FormField
           control={form.control}
           name="name"
@@ -119,7 +117,10 @@ export default function EditUserForm({ user }: { user: UserInfo }) {
           />
         )}
         {user.email.length > 0 && (
-          <p className="mt-3 text-gray-600 text-sm">{user.email}</p>
+          <FormItem>
+            <FormLabel>{texts.email}</FormLabel>
+            <p className="text-gray-600 text-sm">{user.email}</p>
+          </FormItem>
         )}
 
         <FormField
@@ -128,19 +129,17 @@ export default function EditUserForm({ user }: { user: UserInfo }) {
           render={({ field }) => (
             <FormItem>
               <FormLabel>{texts.role}</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder={texts.selectRole} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {roles.map((role, index) => (
-                      <SelectItem key={index} value={role.role}>
-                        {role.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </FormControl>
+              <Select onValueChange={field.onChange} value={field.value}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder={texts.selectRole} />
+                </SelectTrigger>
+                <SelectContent>
+                  {roles.map((role, index) => (
+                    <SelectItem key={index} value={role.role}>
+                      {role.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
               </Select>
             </FormItem>
           )}

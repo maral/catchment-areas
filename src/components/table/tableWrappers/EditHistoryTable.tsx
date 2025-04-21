@@ -18,7 +18,7 @@ export default function OrdinanceVersionsTable() {
   const columnDefinitions: ColumnDefinition<OrdinanceVersion>[] = [
     {
       title: texts.editedAt,
-      cellFactory: (item) => item.edited
+      cellFactory: (item) => item.edited,
     },
     {
       title: texts.comment,
@@ -34,23 +34,5 @@ export default function OrdinanceVersionsTable() {
     },
   ];
 
-  // const count = async () => ordinanceVersionRepo.count();
-  const count = 0; //async () => 0;
-
-  const fetchItems = async (page: number, limit: number) => {
-    // return ordinanceVersionRepo.find({
-    //   limit,
-    //   page,
-    //   orderBy: { edited: "asc" }
-    // });
-    return [];
-  };
-
-  return (
-    <CatchmentTable
-      columnDefinitions={columnDefinitions}
-      fetchItems={fetchItems}
-      count={count}
-    />
-  );
+  return <CatchmentTable columnDefinitions={columnDefinitions} />;
 }

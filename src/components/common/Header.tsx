@@ -6,7 +6,7 @@ export default function Header({
   className?: string;
 }) {
   return (
-    <h1 className={`text-3xl text-slate-600 font-medium ${className ?? ''}`}>
+    <h1 className={`text-3xl text-slate-600 font-title font-medium ${className ?? ''}`}>
       {children}
     </h1>
   )

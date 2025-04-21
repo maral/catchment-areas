@@ -9,11 +9,7 @@ import { ColumnDefinition } from "@/types/tableTypes";
 import { routes } from "@/utils/shared/constants";
 import { texts } from "@/utils/shared/texts";
 import CatchmentTable from "../../CatchmentTable";
-import {
-  deserializeCities,
-  loadCitiesByRegion,
-} from "../../fetchFunctions/loadCities";
-import TableActionButtons from "../../TableActionButtons";
+import { deserializeCities } from "../../fetchFunctions/loadCities";
 
 export default function RegionCitiesTable({
   regionCode,
@@ -53,23 +49,12 @@ export default function RegionCitiesTable({
         <CityStatusChip cityStatus={item.statusElementary} />
       ),
     },
-    {
-      title: "",
-      cellFactory: (item) => (
-        <TableActionButtons
-          item={item}
-          activeOrdinanceId={simpleOrdinances[item.code]?.id}
-        />
-      ),
-    },
   ];
 
   return (
     <CatchmentTable
       columnDefinitions={columnDefinitions}
       initialData={deserializeCities(initialData)}
-      count={count}
-      showPagination={false}
     />
   );
 }

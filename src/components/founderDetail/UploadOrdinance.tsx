@@ -1,35 +1,55 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { OrdinanceController } from "@/controllers/OrdinanceController";
-import { getRootPathBySchoolType } from "@/entities/School";
+import { Form, FormField, FormItem, FormLabel } from "@/components/ui/form";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { CalendarIcon } from "@heroicons/react/24/outline";
 import { Colors } from "@/styles/Themes";
 import { SchoolType } from "@/types/basicTypes";
 import { routes } from "@/utils/shared/constants";
 import { texts } from "@/utils/shared/texts";
-import { cs } from "date-fns/locale";
-import { Field, FieldProps, Formik } from "formik";
-import { useRouter } from "next/navigation";
-import * as Yup from "yup";
-import {
-  ErrorWrapper,
-  InputSubtitle,
-  StyledErrorMessage,
-  StyledForm,
-} from "../common/Forms";
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import { CalendarIcon } from "@heroicons/react/24/outline";
-import { Calendar } from "../ui/calendar";
-import { cn } from "../../lib/utils";
+import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import { cs } from "date-fns/locale";
+import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import * as Yup from "yup";
+import { getRootPathBySchoolType } from "@/entities/School";
 
-interface FormValues {
+type FormValues = {
   validFrom: Date | undefined;
   validTo: Date | undefined;
   serialNumber: string;
   file: File | null;
-}
+};
+
+const validationSchema = Yup.object({
+  validFrom: Yup.date().nullable().required(texts.requiredField),
+  validTo: Yup.date()
+    .nullable()
+    .when("validFrom", ([validFrom], schema) =>
+      schema.test({
+        test: (validTo: Date | null | undefined) => {
+          return (
+            !validTo ||
+            !validFrom ||
+            (!isNaN(validFrom.getTime()) &&
+              !isNaN(validTo.getTime()) &&
+              validTo > validFrom)
+          );
+        },
+        message: texts.requiredValidToAfterValidFrom,
+      })
+    ),
+  serialNumber: Yup.string().required(texts.requiredOrdinanceNumber),
+  file: Yup.mixed().required(texts.requiredFile),
+});
 
 export default function UploadOrdinance({
   cityCode,
@@ -39,6 +59,29 @@ export default function UploadOrdinance({
   schoolType: SchoolType;
 }) {
   const router = useRouter();
+  const form = useForm<FormValues>({
+    resolver: async (values) => {
+      const errors: Partial<Record<keyof FormValues, string>> = {};
+      try {
+        await validationSchema.validate(values, { abortEarly: false });
+      } catch (err) {
+        if (err instanceof Yup.ValidationError) {
+          err.inner.forEach((error) => {
+            if (error.path) {
+              errors[error.path as keyof FormValues] = error.message;
+            }
+          });
+        }
+      }
+      return { values, errors };
+    },
+    defaultValues: {
+      validFrom: undefined,
+      validTo: undefined,
+      serialNumber: "",
+      file: null,
+    },
+  });
 
   const onSubmit = async (values: FormValues) => {
     const data = new FormData();
@@ -61,10 +104,6 @@ export default function UploadOrdinance({
     if (res.ok) {
       const result = await res.json();
       if (result.success) {
-        OrdinanceController.determineActiveOrdinanceByCityCode(
-          Number(cityCode),
-          schoolType
-        );
         router.push(`${rootPath}/${cityCode}${routes.detail}`);
         return;
       }
@@ -73,132 +112,109 @@ export default function UploadOrdinance({
     }
   };
 
-  const validationSchema = Yup.object({
-    validFrom: Yup.date().nullable().required(texts.requiredField),
-    validTo: Yup.date()
-      .nullable()
-      .when("validFrom", ([validFrom], schema) =>
-        schema.test({
-          test: (validTo: Date | null | undefined) => {
-            return (
-              !validTo ||
-              !validFrom ||
-              (!isNaN(validFrom.getTime()) &&
-                !isNaN(validTo.getTime()) &&
-                validTo > validFrom)
-            );
-          },
-          message: texts.requiredValidToAfterValidFrom,
-        })
-      ),
-    serialNumber: Yup.string().required(texts.requiredOrdinanceNumber),
-    file: Yup.mixed().required(texts.requiredFile),
-  });
-
   return (
-    <Formik
-      initialValues={{
-        validFrom: undefined,
-        validTo: undefined,
-        serialNumber: "",
-        file: null,
-      }}
-      validationSchema={validationSchema}
-      onSubmit={onSubmit}
-    >
-      {({ isSubmitting, setFieldValue }) => (
-        <StyledForm>
-          <div>
-            <InputSubtitle>{texts.validFrom}</InputSubtitle>
-            <Field name="validFrom">
-              {(props: FieldProps) => <DatePickerWrapper {...props} />}
-            </Field>
-          </div>
+    <Form {...form}>
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="flex flex-col gap-4 w-[280px]"
+      >
+        <FormField
+          control={form.control}
+          name="validFrom"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{texts.validFrom}</FormLabel>
+              <DatePicker
+                selected={field.value}
+                onSelect={field.onChange}
+                placeholder={texts.selectDate}
+              />
+            </FormItem>
+          )}
+        />
 
-          <div>
-            <InputSubtitle>{texts.validTo}</InputSubtitle>
-            <Field name="validTo">
-              {(props: FieldProps) => <DatePickerWrapper {...props} />}
-            </Field>
-          </div>
+        <FormField
+          control={form.control}
+          name="validTo"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{texts.validTo}</FormLabel>
+              <DatePicker
+                selected={field.value}
+                onSelect={field.onChange}
+                placeholder={texts.selectDate}
+              />
+            </FormItem>
+          )}
+        />
 
-          <div>
-            <InputSubtitle>{texts.ordinanceNumber}</InputSubtitle>
-            <Field
-              type="text"
-              name="serialNumber"
-              placeholder={texts.ordinanceNumber}
-              as={Input}
-            />
-            <StyledErrorMessage name="serialNumber" />
-          </div>
+        <FormField
+          control={form.control}
+          name="serialNumber"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{texts.ordinanceNumber}</FormLabel>
+              <Input {...field} placeholder={texts.ordinanceNumberExample} />
+            </FormItem>
+          )}
+        />
 
-          <div>
-            <InputSubtitle>{texts.ordinanceFile}</InputSubtitle>
-            <input
-              className="relative m-0 block min-w-0 flex-auto rounded
-                border border-solid border-neutral-300 bg-clip-padding px-3
-                py-[0.32rem] text-base font-normal text-neutral-700 transition
-                duration-300 ease-in-out file:-mx-3 file:-my-[0.32rem]
-                file:overflow-hidden file:rounded-none file:border-0
-                file:border-solid file:border-inherit file:bg-neutral-100
-                file:px-3 file:py-[0.32rem] file:text-neutral-700 file:transition
-                file:duration-150 file:ease-in-out file:[border-inline-end-width:1px]
-                file:[margin-inline-end:0.75rem] hover:file:bg-neutral-200
-                focus:border-primary focus:text-neutral-700 focus:shadow-te-primary focus:outline-hidden"
-              type="file"
-              id="file"
-              onChange={(event) => {
-                setFieldValue("file", event.currentTarget.files?.[0]);
-              }}
-            />
-            <StyledErrorMessage name="file" />
-          </div>
+        <FormField
+          control={form.control}
+          name="file"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{texts.ordinanceFile}</FormLabel>
+              <Input
+                onChange={(e) => field.onChange(e.target.files?.[0])}
+                type="file"
+              />
+            </FormItem>
+          )}
+        />
 
-          <Button
-            disabled={isSubmitting}
-            type="submit"
-            className="w-64"
-            color={Colors.Primary}
-          >
-            {texts.add}
-          </Button>
-        </StyledForm>
-      )}
-    </Formik>
+        <Button
+          className="w-full"
+          color={Colors.Primary}
+          disabled={form.formState.isSubmitting}
+          type="submit"
+        >
+          {texts.add}
+        </Button>
+      </form>
+    </Form>
   );
 }
 
-function DatePickerWrapper({
-  field: { value, onChange },
-  meta: { touched, error },
-}: FieldProps<Date | undefined, FormValues>) {
+function DatePicker({
+  selected,
+  onSelect,
+  placeholder,
+}: {
+  selected: Date | undefined;
+  onSelect: (date: Date | undefined) => void;
+  placeholder: string;
+}) {
   return (
-    <div>
-      <Popover>
-        <PopoverTrigger asChild>
-          <Button
-            variant={"outline"}
-            className={cn(
-              "w-[280px] justify-start text-left font-normal",
-              !value && "text-muted-foreground"
-            )}
-          >
-            <CalendarIcon />
-            {value ? format(value, cs.code) : <span>{texts.selectDate}</span>}
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto p-0">
-          <Calendar
-            mode="single"
-            locale={cs}
-            selected={value}
-            onSelect={onChange}
-            initialFocus
-          />
-        </PopoverContent>
-      </Popover>
-      {touched && error ? <ErrorWrapper>{error}</ErrorWrapper> : null}
-    </div>
+    <Popover>
+      <PopoverTrigger
+        className={cn(
+          buttonVariants({ variant: "outline" }),
+          "w-[280px] justify-start text-left font-normal",
+          !selected && "text-muted-foreground"
+        )}
+      >
+        <CalendarIcon className="mr-2 h-4 w-4" />
+        {selected ? format(selected, "PPP", { locale: cs }) : placeholder}
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0">
+        <Calendar
+          mode="single"
+          locale={cs}
+          selected={selected}
+          onSelect={onSelect}
+        />
+      </PopoverContent>
+    </Popover>
   );
 }

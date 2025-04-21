@@ -1,18 +1,21 @@
 "use client";
 
-import {
-  InputSubtitle,
-  StyledErrorMessage,
-  StyledForm,
-} from "@/components/common/Forms";
 import { Button } from "@/components/ui/button";
+import { Form, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Colors } from "@/styles/Themes";
 import { routes } from "@/utils/shared/constants";
 import { Role, roles } from "@/utils/shared/permissions";
 import { texts } from "@/utils/shared/texts";
-import { Field, Formik, FormikHelpers } from "formik";
 import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
 import * as Yup from "yup";
 
 type FormValues = {
@@ -29,10 +32,30 @@ const validationSchema = Yup.object({
 
 export default function AddUserForm() {
   const router = useRouter();
-  const onSubmit = async (
-    values: FormValues,
-    { setErrors }: FormikHelpers<FormValues>
-  ) => {
+  const form = useForm<FormValues>({
+    resolver: async (values) => {
+      const errors: Partial<Record<keyof FormValues, string>> = {};
+      try {
+        await validationSchema.validate(values, { abortEarly: false });
+      } catch (err) {
+        if (err instanceof Yup.ValidationError) {
+          err.inner.forEach((error) => {
+            if (error.path) {
+              errors[error.path as keyof FormValues] = error.message;
+            }
+          });
+        }
+      }
+      return { values, errors };
+    },
+    defaultValues: {
+      name: "",
+      email: "",
+      role: Role.User,
+    },
+  });
+
+  const onSubmit = async (values: FormValues) => {
     const data = new FormData();
 
     data.set("name", values.name);
@@ -44,77 +67,80 @@ export default function AddUserForm() {
       body: data,
     });
 
-    const result = await res.json();
     if (res.ok) {
+      const result = await res.json();
       if (result.success) {
         router.push(routes.users);
         router.refresh();
+        return;
       }
     } else {
-      setErrors(result.error);
+      console.error("Cannot add user.");
     }
   };
 
   return (
-    <Formik
-      initialValues={{
-        name: "",
-        email: "",
-        role: Role.User,
-      }}
-      validationSchema={validationSchema}
-      onSubmit={onSubmit}
-    >
-      {({ isSubmitting }) => {
-        return (
-          <StyledForm>
-            <div>
-              <InputSubtitle>{texts.fullName}</InputSubtitle>
-              <Field
-                placeholder={texts.fillOutFullName}
-                name="name"
-                as={Input}
-              />
-              <StyledErrorMessage name="name" />
-            </div>
+    <Form {...form}>
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="flex flex-col space-y-4 items-stretch"
+      >
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{texts.fullName}</FormLabel>
+              <Input {...field} placeholder={texts.fillOutFullName} />
+            </FormItem>
+          )}
+        />
 
-            <div>
-              <InputSubtitle>{texts.email}</InputSubtitle>
-              <Field placeholder={texts.fillOutEmail} name="email" as={Input} />
-              <StyledErrorMessage name="email" />
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{texts.email}</FormLabel>
+              <Input {...field} placeholder={texts.fillOutEmail} />
               <p className="mt-2 italic text-sm text-gray-600">
                 {texts.microsoftAccountRequired}
               </p>
-            </div>
+            </FormItem>
+          )}
+        />
 
-            <div>
-              <InputSubtitle>{texts.role}</InputSubtitle>
-              <Field
-                className="p-2 px-3 w-full shadow-xs text-sm text-gray-500 border border-gray-200 rounded-md outline-hidden focus:ring-2"
-                name="role"
-                as="select"
-              >
-                {roles.map((role, index) => (
-                  <option key={index} value={role.role} className="my-1">
-                    {role.label}
-                  </option>
-                ))}
-              </Field>
-              <StyledErrorMessage name="role" />
-            </div>
+        <FormField
+          control={form.control}
+          name="role"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{texts.role}</FormLabel>
+              <Select onValueChange={field.onChange} value={field.value}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder={texts.selectRole} />
+                </SelectTrigger>
+                <SelectContent>
+                  {roles.map((role, index) => (
+                    <SelectItem key={index} value={role.role}>
+                      {role.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </FormItem>
+          )}
+        />
 
-            <Button
-              className="w-full"
-              color={Colors.Primary}
-              loading={isSubmitting}
-              disabled={isSubmitting}
-              type="submit"
-            >
-              {texts.save}
-            </Button>
-          </StyledForm>
-        );
-      }}
-    </Formik>
+        <Button
+          className="w-full"
+          color={Colors.Primary}
+          disabled={form.formState.isSubmitting}
+          type="submit"
+        >
+          {texts.save}
+        </Button>
+      </form>
+    </Form>
   );
 }
