@@ -13,6 +13,12 @@ import { Fragment, useEffect, useState } from "react";
 import { texts } from "../../utils/shared/texts";
 import Help from "./Help";
 import Intro from "./Intro";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "../ui/tooltip";
 
 export function Menu() {
   const [isHelpOpen, setIsHelpOpen] = useState(false);
@@ -114,8 +120,16 @@ const Item = ({ icon, onClick, href, target, children }: ItemProps) => {
           {children}
           {disabled && <div className="grow"></div>}
           {disabled && (
-            <RocketLaunchIcon className="w-5 text-gray-500" />
-            // TODO: Add a tooltip w/ texts.featureUnderConstruction
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <RocketLaunchIcon className="w-5 text-gray-500" />
+                </TooltipTrigger>
+                <TooltipContent className="z-[10000]">
+                  {texts.featureUnderConstruction}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           )}
         </ButtonComponent>
       )}
