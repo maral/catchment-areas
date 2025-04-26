@@ -6,10 +6,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { remult } from "remult";
 import { downloadOrdinance } from "../../download";
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { cityCode: string } }
-) {                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
+export async function GET(req: NextRequest, props: { params: Promise<{ cityCode: string }> }) {
+  const params = await props.params;
   const ordinanceId = await api.withRemult(async () => {
     const city = await remult.repo(City).findId(params.cityCode);
     if (!city) {

@@ -1,31 +1,29 @@
+import { auth } from "@/auth";
 import { FounderController } from "@/controllers/FounderController";
+import { MapDataController } from "@/controllers/MapDataController";
+import { OrdinanceController } from "@/controllers/OrdinanceController";
+import { StreetController } from "@/controllers/StreetController";
+import { StreetMarkdownController } from "@/controllers/StreetMarkdownController";
+import { UserController } from "@/controllers/UserController";
 import { Account } from "@/entities/Account";
 import { City } from "@/entities/City";
 import { CityDistrict } from "@/entities/CityDistrict";
-import { County } from "@/entities/County";
 import { Founder } from "@/entities/Founder";
-import { Orp } from "@/entities/Orp";
+import { MapData } from "@/entities/MapData";
+import { Meta } from "@/entities/Meta";
+import { Ordinance } from "@/entities/Ordinance";
+import { OrdinanceMetadata } from "@/entities/OrdinanceMetadata";
 import { Region } from "@/entities/Region";
 import { School } from "@/entities/School";
 import { SchoolFounder } from "@/entities/SchoolFounder";
+import { StreetMarkdown } from "@/entities/StreetMarkdown";
 import { User } from "@/entities/User";
+import { Role } from "@/utils/shared/permissions";
+import { configDotenv } from "dotenv";
+import { Remult } from "remult";
 import { createKnexDataProvider } from "remult/remult-knex";
 import { RemultNextAppServer, remultNextApp } from "remult/remult-next";
-import { Ordinance } from "@/entities/Ordinance";
-import { StreetMarkdown } from "@/entities/StreetMarkdown";
-import { OrdinanceMetadata } from "@/entities/OrdinanceMetadata";
-import { configDotenv } from "dotenv";
-import { StreetMarkdownController } from "@/controllers/StreetMarkdownController";
 import { RemultServerOptions } from "remult/server";
-import { Remult } from "remult";
-import { getServerSessionWithOptions } from "../auth/[...nextauth]/config";
-import { StreetController } from "@/controllers/StreetController";
-import { OrdinanceController } from "@/controllers/OrdinanceController";
-import { UserController } from "@/controllers/UserController";
-import { Role } from "@/utils/shared/permissions";
-import { Meta } from "@/entities/Meta";
-import { MapData } from "@/entities/MapData";
-import { MapDataController } from "@/controllers/MapDataController";
 
 configDotenv({ path: ".env.local" });
 
@@ -98,7 +96,7 @@ export function getRemultOptions(
             roles: [Role.Admin],
           };
         }
-        const sessionUser = (await getServerSessionWithOptions())?.user;
+        const sessionUser = (await auth())?.user;
 
         if (!sessionUser || !sessionUser.email) return undefined;
 

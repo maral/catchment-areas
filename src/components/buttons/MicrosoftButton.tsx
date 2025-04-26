@@ -5,7 +5,12 @@ import { Button } from "../ui/button";
 
 export default function MicrosoftButton() {
   return (
-    <Button className="w-full" onClick={() => signIn("azure-ad")}>
+    <Button
+      className="w-full"
+      onClick={() =>
+        signIn("microsoft-entra-id", { redirectTo: "/elementary" })
+      }
+    >
       Přihlásit se účtem Microsoft
     </Button>
   );

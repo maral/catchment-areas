@@ -14,11 +14,18 @@ import { texts } from "@/utils/shared/texts";
 import { notFound } from "next/navigation";
 import { remult } from "remult";
 
-export default async function AddOrdinance({
-  params: { code, schoolType },
-}: {
-  params: { code: string; schoolType: string };
-}) {
+export default async function AddOrdinance(
+  props: {
+    params: Promise<{ code: string; schoolType: string }>;
+  }
+) {
+  const params = await props.params;
+
+  const {
+    code,
+    schoolType
+  } = params;
+
   const schoolTypeCode = getSchoolTypeCode(schoolType);
 
   const { cityName, serializedOrdinanceMetadata } = await api.withRemult(

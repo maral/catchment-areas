@@ -11,11 +11,17 @@ import {
   CardTitle,
 } from "@/components/ui/card"; // Updated import
 
-export default async function UserDetail({
-  params: { id },
-}: {
-  params: { id: string };
-}) {
+export default async function UserDetail(
+  props: {
+    params: Promise<{ id: string }>;
+  }
+) {
+  const params = await props.params;
+
+  const {
+    id
+  } = params;
+
   const user = await api.withRemult(async () => {
     return await remult.repo(User).findId(id);
   });

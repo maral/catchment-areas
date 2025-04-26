@@ -6,11 +6,18 @@ import {
   schoolTypeBreadcrumb,
 } from "@/utils/breadcrumbItems";
 
-export default async function AddOrdinanceBreadcrumb({
-  params: { code, schoolType },
-}: {
-  params: { schoolType: string; code: string };
-}) {
+export default async function AddOrdinanceBreadcrumb(
+  props: {
+    params: Promise<{ schoolType: string; code: string }>;
+  }
+) {
+  const params = await props.params;
+
+  const {
+    code,
+    schoolType
+  } = params;
+
   const schoolTypeCode = getSchoolTypeCode(schoolType);
 
   return (

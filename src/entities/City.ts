@@ -1,8 +1,6 @@
 import { Region } from "@/entities/Region";
 import { SchoolType } from "@/types/basicTypes";
 import { Entity, Field, Fields } from "remult";
-import { County } from "./County";
-import { Orp } from "./Orp";
 
 @Entity("cities", {
   allowApiCrud: true,
@@ -17,12 +15,6 @@ export class City {
 
   @Field(() => Region, { dbName: "region_code" })
   region!: Region;
-
-  @Field(() => County, { dbName: "county_code" })
-  county!: County;
-
-  @Field(() => Orp, { dbName: "orp_code" })
-  orp!: Orp;
 
   @Fields.number({ dbName: "wgs84_latitude" })
   latitude = 0.0;

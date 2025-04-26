@@ -8,10 +8,16 @@ import slugify from "slugify";
 
 export async function GET(
   req: NextRequest,
-  {
-    params: { code, ordinanceId: ordinanceId, schoolType },
-  }: { params: { code: string; ordinanceId: string[]; schoolType: string } }
+  props: { params: Promise<{ code: string; ordinanceId: string[]; schoolType: string }> }
 ) {
+  const params = await props.params;
+
+  const {
+    code,
+    ordinanceId: ordinanceId,
+    schoolType
+  } = params;
+
   const { city, municipalities } = await api.withRemult(async () => {
     const city = await remult.repo(City).findId(Number(code));
 

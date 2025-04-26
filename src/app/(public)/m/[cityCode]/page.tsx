@@ -4,11 +4,17 @@ import { getOrCreateDataForMapByCityCodes } from "@/utils/server/textToMap";
 import { notFound } from "next/navigation";
 import { api } from "../../api/[...remult]/api";
 
-export default async function CityMapPage({
-  params: { cityCode },
-}: {
-  params: { cityCode: string };
-}) {
+export default async function CityMapPage(
+  props: {
+    params: Promise<{ cityCode: string }>;
+  }
+) {
+  const params = await props.params;
+
+  const {
+    cityCode
+  } = params;
+
   const numberCityCode = Number(cityCode);
   const data = await api.withRemult(
     async () =>

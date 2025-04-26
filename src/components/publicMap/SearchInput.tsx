@@ -55,7 +55,7 @@ export function SearchInput({ onSelect }: SearchInputProps) {
   const [justSelectedValue, setJustSelectedValue] =
     useState<SuggestionOption | null>(null);
 
-  const selectRef = useRef<any>();
+  const selectRef = useRef<any>(undefined);
 
   const onInputChange = (inputValue: string, { action }: InputActionMeta) => {
     setJustSelectedValue(null);

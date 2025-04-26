@@ -28,7 +28,7 @@ const spanClass = "ml-2 text-lg";
 
 export default function AppSidebar({ className }: { className?: string }) {
   return (
-    <Sidebar className={className}>
+    <Sidebar className={`${className} bg-slate-100`}>
       <SidebarHeader className="p-4">
         <span className="shrink-0 p-2 text-3xl font-title font-medium text-slate-700">
           {texts.catchmentAreas}
@@ -62,7 +62,7 @@ export default function AppSidebar({ className }: { className?: string }) {
 
             <SidebarMenuItem>
               <SidebarMenuButton asChild className="h-10">
-                <Link href={routes.publicMap} target="_blank">
+                <Link href={routes.home} target="_blank">
                   <MapIcon className="text-primary" />
                   <span className={spanClass}>{texts.mapForPublic}</span>
                 </Link>
@@ -77,7 +77,7 @@ export default function AppSidebar({ className }: { className?: string }) {
             src="/logo_npi_svg_full.svg"
             alt="Logo NPI"
             width={200}
-            height={29}
+            height={49}
             priority={true}
           />
         </Link>

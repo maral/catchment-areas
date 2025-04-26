@@ -5,11 +5,18 @@ import {
   schoolTypeBreadcrumb,
 } from "@/utils/breadcrumbItems";
 
-export default async function CityDetailBreadcrumb({
-  params: { schoolType, code },
-}: {
-  params: { schoolType: string; code: string };
-}) {
+export default async function CityDetailBreadcrumb(
+  props: {
+    params: Promise<{ schoolType: string; code: string }>;
+  }
+) {
+  const params = await props.params;
+
+  const {
+    schoolType,
+    code
+  } = params;
+
   const schoolTypeCode = getSchoolTypeCode(schoolType);
 
   return (

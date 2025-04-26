@@ -7,11 +7,20 @@ import {
 } from "@/utils/breadcrumbItems";
 import { getSchoolTypeCode } from "@/entities/School";
 
-export default async function MapBreadcrumb({
-  params: { code, id, ordinanceId, schoolType },
-}: {
-  params: { code: string; id: string; ordinanceId: string; schoolType: string };
-}) {
+export default async function MapBreadcrumb(
+  props: {
+    params: Promise<{ code: string; id: string; ordinanceId: string; schoolType: string }>;
+  }
+) {
+  const params = await props.params;
+
+  const {
+    code,
+    id,
+    ordinanceId,
+    schoolType
+  } = params;
+
   const schoolTypeCode = getSchoolTypeCode(schoolType);
 
   const breadcrumbItems = await Promise.all([

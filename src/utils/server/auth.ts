@@ -1,13 +1,13 @@
-import { getServerSessionWithOptions } from "@/app/api/auth/[...nextauth]/config";
 import { NextResponse } from "next/server";
 import { Role } from "@/utils/shared/permissions";
+import { auth } from "@/auth";
 
 export async function isLoggedIn(): Promise<boolean> {
-  return !!(await getServerSessionWithOptions());
+  return !!(await auth());
 }
 
 async function isLoggedWithRole(role: Role): Promise<boolean> {
-  return (await getServerSessionWithOptions())?.user.role === role;
+  return (await auth())?.user.role === role;
 }
 
 export async function isLoggedAsAdmin(): Promise<boolean> {

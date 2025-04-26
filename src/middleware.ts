@@ -3,12 +3,19 @@ import {
   getRedirectForRoute,
   isAllowedRoute,
 } from "@/utils/shared/permissions";
-import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
+import authConfig from "./auth.config";
+import NextAuth from "next-auth";
+import { routes } from "./utils/shared/constants";
 
-export default withAuth(async function middleware(req, res) {
-  const role = req.nextauth.token?.role as Role;
+const { auth } = NextAuth(authConfig);
+export default auth(async function middleware(req) {
+  const role = req.auth?.user.role as Role;
   const pathname = req.nextUrl.pathname;
+
+  if (!req.auth) {
+    return NextResponse.redirect(new URL(routes.signIn, req.url));
+  }
 
   if (!isAllowedRoute(pathname, role)) {
     return NextResponse.redirect(
@@ -18,10 +25,5 @@ export default withAuth(async function middleware(req, res) {
 });
 
 export const config = {
-  matcher: [
-    "/elementary(.*)",
-    "/kindergarten(.*)",
-    "/regions(.*)",
-    "/users(.*)",
-  ],
+  matcher: ["/elementary(.*)", "/kindergarten(.*)", "/users(.*)"],
 };

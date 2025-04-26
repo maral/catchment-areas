@@ -1,3 +1,4 @@
+import { routes } from "./constants";
 import { texts } from "./texts";
 import { pathToRegexp } from "path-to-regexp";
 
@@ -15,18 +16,18 @@ type RoleConfig = {
 };
 
 export const roles: RoleConfig[] = [
-  { role: Role.User, label: texts.expert, includes: [], redirect: "/" },
+  { role: Role.User, label: texts.expert, includes: [], redirect: routes.home },
   {
     role: Role.Editor,
     label: texts.editor,
     includes: [Role.User],
-    redirect: "/founders",
+    redirect: routes.home,
   },
   {
     role: Role.Admin,
     label: texts.admin,
     includes: [Role.User, Role.Editor],
-    redirect: "/founders",
+    redirect: routes.home,
   },
 ];
 
@@ -45,7 +46,9 @@ function satisfiesRole(role: Role, requiredRole: Role) {
 }
 
 function getMatchingRoutes(path: string) {
-  return routes.filter((route) => path.match(route.matcher));
+  return restrictedRoutes.filter((route) =>
+    path.match(pathToRegexp(route.path))
+  );
 }
 
 export function isAllowedRoute(path: string, role: Role) {
@@ -56,26 +59,26 @@ export function isAllowedRoute(path: string, role: Role) {
 
 export function getRedirectForRoute(path: string) {
   const matchingRoutes = getMatchingRoutes(path);
-  if (matchingRoutes.length === 0) return "/";
+  if (matchingRoutes.length === 0) return routes.signIn;
   return roles.find((r) => r.role === matchingRoutes[0].role)?.redirect || "/";
 }
 
 type Route = {
-  matcher: RegExp;
+  path: string;
   role: Role;
 };
 
-export const routes: Route[] = [
+export const restrictedRoutes: Route[] = [
   {
-    matcher: pathToRegexp("/users(.*)"),
+    path: "/users(.*)",
     role: Role.Admin,
   },
   {
-    matcher: pathToRegexp("/regions(.*)"),
+    path: "/elementary(.*)",
     role: Role.Editor,
   },
   {
-    matcher: pathToRegexp("/founders(.*)"),
-    role: Role.User,
+    path: "/kindergarten(.*)",
+    role: Role.Editor,
   },
 ];

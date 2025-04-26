@@ -13,16 +13,18 @@ import { getSchoolTypeCode } from "@/entities/School";
 
 export const dynamic = "force-dynamic";
 
-export default async function EditorPage({
-  params: { schoolType, code, founderId, ordinanceId },
-}: {
-  params: {
+export default async function EditorPage(props: {
+  params: Promise<{
     schoolType: string;
     code: string;
     founderId: string;
     ordinanceId: string;
-  };
+  }>;
 }) {
+  const params = await props.params;
+
+  const { schoolType, code, founderId, ordinanceId } = params;
+
   const {
     ordinanceJson,
     founderJson,
@@ -50,7 +52,7 @@ export default async function EditorPage({
 
     // create new autosave smd if previous exists
     let streetMarkdownJson: any | null = null;
-    if (streetMarkdowns.length > 0 && !isPrefetch()) {
+    if (streetMarkdowns.length > 0 && !(await isPrefetch())) {
       const smd = await StreetMarkdownController.insertAutoSaveStreetMarkdown(
         ordinance,
         founder,

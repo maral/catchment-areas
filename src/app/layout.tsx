@@ -1,8 +1,19 @@
 import "@/app/globals.css";
-import { GoogleTagManager } from "@next/third-parties/google";
-import Script from "next/script";
+import { Bitter, Noto_Sans } from "next/font/google";
 
 export const dynamic = "force-dynamic";
+
+const bitter = Bitter({
+  subsets: ["latin"],
+  variable: "--font-bitter",
+  weight: "600",
+});
+
+const notoSans = Noto_Sans({
+  subsets: ["latin"],
+  variable: "--font-noto-sans",
+  weight: "400",
+});
 
 export const metadata = {
   title: "Spádové oblasti – NPI ČR",
@@ -15,13 +26,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <GoogleTagManager gtmId="GTM-KWMX4GBK" />
-      <Script
-        defer
-        data-domain="mapaspadovosti.zapojmevsechny.cz"
-        src="https://npi-plausible.nomodo.app/js/script.js"
-      />
+    <html lang="cs" className={`${bitter.variable} ${notoSans.variable}`}>
       <body className="flex">{children}</body>
     </html>
   );

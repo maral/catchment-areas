@@ -21,13 +21,19 @@ import { SchoolType } from "@/types/basicTypes";
 import { texts } from "@/utils/shared/texts";
 import { NewspaperIcon } from "@heroicons/react/24/outline";
 
-export default async function Cities({
-  params: { schoolType },
-  searchParams,
-}: {
-  params: { schoolType: string };
-  searchParams: { [key: string]: string | undefined };
-}) {
+export default async function Cities(
+  props: {
+    params: Promise<{ schoolType: string }>;
+    searchParams: Promise<{ [key: string]: string | undefined }>;
+  }
+) {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
+
+  const {
+    schoolType
+  } = params;
+
   const schoolTypeCode = getSchoolTypeCode(schoolType);
   const selectedRegion = searchParams.region || "all";
 

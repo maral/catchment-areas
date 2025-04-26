@@ -16,9 +16,10 @@ export const routes = {
   addOrdinance: "/add-ordinance",
   editOrdinance: "/edit-ordinance",
   map: "/map",
-  publicMap: "/",
+  home: "/",
   download: "/download",
   new: "/new",
+  signIn: "/auth/signin",
 };
 
 export const textToMapOptions: OpenDataSyncOptionsPartial = {

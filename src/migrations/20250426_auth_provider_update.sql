@@ -1,0 +1,1 @@
+UPDATE `account` SET `provider` = 'microsoft-entra-id' WHERE `provider` = 'azure-ad';

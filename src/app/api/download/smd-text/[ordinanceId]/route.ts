@@ -6,10 +6,8 @@ import slugify from "slugify";
 import { StreetMarkdownControllerServer } from "@/controllers/StreetMarkdownControllerServer";
 import { getSmdText } from "@/utils/server/textToMap";
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { ordinanceId: string } }
-) {
+export async function GET(req: NextRequest, props: { params: Promise<{ ordinanceId: string }> }) {
+  const params = await props.params;
   const { text, ordinance } = await api.withRemult(async () => {
     const ordinance = await remult
       .repo(Ordinance)

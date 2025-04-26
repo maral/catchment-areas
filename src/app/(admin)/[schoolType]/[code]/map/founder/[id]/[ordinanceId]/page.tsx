@@ -7,11 +7,19 @@ import {
 } from "@/utils/server/textToMap";
 import { notFound } from "next/navigation";
 
-export default async function MapPage({
-  params: { id, ordinanceId, schoolType },
-}: {
-  params: { code: string; id: string; ordinanceId: string; schoolType: string };
-}) {
+export default async function MapPage(
+  props: {
+    params: Promise<{ code: string; id: string; ordinanceId: string; schoolType: string }>;
+  }
+) {
+  const params = await props.params;
+
+  const {
+    id,
+    ordinanceId,
+    schoolType
+  } = params;
+
   const { data, smdText } = await api.withRemult(async () => {
     const data = await getOrCreateDataForMapByFounderId(
       Number(id),

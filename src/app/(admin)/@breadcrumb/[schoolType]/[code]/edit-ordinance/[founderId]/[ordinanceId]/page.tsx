@@ -6,16 +6,25 @@ import {
   schoolTypeBreadcrumb,
 } from "@/utils/breadcrumbItems";
 
-export default async function EditOrdinanceBreadcrumb({
-  params: { schoolType, code, founderId, ordinanceId },
-}: {
-  params: {
-    schoolType: string;
-    code: string;
-    founderId: string;
-    ordinanceId: string;
-  };
-}) {
+export default async function EditOrdinanceBreadcrumb(
+  props: {
+    params: Promise<{
+      schoolType: string;
+      code: string;
+      founderId: string;
+      ordinanceId: string;
+    }>;
+  }
+) {
+  const params = await props.params;
+
+  const {
+    schoolType,
+    code,
+    founderId,
+    ordinanceId
+  } = params;
+
   const schoolTypeCode = getSchoolTypeCode(schoolType);
 
   return (

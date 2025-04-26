@@ -14,11 +14,18 @@ import { notFound, redirect } from "next/navigation";
 import { remult } from "remult";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
-export default async function CityDetailPage({
-  params: { schoolType, code },
-}: {
-  params: { schoolType: string; code: string };
-}) {
+export default async function CityDetailPage(
+  props: {
+    params: Promise<{ schoolType: string; code: string }>;
+  }
+) {
+  const params = await props.params;
+
+  const {
+    schoolType,
+    code
+  } = params;
+
   const cityCode = Number(code);
 
   const schoolTypeCode = getSchoolTypeCode(schoolType);

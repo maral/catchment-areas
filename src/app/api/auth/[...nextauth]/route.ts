@@ -1,5 +1,2 @@
-import { getNextAuth } from "./config";
-
-const auth = getNextAuth();
-
-export { auth as GET, auth as POST };
+import { handlers } from "@/auth";
+export const { GET, POST } = handlers;

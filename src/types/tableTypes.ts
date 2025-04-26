@@ -1,3 +1,4 @@
+import type { JSX } from "react";
 export type ColumnDefinition<T> = {
   title: string;
   cellFactory: (
