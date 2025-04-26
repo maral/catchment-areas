@@ -13,11 +13,13 @@ export default auth(async function middleware(req) {
   const pathname = req.nextUrl.pathname;
   if (pathname.includes("_next/static")) {
     console.log("Static file request", pathname);
+
     const rewrittenPath = pathname.replace(/@/g, "%40");
     if (rewrittenPath !== pathname) {
-      console.log("Rewritten to", pathname);
+      const url = req.nextUrl.clone();
+      url.pathname = rewrittenPath;
 
-      return NextResponse.rewrite(rewrittenPath);
+      return NextResponse.rewrite(url);
     }
   }
 
