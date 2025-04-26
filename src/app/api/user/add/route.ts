@@ -6,10 +6,7 @@ import { remult } from "remult";
 import { api } from "../../[...remult]/api";
 import { texts } from "@/utils/shared/texts";
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function POST(req: NextRequest) {
   if (!(await isLoggedAsAdmin())) {
     return getNotLoggedInResponse();
   }

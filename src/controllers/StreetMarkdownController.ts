@@ -1,8 +1,8 @@
+import { Founder } from "@/entities/Founder";
 import { Ordinance } from "@/entities/Ordinance";
 import { StreetMarkdown, StreetMarkdownState } from "@/entities/StreetMarkdown";
 import { User } from "@/entities/User";
 import { BackendMethod, remult } from "remult";
-import { Founder } from "../entities/Founder";
 
 export class StreetMarkdownController {
   @BackendMethod({ allowed: true })

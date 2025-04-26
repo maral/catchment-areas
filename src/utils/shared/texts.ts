@@ -15,6 +15,7 @@ export const texts = {
   cancel: "Zrušit",
   cancelRejection: "Zrušit zamítnutí",
   catchmentAreas: "Spádové oblasti",
+  city: "Město",
   comment: "Komentář",
   confirm: "Potvrdit",
   dataForDownload: "Data ke stažení",
@@ -93,6 +94,7 @@ export const texts = {
   saved: "Uloženo",
   saving: "Ukládání...",
   schoolEditorLabel: "škola",
+  school: "Škola",
   schools: "Školy",
   schoolsDeclined: (schoolsCount: number, schoolType: SchoolType) => {
     const schoolForms = ["škola", "školy", "škol"];
@@ -111,6 +113,7 @@ export const texts = {
   schoolsKindergarten: "Mateřské školy",
   selectDate: "Vyberte datum...",
   selectRole: "Vyberte roli",
+  selectSchool: "Vyberte školu",
   setActive: "Nastavit jako Aktivní",
   setAsInProgress: 'Označit jako "Rozpracováno"',
   setAsPublished: 'Označit jako "Zveřejněno"',

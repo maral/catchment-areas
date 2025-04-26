@@ -15,13 +15,13 @@ import { uniqueId } from "lodash";
 import { join } from "path";
 import { convert } from "pdf-img-convert";
 import pdf from "pdf-parse";
-import * as pdfjs from "pdfjs-dist/legacy/build/pdf";
+import * as pdfjs from "pdfjs-dist/legacy/build/pdf.mjs";
 import { createWorker } from "tesseract.js";
 import WordExtractor from "word-extractor";
 import officeParser from "officeparser";
 
 async function extractImagesFromPdf(pdfPath: string) {
-  pdfjs.GlobalWorkerOptions.workerSrc = "pdfjs-dist/legacy/build/pdf.worker.js";
+  pdfjs.GlobalWorkerOptions.workerSrc = "pdfjs-dist/legacy/build/pdf.worker.mjs";
 
   const outputImages = await convert(pdfPath);
   return outputImages.map((image, i) => {

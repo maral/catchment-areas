@@ -1,11 +1,11 @@
-import { Ordinance } from "@/entities/Ordinance";
-import { SchoolType } from "@/types/basicTypes";
-import { BackendMethod, remult } from "remult";
 import {
   City,
   CityStatus,
   getStatusPropertyBySchoolType,
-} from "../entities/City";
+} from "@/entities/City";
+import { Ordinance } from "@/entities/Ordinance";
+import { SchoolType } from "@/types/basicTypes";
+import { BackendMethod, remult } from "remult";
 
 export class OrdinanceController {
   @BackendMethod({ allowed: true })

@@ -1,5 +1,5 @@
+import { SmdText } from "@/types/mapTypes";
 import { KnexDataProvider } from "remult/remult-knex";
-import { SmdText } from "../types/mapTypes";
 
 export class StreetMarkdownControllerServer {
   static async getStreetMarkdownTexts(

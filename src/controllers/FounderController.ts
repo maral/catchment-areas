@@ -1,6 +1,6 @@
+import { CityStatus } from "@/entities/City";
+import { City, CitySchools, School } from "@/types/embed";
 import { KnexDataProvider } from "remult/remult-knex";
-import { City, CitySchools, School } from "../app/embed/Embed";
-import { CityStatus } from "../entities/City";
 
 export class FounderController {
   static async recalculateFounderSchoolCounts(destroyKnex = true) {

@@ -1,6 +1,6 @@
+import { MapData } from "@/entities/MapData";
 import { Ordinance } from "@/entities/Ordinance";
 import { BackendMethod, remult } from "remult";
-import { MapData } from "../entities/MapData";
 
 export class MapDataController {
   @BackendMethod({ allowed: true })

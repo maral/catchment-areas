@@ -1,8 +1,6 @@
 import { RemoveIndex } from "@/utils/shared/types";
-import { Entity, Field, Fields } from "remult";
-import { User } from "./User";
-import { ProviderType } from "next-auth/providers";
 import { AdapterAccount } from "next-auth/adapters";
+import { Entity, Fields } from "remult";
 
 @Entity("accounts", { dbName: "account", allowApiCrud: false })
 export class Account implements RemoveIndex<AdapterAccount> {
@@ -13,7 +11,7 @@ export class Account implements RemoveIndex<AdapterAccount> {
   userId: string = "";
 
   @Fields.string()
-  type!: ProviderType;
+  type!: AdapterAccount["type"];
 
   @Fields.string()
   provider!: string;
@@ -31,7 +29,7 @@ export class Account implements RemoveIndex<AdapterAccount> {
   expires_at?: number;
 
   @Fields.string({ allowNull: true })
-  token_type?: string;
+  token_type?: AdapterAccount["token_type"];
 
   @Fields.string({ allowNull: true })
   scope?: string;

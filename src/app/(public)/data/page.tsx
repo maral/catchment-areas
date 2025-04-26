@@ -1,3 +1,4 @@
+import { api } from "@/app/api/[...remult]/api";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -15,7 +16,6 @@ import {
   ChevronLeftIcon,
 } from "@heroicons/react/24/outline";
 import Link from "next/link";
-import { api } from "../../api/[...remult]/api";
 
 export default async function DataPage() {
   const { founders, ordinances } = await api.withRemult(async () => {

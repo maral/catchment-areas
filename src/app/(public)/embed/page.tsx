@@ -1,6 +1,6 @@
+import { api } from "@/app/api/[...remult]/api";
 import { CityController } from "@/controllers/CityController";
 import { SchoolType } from "@/types/basicTypes";
-import { api } from "../api/[...remult]/api";
 import Embed from "./Embed";
 
 export default async function EmbedPage() {

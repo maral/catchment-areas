@@ -1,18 +1,14 @@
+import { api } from "@/app/api/[...remult]/api";
 import CatchmentMap from "@/components/map/CatchmentMap";
 import { getOrCreateDataForMapBySchoolIzo } from "@/utils/server/textToMap";
 import { notFound } from "next/navigation";
-import { api } from "../../api/[...remult]/api";
 
-export default async function CityMapPage(
-  props: {
-    params: Promise<{ izo: string }>;
-  }
-) {
+export default async function CityMapPage(props: {
+  params: Promise<{ izo: string }>;
+}) {
   const params = await props.params;
 
-  const {
-    izo
-  } = params;
+  const { izo } = params;
 
   const data = await api.withRemult(async () =>
     getOrCreateDataForMapBySchoolIzo(izo)

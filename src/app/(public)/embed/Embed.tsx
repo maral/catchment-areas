@@ -1,32 +1,19 @@
 "use client";
 
-import { PageType } from "@/types/mapTypes";
-import { ChangeEvent, useEffect, useState } from "react";
-import { getDefaultParams } from "@/utils/shared/defaultParams";
-import Link from "next/link";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ColorPicker } from "@/components/ui/color-picker";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { City, CitySchools } from "@/types/embed";
+import { PageType } from "@/types/mapTypes";
+import useDebounceEffect from "@/utils/client/hooks";
+import { getDefaultParams } from "@/utils/shared/defaultParams";
+import { texts } from "@/utils/shared/texts";
 import { ChevronLeftIcon } from "@heroicons/react/24/outline";
-import { RadioGroup, RadioGroupItem } from "../../components/ui/radio-group";
-import { texts } from "../../utils/shared/texts";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "../../components/ui/card";
-import { ColorPicker } from "../../components/ui/color-picker";
-import useDebounceEffect from "../../utils/client/hooks";
-
-export type CitySchools = {
-  cityName: string;
-  schools: School[];
-};
-
-export type School = { izo: string; name: string };
-
-export type City = { code: number; name: string };
+import Link from "next/link";
+import { useState } from "react";
 
 export type MunicipalityPageProps = {
   schools: CitySchools[];
@@ -106,7 +93,7 @@ export default function Embed({ schools, cities }: MunicipalityPageProps) {
 
         {pageType === "school" && (
           <div className="grid gap-4">
-            <Label htmlFor="school">Vyberte školu</Label>
+            <Label htmlFor="school">{texts.selectSchool}</Label>
             <select
               value={schoolIzo}
               onChange={(e) => setSchoolIzo(e.target.value)}

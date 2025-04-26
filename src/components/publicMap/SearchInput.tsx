@@ -128,34 +128,49 @@ export function SearchInput({ onSelect }: SearchInputProps) {
 }
 
 function Input(props: InputProps<SuggestionOption>) {
-  return <components.Input {...props} isHidden={false} />;
+  const InputComponent = components.Input as React.ComponentType<
+    InputProps<SuggestionOption>
+  >;
+  return <InputComponent {...props} isHidden={false} />;
 }
 
 function DropdownIndicator(props: DropdownIndicatorProps<SuggestionOption>) {
+  const DropdownIndicatorComponent =
+    components.DropdownIndicator as React.ComponentType<
+      DropdownIndicatorProps<SuggestionOption>
+    >;
   return (
-    <components.DropdownIndicator {...props}>
+    <DropdownIndicatorComponent {...props}>
       <MagnifyingGlassIcon className="w-5 m-1.5 text-sky-500" />
-    </components.DropdownIndicator>
+    </DropdownIndicatorComponent>
   );
 }
 
 function Option(props: OptionProps<SuggestionOption>) {
   const item = props.data.value;
-
+  const OptionComponent = components.Option as React.ComponentType<
+    OptionProps<SuggestionOption>
+  >;
   return (
-    <components.Option {...props}>
+    <OptionComponent {...props}>
       <div className="font-semibold text-sky-600">{item.name}</div>
       <div className="text-sm">{item.location}</div>
-    </components.Option>
+    </OptionComponent>
   );
 }
 
 function Menu(props: MenuProps<SuggestionOption>) {
+  const MenuComponent = components.Menu as React.ComponentType<
+    MenuProps<SuggestionOption>
+  >;
   return (
-    <>{props.selectProps.inputValue ? <components.Menu {...props} /> : null}</>
+    <>{props.selectProps.inputValue ? <MenuComponent {...props} /> : null}</>
   );
 }
 
 function MenuList(props: MenuListProps<SuggestionOption>) {
-  return <components.MenuList {...props} />;
+  const MenuListComponent = components.MenuList as React.ComponentType<
+    MenuListProps<SuggestionOption>
+  >;
+  return <MenuListComponent {...props} />;
 }

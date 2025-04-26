@@ -1,7 +1,7 @@
+import { CityStatus, getStatusColumnBySchoolType } from "@/entities/City";
 import { SchoolType } from "@/types/basicTypes";
+import { City, CitySchools, School } from "@/types/embed";
 import { KnexDataProvider } from "remult/remult-knex";
-import { City, CitySchools, School } from "../app/embed/Embed";
-import { CityStatus, getStatusColumnBySchoolType } from "../entities/City";
 
 export type SimpleOrdinance = {
   id: number;
