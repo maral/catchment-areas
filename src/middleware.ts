@@ -18,6 +18,7 @@ export default auth(async function middleware(req) {
     if (rewrittenPath !== pathname) {
       const url = req.nextUrl.clone();
       url.pathname = rewrittenPath;
+      console.log("Rewritten to", rewrittenPath);
 
       return NextResponse.rewrite(url);
     }
