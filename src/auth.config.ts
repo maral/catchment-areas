@@ -6,8 +6,6 @@ import { routes } from "./utils/shared/constants";
 export default {
   providers: [
     MicrosoftEntraIdProvider({
-      clientId: process.env.AZURE_AD_CLIENT_ID || "",
-      clientSecret: process.env.AZURE_AD_CLIENT_SECRET || "",
       authorization: {
         params: { scope: "openid email profile User.Read  offline_access" },
       },

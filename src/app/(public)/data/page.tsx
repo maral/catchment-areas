@@ -81,6 +81,7 @@ export default async function DataPage() {
                       <Button variant="default" size="sm" asChild>
                         <Link
                           href={`/api/ordinances/download/by-id/${ordinance.id}`}
+                          prefetch={false}
                           target="_blank"
                         >
                           <ArrowDownTrayIcon className="w-4 text-white mr-1" />
@@ -94,6 +95,7 @@ export default async function DataPage() {
                       <Button variant="outline" size="sm" asChild>
                         <Link
                           href={`/api/download/polygons/${ordinance.id}`}
+                          prefetch={false}
                           target="_blank"
                         >
                           <ArrowDownTrayIcon className="w-4 text-black mr-1" />
@@ -107,6 +109,7 @@ export default async function DataPage() {
                       <Button variant="outline" size="sm" asChild>
                         <Link
                           href={`/api/download/address-points/${ordinance.id}`}
+                          prefetch={false}
                           target="_blank"
                         >
                           <ArrowDownTrayIcon className="w-4 text-black mr-1" />
