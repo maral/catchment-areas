@@ -10,8 +10,18 @@ import { routes } from "./utils/shared/constants";
 
 const { auth } = NextAuth(authConfig);
 export default auth(async function middleware(req) {
-  const role = req.auth?.user.role as Role;
   const pathname = req.nextUrl.pathname;
+  if (pathname.includes("_next/static")) {
+    console.log("Static file request", pathname);
+    const rewrittenPath = pathname.replace(/@/g, "%40");
+    if (rewrittenPath !== pathname) {
+      console.log("Rewritten to", pathname);
+
+      return NextResponse.rewrite(rewrittenPath);
+    }
+  }
+
+  const role = req.auth?.user.role as Role;
 
   if (!req.auth) {
     return NextResponse.redirect(new URL(routes.signIn, req.url));
@@ -25,5 +35,5 @@ export default auth(async function middleware(req) {
 });
 
 export const config = {
-  matcher: ["/elementary(.*)", "/kindergarten(.*)", "/users(.*)"],
+  matcher: ["/elementary(.*)", "/kindergarten(.*)", "/users(.*)", "/(.*)"],
 };
