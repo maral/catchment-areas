@@ -53,11 +53,11 @@ export class OrdinanceController {
         }
       } else {
         // set city status to NoActiveOrdinance
-        if (city && city.statusElementary !== CityStatus.NoActiveOrdinance) {
+        if (city && city.statusElementary !== CityStatus.NoExistingOrdinance) {
           await remult.repo(City).save({
             ...city,
             [getStatusPropertyBySchoolType(schoolType)]:
-              CityStatus.NoActiveOrdinance,
+              CityStatus.NoExistingOrdinance,
           });
         }
       }

@@ -22,10 +22,10 @@ export default function CityStatusChip({
           text: texts.statusInProgress,
           color: "secondary",
         };
-      case CityStatus.NoActiveOrdinance:
+      case CityStatus.NoExistingOrdinance:
         return {
-          text: texts.statusNoActiveOrdinance,
-          color: "warning",
+          text: texts.statusNoExistingOrdinance,
+          color: "outline",
         };
       case CityStatus.NoOrdinance:
         return {

@@ -37,7 +37,7 @@ export class City {
 
 export enum CityStatus {
   NoOrdinance,
-  NoActiveOrdinance,
+  NoExistingOrdinance,
   InProgress,
   Published,
 }

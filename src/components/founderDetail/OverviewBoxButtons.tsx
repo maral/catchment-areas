@@ -33,44 +33,52 @@ export default function OverviewBoxButtons({
 
   const rootPath = getRootPathBySchoolType(schoolType);
 
-  const setAsPublished = async () => {
+  const getSetStatus = (status: CityStatus) => async () => {
     setLoading(true);
-
-    await remult
-      .repo(City)
-      .save({ ...city, [statusParam]: CityStatus.Published });
-    await fetchCity();
-    setLoading(false);
-  };
-
-  const setAsInProgress = async () => {
-    setLoading(true);
-
-    await remult
-      .repo(City)
-      .save({ ...city, [statusParam]: CityStatus.InProgress });
+    await remult.repo(City).save({ ...city, [statusParam]: status });
     await fetchCity();
     setLoading(false);
   };
 
   return (
     <>
-      {city[statusParam] == CityStatus.Published ? (
+      {city[statusParam] == CityStatus.Published && (
         <Button
           className="my-2 w-full"
           variant="secondary"
           loading={loading}
-          onClick={setAsInProgress}
+          onClick={getSetStatus(CityStatus.InProgress)}
         >
           {texts.setAsInProgress}
         </Button>
-      ) : (
+      )}
+      {city[statusParam] == CityStatus.InProgress && (
         <Button
           className="my-2 w-full"
           loading={loading}
-          onClick={setAsPublished}
+          onClick={getSetStatus(CityStatus.Published)}
         >
           {texts.setAsPublished}
+        </Button>
+      )}
+      {city[statusParam] == CityStatus.NoOrdinance && (
+        <Button
+          className="my-2 w-full"
+          variant="outline"
+          loading={loading}
+          onClick={getSetStatus(CityStatus.NoExistingOrdinance)}
+        >
+          {texts.setAsNoExistingOrdinance}
+        </Button>
+      )}
+      {city[statusParam] == CityStatus.NoExistingOrdinance && (
+        <Button
+          className="my-2 w-full"
+          variant="destructive"
+          loading={loading}
+          onClick={getSetStatus(CityStatus.NoOrdinance)}
+        >
+          {texts.setAsNoOrdinance}
         </Button>
       )}
       <LinkButton

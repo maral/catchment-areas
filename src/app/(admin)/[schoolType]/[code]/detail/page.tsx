@@ -55,11 +55,11 @@ export default async function CityDetailPage(
     };
   });
 
-  if (serializedOrdinances.length === 0) {
-    redirect(
-      `${getRootPathBySchoolType(schoolTypeCode)}/${code}/add-ordinance`
-    );
-  }
+  // if (serializedOrdinances.length === 0) {
+  //   redirect(
+  //     `${getRootPathBySchoolType(schoolTypeCode)}/${code}/add-ordinance`
+  //   );
+  // }
 
   return (
     <div className="flex flex-col h-full overflow-y-auto">

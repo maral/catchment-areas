@@ -7,6 +7,7 @@ import { deserializeCities } from "@/components/table/fetchFunctions/loadCities"
 import { Badge } from "@/components/ui/badge";
 import {
   City,
+  CityStatus,
   getCountPropertyBySchoolType,
   getStatusPropertyBySchoolType,
 } from "@/entities/City";
@@ -17,7 +18,7 @@ import { routes } from "@/utils/shared/constants";
 import { texts } from "@/utils/shared/texts";
 import { deserializeOrdinanceMetadata } from "../../fetchFunctions/loadOrdinanceMetadata";
 
-export default function CitiesTable({
+export function CitiesTable({
   initialData,
   newOrdinanceMetadata,
   schoolType,
@@ -31,26 +32,37 @@ export default function CitiesTable({
       (row) => row.cityCode
     )
   );
+
   const columnDefinitions: ColumnDefinition<City>[] = [
     {
       title: texts.name,
       cellFactory: (item) => (
-        <CatchmentLink
-          href={`${getRootPathBySchoolType(schoolType)}/${item.code}${
-            routes.detail
-          }`}
-        >
-          {item.name}
-        </CatchmentLink>
+        <Italicize item={item} schoolType={schoolType}>
+          <CatchmentLink
+            href={`${getRootPathBySchoolType(schoolType)}/${item.code}${
+              routes.detail
+            }`}
+          >
+            {item.name}
+          </CatchmentLink>
+        </Italicize>
       ),
     },
     {
       title: texts.region,
-      cellFactory: (item) => item.region?.name,
+      cellFactory: (item) => (
+        <Italicize item={item} schoolType={schoolType}>
+          {item.region?.name}
+        </Italicize>
+      ),
     },
     {
       title: texts.numberOfSchools(schoolType),
-      cellFactory: (item) => item[getCountPropertyBySchoolType(schoolType)],
+      cellFactory: (item) => (
+        <Italicize item={item} schoolType={schoolType}>
+          {item[getCountPropertyBySchoolType(schoolType)]}
+        </Italicize>
+      ),
     },
     {
       title: texts.status,
@@ -75,5 +87,28 @@ export default function CitiesTable({
       columnDefinitions={columnDefinitions}
       initialData={deserializeCities(initialData)}
     />
+  );
+}
+
+function Italicize({
+  item,
+  schoolType,
+  children,
+}: {
+  item: City;
+  schoolType: SchoolType;
+  children: React.ReactNode;
+}) {
+  return (
+    <span
+      className={
+        item[getStatusPropertyBySchoolType(schoolType)] ===
+        CityStatus.NoExistingOrdinance
+          ? "italic opacity-50"
+          : ""
+      }
+    >
+      {children}
+    </span>
   );
 }
