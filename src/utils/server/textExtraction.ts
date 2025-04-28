@@ -21,7 +21,8 @@ import WordExtractor from "word-extractor";
 import officeParser from "officeparser";
 
 async function extractImagesFromPdf(pdfPath: string) {
-  pdfjs.GlobalWorkerOptions.workerSrc = "pdfjs-dist/legacy/build/pdf.worker.mjs";
+  pdfjs.GlobalWorkerOptions.workerSrc =
+    "pdfjs-dist/legacy/build/pdf.worker.mjs";
 
   const outputImages = await convert(pdfPath);
   return outputImages.map((image, i) => {
@@ -174,6 +175,11 @@ async function extractText(fileName: string): Promise<TextExtractionResult> {
 
         for (const image of images) {
           text += await recognizeImage(image);
+        }
+
+        // remove images after processing
+        for (const image of images) {
+          unlinkSync(image);
         }
       }
     } else if (
