@@ -38,7 +38,7 @@ The library is written in TypeScript. It has the following components:
 
 ### Catchment areas app
 
-The app is written in Next.js 13 using [React Server Components](https://nextjs.org/docs/getting-started/react-essentials).
+The app is written in Next.js 15 using [React Server Components](https://nextjs.org/docs/getting-started/react-essentials).
 
 #### Database
 
