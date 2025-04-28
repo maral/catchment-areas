@@ -20,46 +20,58 @@ export class OrdinanceController {
       where: { city, schoolType },
       orderBy: { validFrom: "desc" },
     });
-    if (cityOrdinances && cityOrdinances.length) {
-      // deactivate all active ordinances
-      const activeOrdinances = cityOrdinances.filter(
-        (ordinance) => ordinance.isActive
-      );
-      if (activeOrdinances.length) {
-        activeOrdinances.forEach(async (ordinance) => {
-          await ordinanceRepo.save({ ...ordinance, isActive: false });
+
+    if (!cityOrdinances || cityOrdinances.length === 0) {
+      // set city status to NoOrdinance
+      await remult.repo(City).save({
+        ...city,
+        [getStatusPropertyBySchoolType(schoolType)]: CityStatus.NoOrdinance,
+      });
+      return;
+    }
+
+    // deactivate all active ordinances
+    const activeOrdinances = cityOrdinances.filter(
+      (ordinance) => ordinance.isActive
+    );
+    if (activeOrdinances.length) {
+      activeOrdinances.forEach(async (ordinance) => {
+        await ordinanceRepo.save({ ...ordinance, isActive: false });
+      });
+    }
+    // find valid ordinances
+    const validOrdinances = cityOrdinances.filter((ordinance) =>
+      ordinance.validFrom <= new Date() && ordinance.validTo
+        ? ordinance.validTo >= new Date()
+        : true
+    );
+    if (validOrdinances.length > 0) {
+      // activate the first valid ordinance
+      await ordinanceRepo.save({ ...validOrdinances[0], isActive: true });
+      // set city status to InProgress
+      if (
+        city &&
+        city[getStatusPropertyBySchoolType(schoolType)] !==
+          CityStatus.InProgress
+      ) {
+        await remult.repo(City).save({
+          ...city,
+          [getStatusPropertyBySchoolType(schoolType)]: CityStatus.InProgress,
         });
       }
-      // find valid ordinances
-      const validOrdinances = cityOrdinances.filter((ordinance) =>
-        ordinance.validFrom <= new Date() && ordinance.validTo
-          ? ordinance.validTo >= new Date()
-          : true
-      );
-      if (validOrdinances.length) {
-        // activate the first valid ordinance
-        await ordinanceRepo.save({ ...validOrdinances[0], isActive: true });
-        // set city status to InProgress
-        if (
-          city &&
-          (schoolType === SchoolType.Kindergarten
-            ? city.statusElementary
-            : city.statusKindergarten) !== CityStatus.InProgress
-        ) {
-          await remult.repo(City).save({
-            ...city,
-            [getStatusPropertyBySchoolType(schoolType)]: CityStatus.InProgress,
-          });
-        }
-      } else {
-        // set city status to NoActiveOrdinance
-        if (city && city.statusElementary !== CityStatus.NoExistingOrdinance) {
-          await remult.repo(City).save({
-            ...city,
-            [getStatusPropertyBySchoolType(schoolType)]:
-              CityStatus.NoExistingOrdinance,
-          });
-        }
+    } else {
+      // set city status to NoExistingOrdinance
+      if (
+        city &&
+        (city[getStatusPropertyBySchoolType(schoolType)] !==
+          CityStatus.NoExistingOrdinance ||
+          city[getStatusPropertyBySchoolType(schoolType)] !==
+            CityStatus.NoOrdinance)
+      ) {
+        await remult.repo(City).save({
+          ...city,
+          [getStatusPropertyBySchoolType(schoolType)]: CityStatus.NoOrdinance,
+        });
       }
     }
   }

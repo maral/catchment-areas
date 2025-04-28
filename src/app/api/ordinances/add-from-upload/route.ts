@@ -2,6 +2,8 @@ import { getNotLoggedInResponse, isLoggedIn } from "@/utils/server/auth";
 import { insertOrdinanceAndGetResponse } from "@/utils/server/ordinance";
 import { uploadAndExtractText } from "@/utils/server/textExtraction";
 import { NextRequest, NextResponse } from "next/server";
+import { api } from "../../[...remult]/api";
+import { syncNewOrdinances } from "@/utils/server/ordinanceMetadataSync";
 
 export async function POST(req: NextRequest) {
   if (!(await isLoggedIn())) {
@@ -23,15 +25,19 @@ export async function POST(req: NextRequest) {
 
   const result = await uploadAndExtractText(file);
 
-  return NextResponse.json(
-    await insertOrdinanceAndGetResponse(
-      cityCode,
-      new Date(validFrom),
-      validTo.length > 0 ? new Date(validTo) : undefined,
-      serialNumber,
-      result,
-      schoolType,
-      redirectRootUrl
-    )
+  const response = await insertOrdinanceAndGetResponse(
+    cityCode,
+    new Date(validFrom),
+    validTo.length > 0 ? new Date(validTo) : undefined,
+    serialNumber,
+    result,
+    schoolType,
+    redirectRootUrl
   );
+
+  await api.withRemult(async () => {
+    await syncNewOrdinances(schoolType);
+  });
+
+  return NextResponse.json(response);
 }

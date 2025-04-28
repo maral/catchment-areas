@@ -103,8 +103,13 @@ export default function UploadOrdinance({
     if (res.ok) {
       const result = await res.json();
       if (result.success) {
-        router.push(`${rootPath}/${cityCode}${routes.detail}`);
-        return;
+        if (result.founderId) {
+          router.push(
+            `${rootPath}/${cityCode}${routes.editOrdinance}/${result.founderId}/${result.ordinanceId}`
+          );
+        } else {
+          router.push(`${rootPath}${cityCode}${routes.detail}`);
+        }
       }
     } else {
       console.error("File upload error");

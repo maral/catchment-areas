@@ -1,10 +1,13 @@
 import { api } from "@/app/api/[...remult]/api";
+import { OrdinanceController } from "@/controllers/OrdinanceController";
+import { City } from "@/entities/City";
 import { Ordinance } from "@/entities/Ordinance";
+import { SchoolType } from "@/types/basicTypes";
 import { revalidatePath } from "next/cache";
 import { remult } from "remult";
 import { routes } from "../shared/constants";
 import { TextExtractionResult } from "../shared/types";
-import { City } from "@/entities/City";
+import { Founder } from "@/entities/Founder";
 
 async function insertOrdinance(
   cityCode: number,
@@ -12,19 +15,16 @@ async function insertOrdinance(
   validTo: Date | undefined,
   serialNumber: string,
   result: TextExtractionResult,
-  schoolTypeCode: number
+  schoolType: SchoolType
 ): Promise<number | null> {
   if (!result.fileName) {
     return null;
   }
 
-  const ordinanceRepo = remult.repo(Ordinance);
-  const citiesRepo = remult.repo(City);
-
   const ordinance = await api.withRemult(async () => {
     const isActive = !validTo || validTo > new Date();
-    const city = await citiesRepo.findId(cityCode);
-    return ordinanceRepo.insert({
+    const city = await remult.repo(City).findId(cityCode);
+    return remult.repo(Ordinance).insert({
       number: serialNumber,
       originalText: result.text ?? "",
       validFrom: validFrom,
@@ -32,7 +32,7 @@ async function insertOrdinance(
       fileName: result.fileName ?? "",
       isActive,
       city,
-      schoolType: schoolTypeCode,
+      schoolType,
     });
   });
 
@@ -54,7 +54,7 @@ export async function insertOrdinanceAndGetResponse(
   validTo: Date | undefined,
   serialNumber: string,
   result: TextExtractionResult,
-  schoolTypeCode: number,
+  schoolType: SchoolType,
   redirectRootUrl: string
 ): Promise<AddOrdinanceResponse> {
   const ordinanceId = await insertOrdinance(
@@ -63,14 +63,23 @@ export async function insertOrdinanceAndGetResponse(
     validTo,
     serialNumber,
     result,
-    schoolTypeCode
+    schoolType
   );
 
   if (ordinanceId) {
-    revalidatePath(
-      `${redirectRootUrl}/[code]${routes.detail}/[ordinanceId]`,
-      "page"
-    );
+    const founders = await api.withRemult(async () => {
+      await OrdinanceController.determineActiveOrdinanceByCityCode(
+        Number(cityCode),
+        schoolType
+      );
+
+      const city = await remult
+        .repo(City)
+        .findFirst({ code: Number(cityCode) });
+      return await remult.repo(Founder).find({ where: { city } });
+    });
+
+    revalidatePath(`${redirectRootUrl}/[code]${routes.detail}`, "page");
     return {
       success: true,
       ...(result.text
@@ -79,6 +88,7 @@ export async function insertOrdinanceAndGetResponse(
             message: `Nepodporovaný formát ${result.fileType}, přidána vyhláška s prázdným původním textem.`,
           }),
       ordinanceId,
+      ...(founders.length === 1 ? { founderId: founders[0].id } : {}),
     };
   } else {
     return {

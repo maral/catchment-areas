@@ -58,21 +58,12 @@ export default function OrdinanceMetadataTable({
       const result = await response.json();
 
       if (result.success) {
-        OrdinanceController.determineActiveOrdinanceByCityCode(
-          Number(cityCode),
-          schoolType
-        );
-        const city = await remult
-          .repo(City)
-          .findFirst({ code: Number(cityCode) });
-        const founders = await remult.repo(Founder).find({ where: { city } });
-
-        if (founders.length > 1) {
-          router.push(`${rootPath}${cityCode}${routes.detail}`);
-        } else {
+        if (result.founderId) {
           router.push(
-            `${rootPath}/${cityCode}${routes.editOrdinance}/${founders[0].id}/${result.ordinanceId}`
+            `${rootPath}/${cityCode}${routes.editOrdinance}/${result.founderId}/${result.ordinanceId}`
           );
+        } else {
+          router.push(`${rootPath}${cityCode}${routes.detail}`);
         }
       } else {
         setAddingOrdinanceId("");
