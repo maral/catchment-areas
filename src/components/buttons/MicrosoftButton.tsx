@@ -8,7 +8,7 @@ export default function MicrosoftButton() {
     <Button
       className="w-full"
       onClick={() =>
-        signIn("microsoft-entra-id", { redirectTo: "/elementary" })
+        signIn("microsoft-entra-id", { redirectTo: "/admin/elementary" })
       }
     >
       Přihlásit se účtem Microsoft

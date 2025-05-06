@@ -8,10 +8,10 @@ const constants = {
 
 export const routes = {
   cities: "/cities",
-  kindergarten: "/kindergarten",
-  elementary: "/elementary",
+  kindergarten: "/admin/kindergarten",
+  elementary: "/admin/elementary",
   regions: "/regions",
-  users: "/users",
+  users: "/admin/users",
   detail: "/detail",
   addOrdinance: "/add-ordinance",
   editOrdinance: "/edit-ordinance",
@@ -19,7 +19,7 @@ export const routes = {
   home: "/",
   download: "/download",
   new: "/new",
-  signIn: "/auth/signin",
+  signIn: "/admin/auth/signin",
 };
 
 export const textToMapOptions: OpenDataSyncOptionsPartial = {

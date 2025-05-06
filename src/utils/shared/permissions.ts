@@ -70,15 +70,15 @@ type Route = {
 
 export const restrictedRoutes: Route[] = [
   {
-    path: "/users(.*)",
+    path: "/admin/users(.*)",
     role: Role.Admin,
   },
   {
-    path: "/elementary(.*)",
+    path: "/admin/elementary(.*)",
     role: Role.Editor,
   },
   {
-    path: "/kindergarten(.*)",
+    path: "/admin/kindergarten(.*)",
     role: Role.Editor,
   },
 ];

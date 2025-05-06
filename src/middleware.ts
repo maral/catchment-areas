@@ -25,5 +25,5 @@ export default auth(async function middleware(req) {
 });
 
 export const config = {
-  matcher: ["/elementary(.*)", "/kindergarten(.*)", "/users(.*)"],
+  matcher: ["/admin/elementary(.*)", "/admin/kindergarten(.*)", "/admin/users(.*)"],
 };
