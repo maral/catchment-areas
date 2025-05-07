@@ -1,22 +1,25 @@
 import { api } from "@/app/api/[...remult]/api";
 import CatchmentMap from "@/components/map/CatchmentMap";
+import { getSchoolTypeCode } from "@/entities/School";
 import { SchoolType } from "@/types/basicTypes";
 import { getOrCreateDataForMapByCityCodes } from "@/utils/server/textToMap";
 import { notFound } from "next/navigation";
 
 export default async function CityMapPage(props: {
-  params: Promise<{ cityCode: string }>;
+  params: Promise<{ cityCode: string, schoolType: string }>;
 }) {
   const params = await props.params;
 
-  const { cityCode } = params;
+  const { cityCode, schoolType } = params;
+
+  const schoolTypeCode = getSchoolTypeCode(schoolType);
 
   const numberCityCode = Number(cityCode);
   const data = await api.withRemult(
     async () =>
       await getOrCreateDataForMapByCityCodes(
         [numberCityCode],
-        SchoolType.Elementary
+        schoolTypeCode
       )
   );
 
