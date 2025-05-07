@@ -30,17 +30,26 @@ export const isSchoolType = (value: string): boolean =>
     .includes(value.toLowerCase());
 
 export const getSchoolTypeCode = (schoolType: string): SchoolType => {
-  switch (schoolType.toLowerCase()) {
+  switch (schoolType?.toLowerCase()) {
     case "kindergarten":
+    case "ms":
       return SchoolType.Kindergarten;
     case "elementary":
+    case "zs":
       return SchoolType.Elementary;
     default:
       return SchoolType.Elementary;
   }
 };
 
-export const getRootPathBySchoolType = (schoolType: SchoolType): string =>
+export const getRootPathBySchoolType = (
+  schoolType: SchoolType,
+  short = false
+): string =>
   schoolType === SchoolType.Kindergarten
-    ? routes.kindergarten
-    : routes.elementary;
+    ? short
+      ? routes.shortKindergarten
+      : routes.kindergarten
+    : short
+      ? routes.shortElementary
+      : routes.elementary;

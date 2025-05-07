@@ -12,13 +12,22 @@ import { texts } from "../../utils/shared/texts";
 import PublicButton from "../buttons/PublicButton";
 import { SearchInput } from "./SearchInput";
 import { Menu } from "./Menu";
+import SwitchButton from "../buttons/SwitchButton";
+import { SchoolType } from "@/types/basicTypes";
+import { useRouter } from "next/navigation";
+import {
+  AcademicCapIcon,
+  PuzzlePieceIcon,
+} from "@heroicons/react/24/solid";
 
 interface InnerPublicMapProps {
   cities: CityOnMap[];
+  schoolType: SchoolType;
 }
 
 const InnerMap = memo(
-  ({ cities }: InnerPublicMapProps) => {
+  ({ cities, schoolType }: InnerPublicMapProps) => {
+    const router = useRouter()
     const mapRef = useRef<HTMLDivElement>(null);
     const [onSelect, setOnSelect] = useState<(item: SuggestionItem) => void>(
       () => () => {}
@@ -29,7 +38,8 @@ const InnerMap = memo(
         const { onSuggestionSelect, destructor } = createPublicMap(
           mapRef.current,
           cities,
-          true
+          true,
+          schoolType
         );
         if (onSuggestionSelect) {
           setOnSelect(() => onSuggestionSelect);
@@ -38,15 +48,39 @@ const InnerMap = memo(
       }
     }, [cities, mapRef]);
 
+    const handleChange = (value: any) => {
+      if(value === SchoolType.Elementary) {
+        router.push('/zs')
+      }else {
+        router.push('/ms')
+      }
+    };
+
     return (
       <>
         <div ref={mapRef} className="h-screen w-screen" />
 
-        <Menu />
 
+        <div className="absolute top-[10px] px-2.5 z-1000 flex justify-between items-center gap-2.5 w-full md:max-w-[calc(100vw-260px)] flex-wrap">
+          <div className="flex items-center gap-2.5 w-full sm:w-fit">
+            <Menu />
+            <div className="w-[calc(100vw-80px)] sm:max-w-[430px]">
+              <SearchInput onSelect={onSelect} />
+            </div>
+          </div>
+          <div className="sm:w-fit w-full ">
+            <SwitchButton leftLabel="Mateřské Školy" leftIcon={PuzzlePieceIcon} rightLabel="Základní Školy" rightIcon={AcademicCapIcon} defaultValue={schoolType} leftValue={SchoolType.Kindergarten} rightValue={SchoolType.Elementary} onValueChange={(value) => handleChange(value)} />
+          </div>
+          <div></div>
+        </div>
+
+        {/* <div className="absolute top-[10px] left-[10px] z-1001">
+          <Menu />
+        </div>
         <div className="absolute top-[10px] left-[70px] z-1000 w-[min(430px,calc(100vw-80px))]">
           <SearchInput onSelect={onSelect} />
-        </div>
+        </div> */}
+
 
         <div
           className="absolute z-1000 bottom-0 left-0

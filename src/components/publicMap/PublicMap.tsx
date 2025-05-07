@@ -4,12 +4,13 @@ import Spinner from "@/components/common/Spinner";
 import { CityOnMap } from "@/types/mapTypes";
 import dynamic from "next/dynamic";
 import { useMemo } from "react";
-
+import { SchoolType } from "@/types/basicTypes";
 export interface PublicMapProps {
   cities: CityOnMap[];
+  schoolType: SchoolType;
 }
 
-export default function PublicMap({ cities }: PublicMapProps) {
+export default function PublicMap({ cities, schoolType }: PublicMapProps) {
   const Map = useMemo(
     () =>
       dynamic(() => import("@/components/publicMap/InnerPublicMap"), {
@@ -19,5 +20,5 @@ export default function PublicMap({ cities }: PublicMapProps) {
     []
   );
 
-  return <Map cities={cities} />;
+  return <Map cities={cities} schoolType={schoolType} />;
 }

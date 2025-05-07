@@ -10,6 +10,8 @@ export const routes = {
   cities: "/cities",
   kindergarten: "/admin/kindergarten",
   elementary: "/admin/elementary",
+  shortElementary: "/zs",
+  shortKindergarten: "/ms",
   regions: "/regions",
   users: "/admin/users",
   detail: "/detail",

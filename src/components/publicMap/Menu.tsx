@@ -41,7 +41,7 @@ export function Menu() {
 
   return (
     <>
-      <HeadlessMenu as="div" className="absolute top-[10px] left-[10px] z-1001">
+      <HeadlessMenu as="div">
         <HeadlessMenu.Button
           className="w-[50px] h-[50px] border rounded-md cursor-pointer bg-white hover:bg-slate-100 border-gray-300
 block px-3 py-2 transition-colors shadow text-slate-400 hover:text-slate-500 content-center"

@@ -15,6 +15,8 @@ import {
 import { colors, markerRadius, markerWeight } from "./mapUtils";
 import L, { Marker } from "leaflet";
 import { ButtonVariant, buttonVariants } from "@/components/ui/button";
+import { SchoolType } from "@/types/basicTypes";
+import { getRootPathBySchoolType } from "@/entities/School";
 
 const unmappedMarkerColor = "#ff0000";
 
@@ -257,23 +259,28 @@ export const createSvgIcon = (color: string): L.DivIcon => {
   });
 };
 
-const publicIcon = createSvgIcon("#03b703");
+const publicIconElementary = createSvgIcon("#03b703");
+const publicIconKindergarten = createSvgIcon("#155dfc");
 const notReadyIcon = createSvgIcon("#999");
 
 export const createCityMarker = (
   city: CityOnMap,
   cityMarkers: Record<string, Marker>,
   citiesMap: Record<string, CityOnMap>,
-  bounds: L.LatLngBounds
+  bounds: L.LatLngBounds,
+  schoolType: SchoolType
 ) => {
+
+  const markerIcon = schoolType === SchoolType.Elementary ? publicIconElementary : publicIconKindergarten;
+
   const marker = L.marker([city.lat, city.lng], {
-    icon: city.isPublished ? publicIcon : notReadyIcon,
+    icon: city.isPublished ? markerIcon : notReadyIcon,
   }).bindPopup(
     `<div class="flex flex-col gap-2 items-stretch"><h4 class="text-base text-center font-title">${
       city.name
     }</h4>${
       city.isPublished
-        ? `${createCityMarkerButtons(city.code)}`
+        ? `${createCityMarkerButtons(city.code,schoolType)}`
         : "zatím není připraveno"
     }</div>`
   );
@@ -307,8 +314,8 @@ const createAddressMarkerButton = () => `
   Zobrazit spádovou školu
 </button></div>`;
 
-const createCityMarkerButtons = (cityCode: number) => `
-<div class="flex flex-col gap-2"><a href="/m/${cityCode}?controls=1" target="_blank" class="city-marker ${getButtonClasses()}">
+const createCityMarkerButtons = (cityCode: number, schoolType: SchoolType) => `
+<div class="flex flex-col gap-2"><a href="${getRootPathBySchoolType(schoolType, true)}/m/${cityCode}?controls=1" target="_blank" class="city-marker ${getButtonClasses()}">
   ${getNewWindowHeroicon()} Zobrazit v novém okně
 </a><a href="/api/ordinances/download/by-city-code/${cityCode}" target="_blank" class="city-marker ${getButtonClasses(
   "secondary"

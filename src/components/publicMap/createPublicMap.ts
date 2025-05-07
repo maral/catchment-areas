@@ -25,7 +25,9 @@ const loadCitiesDebounceTime = 300;
 export const createPublicMap = (
   element: HTMLElement,
   cities: CityOnMap[],
-  showControls: boolean = true
+  showControls: boolean = true,
+  schoolType: SchoolType
+  
 ): {
   destructor: () => void;
   onSuggestionSelect: (item: SuggestionItem) => void;
@@ -47,7 +49,7 @@ export const createPublicMap = (
   cities
     .filter((city) => city.isPublished)
     .forEach((city) =>
-      createCityMarker(city, cityMarkers, citiesMap, bounds).addTo(map)
+      createCityMarker(city, cityMarkers, citiesMap, bounds, schoolType).addTo(map)
     );
 
   setupPopups(map);
@@ -57,7 +59,8 @@ export const createPublicMap = (
   const zoomEndHandler = createPublicMoveAndZoomEndHandler(
     map,
     cityMarkers,
-    citiesMap
+    citiesMap,
+    schoolType
   );
   map.on("zoom", zoomEndHandler);
   map.on("move", zoomEndHandler);
@@ -82,7 +85,8 @@ const citiesWithShownAddresses = new Set<number>();
 const createPublicMoveAndZoomEndHandler = (
   map: LeafletMap,
   cityMarkers: Record<string, Marker>,
-  citiesMap: Record<string, CityOnMap>
+  citiesMap: Record<string, CityOnMap>,
+  schoolType: SchoolType
 ) => {
   return debounce(async () => {
     if (map.getZoom() >= minZoomForLoadingCities) {
@@ -91,7 +95,7 @@ const createPublicMoveAndZoomEndHandler = (
         cityMarkers
       );
 
-      await loadNewCities(publishedCitiesInViewport, citiesMap);
+      await loadNewCities(publishedCitiesInViewport, citiesMap, schoolType);
 
       // show schools of cities in viewport
       publishedCitiesInViewport.forEach((city) => {
@@ -213,7 +217,8 @@ const getPublishedCitiesInViewport = (
 
 const loadNewCities = async (
   publishedCitiesInViewport: CityOnMap[],
-  citiesMap: Record<string, CityOnMap>
+  citiesMap: Record<string, CityOnMap>,
+  schoolType: SchoolType
 ) => {
   const newCities = publishedCitiesInViewport.filter(
     (c) => !loadingCities.has(c.code) && !loadedCities.has(c.code)
@@ -228,7 +233,7 @@ const loadNewCities = async (
   try {
     const result = await loadMunicipalitiesByCityCodes(
       newCities.map((c) => c.code),
-      SchoolType.Elementary
+      schoolType
     );
 
     if (result) {
