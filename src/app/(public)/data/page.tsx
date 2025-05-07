@@ -16,6 +16,7 @@ import {
   ChevronLeftIcon,
 } from "@heroicons/react/24/outline";
 import Link from "next/link";
+import  PublicSwitchButton  from "@/components/buttons/PublicSwitchButton";
 
 export default async function DataPage() {
   const { founders, ordinances } = await api.withRemult(async () => {
@@ -28,6 +29,10 @@ export default async function DataPage() {
     );
     return { founders: cities, ordinances };
   });
+
+
+
+
   return (
     <div className="container mx-auto py-12 px-4">
       <div className="mb-8">
@@ -40,12 +45,16 @@ export default async function DataPage() {
         <h1 className="text-3xl font-title font-semibold mt-4 mb-2">
           {texts.dataForDownload}
         </h1>
-        <p className="text-muted-foreground">
+        <p className="text-muted-foreground mb-4">
           Stáhněte si text vyhlášky (v původním formátu), polygony spádových
           oblastí ve formátu GeoJSON nebo GPS body adresních míst rozřazené k
           jejich spádovým školám.
         </p>
+        <div className="w-fit">
+        <PublicSwitchButton />
+        </div>
       </div>
+
       <div className="overflow-x-auto rounded-lg border shadow-xs">
         <Table>
           <colgroup>
