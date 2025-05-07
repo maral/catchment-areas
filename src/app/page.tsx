@@ -1,4 +1,5 @@
 import PublicMap from "@/components/publicMap/PublicMap";
+import { SchoolType } from "@/types/basicTypes";
 import { getCitiesForMap } from "@/utils/server/map";
 import { notFound } from "next/navigation";
 
@@ -9,5 +10,5 @@ export default async function MapPage() {
     notFound();
   }
 
-  return <PublicMap cities={cities} />;
+  return <PublicMap schoolType={SchoolType.Elementary} cities={cities} />;
 }

@@ -46,7 +46,7 @@ const InnerMap = memo(
         }
         return destructor;
       }
-    }, [cities, mapRef]);
+    }, [cities, schoolType, mapRef]);
 
     const handleChange = (value: any) => {
       if(value === SchoolType.Elementary) {
