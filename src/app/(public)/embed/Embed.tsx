@@ -14,6 +14,7 @@ import { texts } from "@/utils/shared/texts";
 import { ChevronLeftIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { useState } from "react";
+import PublicSwitchButton from "@/components/buttons/PublicSwitchButton";
 
 export type MunicipalityPageProps = {
   schools: CitySchools[];
@@ -74,6 +75,11 @@ export default function Embed({ schools, cities }: MunicipalityPageProps) {
 
       <form className="flex flex-col gap-6">
         <div className="grid gap-4">
+        <Label>Typ školy?</Label>
+        <div className="w-fit">
+        <PublicSwitchButton />
+        </div>
+
           <Label>Pro koho chcete mapu vytvořit?</Label>
           <RadioGroup
             defaultValue="school"
