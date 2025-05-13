@@ -18,12 +18,11 @@ import {
 import Link from "next/link";
 import PublicSwitchButton from "@/components/buttons/PublicSwitchButton";
 
-export default async function DataPage({
-  searchParams,
-}: {
-  searchParams: { type?: string };
+export default async function DataPage(props: {
+  searchParams: Promise<{ [key: string]: string | undefined }>;
 }) {
-  const { type } = await searchParams;
+  const searchParams = await props.searchParams;
+  const { type } = searchParams;
 
   const selectedType =
     type === "ms" ? SchoolType.Kindergarten : SchoolType.Elementary;
