@@ -93,9 +93,9 @@ export default function Embed({ schools, cities }: MunicipalityPageProps) {
           <Label>Typ školy?</Label>
           <div className="w-fit">
             <SwitchButton
-              leftLabel="Mateřské Školy"
+              leftLabel={texts.schoolsKindergarten}
               leftIcon={PuzzlePieceIcon}
-              rightLabel="Základní Školy"
+              rightLabel={texts.schoolsElementary}
               rightIcon={AcademicCapIcon}
               defaultValue={schoolType}
               leftValue={SchoolType.Kindergarten}
