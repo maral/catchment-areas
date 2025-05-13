@@ -16,22 +16,26 @@ import {
   ChevronLeftIcon,
 } from "@heroicons/react/24/outline";
 import Link from "next/link";
-import  PublicSwitchButton  from "@/components/buttons/PublicSwitchButton";
+import PublicSwitchButton from "@/components/buttons/PublicSwitchButton";
 
-export default async function DataPage() {
+export default async function DataPage({
+  searchParams,
+}: {
+  searchParams: { type?: string };
+}) {
+  const { type } = await searchParams;
+
+  const selectedType =
+    type === "ms" ? SchoolType.Kindergarten : SchoolType.Elementary;
+
   const { founders, ordinances } = await api.withRemult(async () => {
-    const cities = await CityController.loadPublishedCities(
-      SchoolType.Elementary
-    );
+    const cities = await CityController.loadPublishedCities(selectedType);
     const ordinances = await CityController.loadActiveOrdinancesByCityCodes(
       cities.map((f) => f.code),
-      SchoolType.Elementary
+      selectedType
     );
     return { founders: cities, ordinances };
   });
-
-
-
 
   return (
     <div className="container mx-auto py-12 px-4">
@@ -51,7 +55,7 @@ export default async function DataPage() {
           jejich spádovým školám.
         </p>
         <div className="w-fit">
-        <PublicSwitchButton />
+          <PublicSwitchButton />
         </div>
       </div>
 
