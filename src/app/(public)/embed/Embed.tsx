@@ -55,7 +55,7 @@ export default function Embed({ schools, cities }: MunicipalityPageProps) {
     }));
     setSchoolIzo(filtered[0]?.schools[0]?.izo);
     return filtered;
-  }, [schoolType]);
+  }, [schools, schoolType]);
 
   const handlePageTypeChange = (value: string) => {
     const pageType = value as PageType;
