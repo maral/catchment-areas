@@ -65,9 +65,9 @@ const InnerMap = memo(
           </div>
           <div className="sm:w-fit w-full ">
             <SwitchButton
-              leftLabel="Mateřské Školy"
+              leftLabel={texts.schoolsKindergarten}
               leftIcon={PuzzlePieceIcon}
-              rightLabel="Základní Školy"
+              rightLabel={texts.schoolsElementary}
               rightIcon={AcademicCapIcon}
               defaultValue={schoolType}
               leftValue={SchoolType.Kindergarten}

@@ -29,9 +29,9 @@ export default function SwitchButton({
     <Tabs
       defaultValue={defaultValue}
       onValueChange={onValueChange}
-      className="h-[50px] w-full"
+      className="h-[50px] w-full "
     >
-      <TabsList className="h-full w-full border border-gray-300 rounded-md">
+      <TabsList className="h-full p-[5px] w-full border border-gray-300 rounded-md">
         <TabsTrigger
           className="rounded-sm  text-gray-900 data-[state=inactive]:cursor-pointer data-[state=active]:bg-[#155dfc] data-[state=active]:text-white data-[state=active]:font-medium"
           value={leftValue}
