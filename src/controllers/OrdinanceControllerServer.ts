@@ -17,7 +17,8 @@ export class OrdinanceControllerServer {
   }
 
   static async getActiveOrdinanceBySchoolIzo(
-    schoolIzo: string
+    schoolIzo: string,
+    schoolType: SchoolType = SchoolType.Elementary
   ): Promise<{ cityCode: number; ordinanceId: number } | null> {
     const knex = KnexDataProvider.getDb();
 
@@ -26,8 +27,9 @@ export class OrdinanceControllerServer {
         `SELECT f.city_code, o.id AS ordinance_id FROM school_founder sf
         JOIN founder f ON sf.founder_id = f.id
         JOIN ordinance o ON f.city_code = o.city_code
-        WHERE sf.school_izo = ? AND o.is_active = 1`,
-        [schoolIzo]
+        WHERE sf.school_izo = ? AND o.is_active = 1 AND o.school_type = ?`,
+
+        [schoolIzo, schoolType]
       )
     )[0]?.[0];
 

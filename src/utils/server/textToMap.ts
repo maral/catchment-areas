@@ -125,8 +125,12 @@ export async function getOrCreateDataForMapBySchoolIzo(
   const school = await remult.repo(School).findFirst({
     izo: schoolIzo,
   });
+
   const activeOrdinance =
-    await OrdinanceControllerServer.getActiveOrdinanceBySchoolIzo(schoolIzo);
+    await OrdinanceControllerServer.getActiveOrdinanceBySchoolIzo(
+      schoolIzo,
+      school.type
+    );
 
   if (activeOrdinance === null) {
     return null;
@@ -163,13 +167,15 @@ export async function getOrCreateDataForMapByCityCode(
 
   let jsonData = mapData?.jsonData ?? null;
   let polygons = mapData?.polygons ?? null;
-
+  // console.log("jsonData", jsonData);
   if (jsonData === null) {
     if (smdTexts.length === 0) {
       console.log(`No street markdowns found for city code = '${cityCode}'.`);
       return null;
     }
+
     jsonData = await getAddressPointsBySmdTexts(smdTexts, schoolType);
+
     if (jsonData === null) {
       return null;
     }
@@ -293,6 +299,7 @@ async function filterSchoolData(
   schoolIzo: string
 ): Promise<DataForMap | null> {
   // filter municipalities
+
   const municipalities = data.municipalities
     .filter((municipality) =>
       municipality.areas.some((area) =>

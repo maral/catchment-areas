@@ -86,17 +86,27 @@ export class CityController {
   }
 
   static async loadPublishedCities(
-    schoolType: SchoolType
+    schoolType: SchoolType | null = null
   ): Promise<(City & { regionName: string; schoolCount: number })[]> {
     const knex = KnexDataProvider.getDb();
+
+    const whereClause =
+      schoolType !== null
+        ? `${getStatusColumnBySchoolType(schoolType)} = '${
+            CityStatus.Published
+          }'`
+        : `(${getStatusColumnBySchoolType(SchoolType.Elementary)} = '${
+            CityStatus.Published
+          }' OR ${getStatusColumnBySchoolType(SchoolType.Kindergarten)} = '${
+            CityStatus.Published
+          }')`;
+
     return (
       await knex.raw(
-        `SELECT c.code, c.name, r.name AS region_name, c.school_count
+        `SELECT c.code, c.name, r.name AS region_name, c.school_count, c.kindergarten_count
         FROM city c
         JOIN region r ON c.region_code = r.code
-        WHERE ${getStatusColumnBySchoolType(schoolType)} = ${
-          CityStatus.Published
-        }
+        WHERE ${whereClause}
         ORDER BY name ASC`
       )
     )[0].map((row: any) => ({
@@ -104,22 +114,33 @@ export class CityController {
       name: row.name,
       regionName: row.region_name,
       schoolCount: row.school_count,
+      kindergartenCount: row.kindergarten_count,
     }));
   }
 
   static async loadPublishedSchools(
-    schoolType: SchoolType
+    schoolType: SchoolType | null = null
   ): Promise<CitySchools[]> {
     const knex = KnexDataProvider.getDb();
+
+    const whereClause =
+      schoolType !== null
+        ? `c.${getStatusColumnBySchoolType(schoolType)} = '${
+            CityStatus.Published
+          }'`
+        : `(c.${getStatusColumnBySchoolType(SchoolType.Elementary)} = '${
+            CityStatus.Published
+          }' OR c.${getStatusColumnBySchoolType(SchoolType.Kindergarten)} = '${
+            CityStatus.Published
+          }')`;
+
     const schools = await knex.raw(
-      `SELECT c.name AS city_name, s.izo, s.name
+      `SELECT c.name AS city_name, s.izo, s.name, s.type
       FROM city c
       JOIN founder f ON f.city_code = c.code
       JOIN school_founder sf ON f.id = sf.founder_id
       JOIN school s ON s.izo = sf.school_izo
-      WHERE c.${getStatusColumnBySchoolType(schoolType)} = ${
-        CityStatus.Published
-      }
+      WHERE ${whereClause}
       ORDER BY c.name ASC, s.name ASC`
     );
 
@@ -132,6 +153,7 @@ export class CityController {
       schoolsByCity.get(city)!.push({
         izo: school.izo,
         name: school.name,
+        type: school.type,
       });
     }
 

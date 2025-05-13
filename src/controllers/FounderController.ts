@@ -80,6 +80,7 @@ export class FounderController {
       schoolsByCity.get(city)!.push({
         izo: school.izo,
         name: school.name,
+        type: school.type,
       });
     }
 

@@ -14,7 +14,11 @@ import { texts } from "@/utils/shared/texts";
 import { ChevronLeftIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { useState } from "react";
-import PublicSwitchButton from "@/components/buttons/PublicSwitchButton";
+import { AcademicCapIcon, PuzzlePieceIcon } from "@heroicons/react/24/solid";
+import { SchoolType } from "@/types/basicTypes";
+import SwitchButton from "@/components/buttons/SwitchButton";
+import { useMemo } from "react";
+import { getRootPathBySchoolType } from "@/entities/School";
 
 export type MunicipalityPageProps = {
   schools: CitySchools[];
@@ -27,6 +31,7 @@ export default function Embed({ schools, cities }: MunicipalityPageProps) {
   const [pageType, setPageType] = useState<PageType>("school");
   const [schoolIzo, setSchoolIzo] = useState(schools[0]?.schools[0]?.izo);
   const [cityCode, setCityCode] = useState(cities[0]?.code);
+  const [schoolType, setSchoolType] = useState(SchoolType.Elementary);
   // const [showSearch, setShowSearch] = useState(defaults.showSearch);
   const [showControls, setShowControls] = useState(defaults.showControls);
   const [fixedColor, setFixedColor] = useState(false);
@@ -39,8 +44,18 @@ export default function Embed({ schools, cities }: MunicipalityPageProps) {
     // showSearch,
     showControls,
     fixedColor,
-    color
+    color,
+    schoolType
   );
+
+  const filteredSchools = useMemo(() => {
+    const filtered = schools.map((city) => ({
+      ...city,
+      schools: city.schools.filter((school) => school.type === schoolType),
+    }));
+    setSchoolIzo(filtered[0]?.schools[0]?.izo);
+    return filtered;
+  }, [schoolType]);
 
   const handlePageTypeChange = (value: string) => {
     const pageType = value as PageType;
@@ -57,7 +72,7 @@ export default function Embed({ schools, cities }: MunicipalityPageProps) {
       setIframeUrl(url);
     },
     300,
-    [pageType, schoolIzo, cityCode, showControls, fixedColor, color]
+    [pageType, schoolIzo, cityCode, showControls, fixedColor, color, schoolType]
   );
 
   return (
@@ -75,10 +90,19 @@ export default function Embed({ schools, cities }: MunicipalityPageProps) {
 
       <form className="flex flex-col gap-6">
         <div className="grid gap-4">
-        <Label>Typ školy?</Label>
-        <div className="w-fit">
-        <PublicSwitchButton />
-        </div>
+          <Label>Typ školy?</Label>
+          <div className="w-fit">
+            <SwitchButton
+              leftLabel="Mateřské Školy"
+              leftIcon={PuzzlePieceIcon}
+              rightLabel="Základní Školy"
+              rightIcon={AcademicCapIcon}
+              defaultValue={schoolType}
+              leftValue={SchoolType.Kindergarten}
+              rightValue={SchoolType.Elementary}
+              onValueChange={(value) => setSchoolType(value)}
+            />
+          </div>
 
           <Label>Pro koho chcete mapu vytvořit?</Label>
           <RadioGroup
@@ -105,7 +129,7 @@ export default function Embed({ schools, cities }: MunicipalityPageProps) {
               onChange={(e) => setSchoolIzo(e.target.value)}
               className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1"
             >
-              {schools.map((city, index) => (
+              {filteredSchools.map((city, index) => (
                 <optgroup key={index} label={city.cityName}>
                   {city.schools.map(({ name, izo }) => (
                     <option key={izo} value={izo} className="py-1">
@@ -207,13 +231,16 @@ const createUrl = (
   // showSearch: boolean,
   showControls: boolean,
   fixedColor: boolean,
-  color: string
+  color: string,
+  schoolType: SchoolType
 ): string => {
   const baseUrl =
     process.env.NEXT_PUBLIC_BASE_URL ??
     "https://mapaspadovosti.zapojmevsechny.cz";
 
-  const path = pageType === "school" ? `/s/${schoolIzo}` : `/m/${cityCode}`;
+  const typePath = getRootPathBySchoolType(schoolType, true);
+  const path =
+    pageType === "school" ? `/s/${schoolIzo}` : `${typePath}/m/${cityCode}`;
 
   const params = new URLSearchParams();
   // params.set("search", showSearch ? "1" : "0");

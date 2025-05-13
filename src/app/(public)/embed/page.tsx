@@ -5,8 +5,8 @@ import Embed from "./Embed";
 
 export default async function EmbedPage() {
   const { cities, schools } = await api.withRemult(async () => ({
-    cities: await CityController.loadPublishedCities(SchoolType.Elementary),
-    schools: await CityController.loadPublishedSchools(SchoolType.Elementary),
+    cities: await CityController.loadPublishedCities(),
+    schools: await CityController.loadPublishedSchools(),
   }));
 
   return <Embed schools={schools} cities={cities} />;
