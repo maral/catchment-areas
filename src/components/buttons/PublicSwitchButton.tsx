@@ -31,14 +31,20 @@ export default function PublicSwitchButton() {
 
   return (
     <Btn
-      leftLabel={texts.schoolsKindergarten}
-      leftIcon={PuzzlePieceIcon}
-      rightLabel={texts.schoolsElementary}
-      rightIcon={AcademicCapIcon}
+      segments={[
+        {
+          label: texts.schoolsKindergarten,
+          icon: PuzzlePieceIcon,
+          value: SchoolType.Kindergarten,
+        },
+        {
+          label: texts.schoolsElementary,
+          icon: AcademicCapIcon,
+          value: SchoolType.Elementary,
+        },
+      ]}
       defaultValue={SchoolType.Elementary}
-      leftValue={SchoolType.Kindergarten}
-      rightValue={SchoolType.Elementary}
-      onValueChange={(value) => onValueChange(value)}
+      onValueChange={onValueChange}
     />
   );
 }
