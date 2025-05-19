@@ -16,7 +16,7 @@ import {
   ChevronLeftIcon,
 } from "@heroicons/react/24/outline";
 import Link from "next/link";
-import PublicSwitchButton from "@/components/buttons/PublicSwitchButton";
+import { PublicSwitchButton } from "@/components/buttons/PublicSwitchButton";
 
 export default async function DataPage(props: {
   searchParams: Promise<{ [key: string]: string | undefined }>;
