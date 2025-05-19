@@ -3,28 +3,21 @@
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ReactNode } from "react";
 
+export type Segment = {
+  label: string;
+  icon: React.ElementType;
+  value: any;
+};
+
 export default function SwitchButton({
-  leftLabel,
-  rightLabel,
-  leftValue,
-  rightIcon,
-  leftIcon,
-  rightValue,
-  defaultValue = rightValue,
+  segments = [],
+  defaultValue = segments[0]?.value,
   onValueChange,
 }: {
-  leftLabel: string;
-  rightLabel: string;
-  rightIcon: React.ElementType;
-  leftIcon: React.ElementType;
-  leftValue: any;
-  rightValue: any;
+  segments?: Segment[];
   defaultValue?: any;
   onValueChange?: (value: any) => void;
 }) {
-  const IconLeft = leftIcon;
-  const IconRight = rightIcon;
-
   return (
     <Tabs
       defaultValue={defaultValue}
@@ -32,19 +25,22 @@ export default function SwitchButton({
       className="h-[50px] w-full "
     >
       <TabsList className="h-full p-[5px] w-full border border-gray-300 rounded-md">
-        <TabsTrigger
-          className="rounded-sm  text-gray-900 data-[state=inactive]:cursor-pointer data-[state=active]:bg-[#155dfc] data-[state=active]:text-white data-[state=active]:font-medium"
-          value={leftValue}
-        >
-          <IconLeft />
-          {leftLabel}
-        </TabsTrigger>
-        <TabsTrigger
-          className="rounded-sm  text-gray-900 data-[state=inactive]:cursor-pointer data-[state=active]:bg-[#03b703] data-[state=active]:text-white data-[state=active]:font-medium"
-          value={rightValue}
-        >
-          <IconRight /> {rightLabel}
-        </TabsTrigger>
+        {segments.map((segment, idx) => {
+          const Icon = segment.icon;
+          const colors = ["#155dfc", "#03b703"];
+          const activeBg = `data-[state=active]:bg-[${
+            colors[idx % colors.length]
+          }]`;
+          return (
+            <TabsTrigger
+              key={segment.value}
+              className={`rounded-sm text-gray-900 data-[state=inactive]:cursor-pointer data-[state=active]:text-white data-[state=active]:font-medium ${activeBg}`}
+              value={segment.value}
+            >
+              <Icon /> {segment.label}
+            </TabsTrigger>
+          );
+        })}
       </TabsList>
     </Tabs>
   );

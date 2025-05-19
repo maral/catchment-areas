@@ -65,14 +65,20 @@ const InnerMap = memo(
           </div>
           <div className="sm:w-fit w-full ">
             <SwitchButton
-              leftLabel={texts.schoolsKindergarten}
-              leftIcon={PuzzlePieceIcon}
-              rightLabel={texts.schoolsElementary}
-              rightIcon={AcademicCapIcon}
+              segments={[
+                {
+                  label: texts.schoolsKindergarten,
+                  icon: PuzzlePieceIcon,
+                  value: SchoolType.Kindergarten,
+                },
+                {
+                  label: texts.schoolsElementary,
+                  icon: AcademicCapIcon,
+                  value: SchoolType.Elementary,
+                },
+              ]}
               defaultValue={schoolType}
-              leftValue={SchoolType.Kindergarten}
-              rightValue={SchoolType.Elementary}
-              onValueChange={(value) => handleChange(value)}
+              onValueChange={handleChange}
             />
           </div>
           <div></div>

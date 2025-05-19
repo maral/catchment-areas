@@ -93,14 +93,20 @@ export default function Embed({ schools, cities }: MunicipalityPageProps) {
           <Label>Typ školy?</Label>
           <div className="w-fit">
             <SwitchButton
-              leftLabel={texts.schoolsKindergarten}
-              leftIcon={PuzzlePieceIcon}
-              rightLabel={texts.schoolsElementary}
-              rightIcon={AcademicCapIcon}
+              segments={[
+                {
+                  label: texts.schoolsKindergarten,
+                  icon: PuzzlePieceIcon,
+                  value: SchoolType.Kindergarten,
+                },
+                {
+                  label: texts.schoolsElementary,
+                  icon: AcademicCapIcon,
+                  value: SchoolType.Elementary,
+                },
+              ]}
               defaultValue={schoolType}
-              leftValue={SchoolType.Kindergarten}
-              rightValue={SchoolType.Elementary}
-              onValueChange={(value) => setSchoolType(value)}
+              onValueChange={setSchoolType}
             />
           </div>
 
