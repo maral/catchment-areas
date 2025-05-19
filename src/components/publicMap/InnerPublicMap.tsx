@@ -44,7 +44,7 @@ const InnerMap = memo(
       }
     }, [cities, schoolType, mapRef]);
 
-    const handleChange = (value: any) => {
+    const handleChange = (value: SchoolType) => {
       if (value === SchoolType.Elementary) {
         window.location.href = "/zs";
       } else {
