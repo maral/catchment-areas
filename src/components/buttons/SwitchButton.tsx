@@ -2,7 +2,6 @@
 
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SchoolType } from "@/types/basicTypes";
-import { de } from "date-fns/locale";
 
 export type Segment = {
   label: string;
