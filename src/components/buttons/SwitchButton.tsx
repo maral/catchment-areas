@@ -18,19 +18,25 @@ export function SwitchButton({
   defaultValue?: SchoolType;
   onValueChange?: (value: any) => void;
 }) {
+  const handleValueChange = (value: string) => {
+    if (onValueChange) {
+      onValueChange(Number(value) as SchoolType);
+    }
+  };
+
   return (
     <Tabs
       defaultValue={String(defaultValue)}
-      onValueChange={onValueChange}
+      onValueChange={handleValueChange}
       className="h-[50px] w-full "
     >
       <TabsList className="h-full p-[5px] w-full border border-gray-300 rounded-md">
         {segments.map((segment, idx) => {
           const Icon = segment.icon;
-          const colors = ["#155dfc", "#03b703"];
-          const activeBg = `data-[state=active]:bg-[${
-            colors[idx % colors.length]
-          }]`;
+          const activeBg =
+            idx % 2 === 1
+              ? `data-[state=active]:bg-[#03b703]`
+              : `data-[state=active]:bg-[#155dfc]`;
           return (
             <TabsTrigger
               key={segment.value}
