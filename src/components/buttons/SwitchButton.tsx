@@ -1,12 +1,13 @@
 "use client";
 
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ReactNode } from "react";
+import { SchoolType } from "@/types/basicTypes";
+import { de } from "date-fns/locale";
 
 export type Segment = {
   label: string;
   icon: React.ElementType;
-  value: any;
+  value: SchoolType;
 };
 
 export function SwitchButton({
@@ -15,12 +16,12 @@ export function SwitchButton({
   onValueChange,
 }: {
   segments?: Segment[];
-  defaultValue?: any;
+  defaultValue?: SchoolType;
   onValueChange?: (value: any) => void;
 }) {
   return (
     <Tabs
-      defaultValue={defaultValue}
+      defaultValue={String(defaultValue)}
       onValueChange={onValueChange}
       className="h-[50px] w-full "
     >
@@ -35,7 +36,7 @@ export function SwitchButton({
             <TabsTrigger
               key={segment.value}
               className={`rounded-sm text-gray-900 data-[state=inactive]:cursor-pointer data-[state=active]:text-white data-[state=active]:font-medium ${activeBg}`}
-              value={segment.value}
+              value={String(segment.value)}
             >
               <Icon /> {segment.label}
             </TabsTrigger>
