@@ -167,7 +167,7 @@ export async function getOrCreateDataForMapByCityCode(
 
   let jsonData = mapData?.jsonData ?? null;
   let polygons = mapData?.polygons ?? null;
-  // console.log("jsonData", jsonData);
+
   if (jsonData === null) {
     if (smdTexts.length === 0) {
       console.log(`No street markdowns found for city code = '${cityCode}'.`);
