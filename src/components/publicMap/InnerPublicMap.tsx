@@ -12,7 +12,7 @@ import { texts } from "../../utils/shared/texts";
 import PublicButton from "../buttons/PublicButton";
 import { SearchInput } from "./SearchInput";
 import { Menu } from "./Menu";
-import SwitchButton from "../buttons/SwitchButton";
+import { SwitchButton } from "../buttons/SwitchButton";
 import { SchoolType } from "@/types/basicTypes";
 import { useRouter } from "next/navigation";
 import { AcademicCapIcon, PuzzlePieceIcon } from "@heroicons/react/24/solid";

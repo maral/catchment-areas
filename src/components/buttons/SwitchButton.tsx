@@ -9,7 +9,7 @@ export type Segment = {
   value: any;
 };
 
-export default function SwitchButton({
+export function SwitchButton({
   segments = [],
   defaultValue = segments[0]?.value,
   onValueChange,

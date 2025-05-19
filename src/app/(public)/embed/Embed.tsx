@@ -16,7 +16,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { AcademicCapIcon, PuzzlePieceIcon } from "@heroicons/react/24/solid";
 import { SchoolType } from "@/types/basicTypes";
-import SwitchButton from "@/components/buttons/SwitchButton";
+import { SwitchButton } from "@/components/buttons/SwitchButton";
 import { useMemo } from "react";
 import { getRootPathBySchoolType } from "@/entities/School";
 
