@@ -62,7 +62,7 @@ export class FounderController {
   static async loadPublishedSchools(): Promise<CitySchools[]> {
     const knex = KnexDataProvider.getDb();
     const schools = await knex.raw(
-      `SELECT c.name AS city_name, s.izo, s.name
+      `SELECT c.name AS city_name, c.code AS city_code, s.izo, s.name
       FROM city c
       JOIN founder f ON f.city_code = c.code
       JOIN school_founder sf ON f.id = sf.founder_id
@@ -71,13 +71,20 @@ export class FounderController {
       ORDER BY c.name ASC, s.name ASC`
     );
 
-    const schoolsByCity = new Map<string, School[]>();
+    const schoolsByCity = new Map<
+      string,
+      { cityCode: number; schools: School[] }
+    >();
     for (const school of schools[0]) {
-      const city = school.city_name;
-      if (!schoolsByCity.has(city)) {
-        schoolsByCity.set(city, []);
+      const cityName = school.city_name;
+      const cityCode = school.city_code;
+      if (!schoolsByCity.has(cityName)) {
+        schoolsByCity.set(cityName, {
+          cityCode,
+          schools: [],
+        });
       }
-      schoolsByCity.get(city)!.push({
+      schoolsByCity.get(cityName)!.schools.push({
         izo: school.izo,
         name: school.name,
         type: school.type,
@@ -85,8 +92,8 @@ export class FounderController {
     }
 
     const result: CitySchools[] = [];
-    schoolsByCity.forEach((schools, cityName) => {
-      result.push({ cityName, schools });
+    schoolsByCity.forEach(({ cityCode, schools }, cityName) => {
+      result.push({ cityName, cityCode, schools });
     });
 
     return result;

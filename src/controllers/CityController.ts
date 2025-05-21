@@ -103,7 +103,7 @@ export class CityController {
 
     return (
       await knex.raw(
-        `SELECT c.code, c.name, r.name AS region_name, c.school_count, c.kindergarten_count
+        `SELECT c.code, c.name, r.name AS region_name, c.school_count, c.kindergarten_count, c.status_kindergarten, c.status_elementary
         FROM city c
         JOIN region r ON c.region_code = r.code
         WHERE ${whereClause}
@@ -115,6 +115,8 @@ export class CityController {
       regionName: row.region_name,
       schoolCount: row.school_count,
       kindergartenCount: row.kindergarten_count,
+      statusKindergarten: row.status_kindergarten,
+      statusElementary: row.status_elementary,
     }));
   }
 
@@ -135,7 +137,7 @@ export class CityController {
           }')`;
 
     const schools = await knex.raw(
-      `SELECT c.name AS city_name, s.izo, s.name, s.type
+      `SELECT c.name AS city_name, c.code AS city_code, s.izo, s.name, s.type
       FROM city c
       JOIN founder f ON f.city_code = c.code
       JOIN school_founder sf ON f.id = sf.founder_id
@@ -144,13 +146,23 @@ export class CityController {
       ORDER BY c.name ASC, s.name ASC`
     );
 
-    const schoolsByCity = new Map<string, School[]>();
+    const schoolsByCity = new Map<
+      string,
+      { cityCode: number; schools: School[] }
+    >();
+
     for (const school of schools[0]) {
-      const city = school.city_name;
-      if (!schoolsByCity.has(city)) {
-        schoolsByCity.set(city, []);
+      const cityName = school.city_name;
+      const cityCode = school.city_code;
+
+      if (!schoolsByCity.has(cityName)) {
+        schoolsByCity.set(cityName, {
+          cityCode,
+          schools: [],
+        });
       }
-      schoolsByCity.get(city)!.push({
+
+      schoolsByCity.get(cityName)!.schools.push({
         izo: school.izo,
         name: school.name,
         type: school.type,
@@ -158,10 +170,9 @@ export class CityController {
     }
 
     const result: CitySchools[] = [];
-    schoolsByCity.forEach((schools, cityName) => {
-      result.push({ cityName, schools });
+    schoolsByCity.forEach(({ cityCode, schools }, cityName) => {
+      result.push({ cityName, cityCode, schools });
     });
-
     return result;
   }
 }

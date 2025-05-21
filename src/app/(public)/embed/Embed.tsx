@@ -19,6 +19,7 @@ import { SchoolType } from "@/types/basicTypes";
 import { SwitchButton } from "@/components/buttons/SwitchButton";
 import { useMemo } from "react";
 import { getRootPathBySchoolType } from "@/entities/School";
+import { getStatusPropertyBySchoolType, CityStatus } from "@/entities/City";
 
 export type MunicipalityPageProps = {
   schools: CitySchools[];
@@ -48,14 +49,28 @@ export default function Embed({ schools, cities }: MunicipalityPageProps) {
     schoolType
   );
 
+  const filteredCities = useMemo(() => {
+    const filtered = cities.filter((city) => {
+      return (
+        city[getStatusPropertyBySchoolType(schoolType) as keyof City] ===
+        CityStatus.Published
+      );
+    });
+    setCityCode(filtered[0]?.code);
+    return filtered;
+  }, [cities, schoolType]);
+
   const filteredSchools = useMemo(() => {
-    const filtered = schools.map((city) => ({
-      ...city,
-      schools: city.schools.filter((school) => school.type === schoolType),
-    }));
+    const allowedCities = filteredCities.map((city) => city.code);
+    const filtered = schools
+      .filter((city) => allowedCities.includes(city.cityCode))
+      .map((city) => ({
+        ...city,
+        schools: city.schools.filter((school) => school.type === schoolType),
+      }));
     setSchoolIzo(filtered[0]?.schools[0]?.izo);
     return filtered;
-  }, [schools, schoolType]);
+  }, [schools, schoolType, filteredCities]);
 
   const handlePageTypeChange = (value: string) => {
     const pageType = value as PageType;
@@ -156,7 +171,7 @@ export default function Embed({ schools, cities }: MunicipalityPageProps) {
               onChange={(e) => setCityCode(Number(e.target.value))}
               className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1"
             >
-              {cities.map(({ code, name }) => (
+              {filteredCities.map(({ code, name }) => (
                 <option key={code} value={code}>
                   {name}
                 </option>

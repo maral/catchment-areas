@@ -2,6 +2,7 @@ import { SchoolType } from "@/types/basicTypes";
 
 export type CitySchools = {
   cityName: string;
+  cityCode: number;
   schools: School[];
 };
 
