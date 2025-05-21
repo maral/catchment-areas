@@ -17,7 +17,7 @@ import { useState } from "react";
 import { AcademicCapIcon, PuzzlePieceIcon } from "@heroicons/react/24/solid";
 import { SchoolType } from "@/types/basicTypes";
 import { SwitchButton } from "@/components/buttons/SwitchButton";
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
 import { getRootPathBySchoolType } from "@/entities/School";
 import { getStatusPropertyBySchoolType, CityStatus } from "@/entities/City";
 
@@ -50,15 +50,19 @@ export default function Embed({ schools, cities }: MunicipalityPageProps) {
   );
 
   const filteredCities = useMemo(() => {
-    const filtered = cities.filter((city) => {
+    return cities.filter((city) => {
       return (
         city[getStatusPropertyBySchoolType(schoolType) as keyof City] ===
         CityStatus.Published
       );
     });
-    setCityCode(filtered[0]?.code);
-    return filtered;
   }, [cities, schoolType]);
+
+  useEffect(() => {
+    if (!filteredCities.some((city) => city.code === cityCode)) {
+      setCityCode(filteredCities[0]?.code);
+    }
+  }, [filteredCities]);
 
   const filteredSchools = useMemo(() => {
     const allowedCities = filteredCities.map((city) => city.code);
