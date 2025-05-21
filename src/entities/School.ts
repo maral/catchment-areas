@@ -20,7 +20,7 @@ export class School {
   @Fields.integer()
   capacity = 0;
 
-  @Fields.object({ dbName: "type" })
+  @Fields.integer({ dbName: "type" })
   type = SchoolType.Elementary;
 }
 
@@ -51,5 +51,5 @@ export const getRootPathBySchoolType = (
       ? routes.shortKindergarten
       : routes.kindergarten
     : short
-      ? routes.shortElementary
-      : routes.elementary;
+    ? routes.shortElementary
+    : routes.elementary;

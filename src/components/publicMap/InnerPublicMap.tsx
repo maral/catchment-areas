@@ -12,13 +12,10 @@ import { texts } from "../../utils/shared/texts";
 import PublicButton from "../buttons/PublicButton";
 import { SearchInput } from "./SearchInput";
 import { Menu } from "./Menu";
-import SwitchButton from "../buttons/SwitchButton";
+import { SwitchButton } from "../buttons/SwitchButton";
 import { SchoolType } from "@/types/basicTypes";
 import { useRouter } from "next/navigation";
-import {
-  AcademicCapIcon,
-  PuzzlePieceIcon,
-} from "@heroicons/react/24/solid";
+import { AcademicCapIcon, PuzzlePieceIcon } from "@heroicons/react/24/solid";
 
 interface InnerPublicMapProps {
   cities: CityOnMap[];
@@ -27,7 +24,6 @@ interface InnerPublicMapProps {
 
 const InnerMap = memo(
   ({ cities, schoolType }: InnerPublicMapProps) => {
-    const router = useRouter()
     const mapRef = useRef<HTMLDivElement>(null);
     const [onSelect, setOnSelect] = useState<(item: SuggestionItem) => void>(
       () => () => {}
@@ -48,18 +44,17 @@ const InnerMap = memo(
       }
     }, [cities, schoolType, mapRef]);
 
-    const handleChange = (value: any) => {
-      if(value === SchoolType.Elementary) {
-        router.push('/zs')
-      }else {
-        router.push('/ms')
+    const handleChange = (value: SchoolType) => {
+      if (value === SchoolType.Elementary) {
+        window.location.href = "/zs";
+      } else {
+        window.location.href = "/ms";
       }
     };
 
     return (
       <>
         <div ref={mapRef} className="h-screen w-screen" />
-
 
         <div className="absolute top-[10px] px-2.5 z-1000 flex justify-between items-center gap-2.5 w-full md:max-w-[calc(100vw-260px)] flex-wrap">
           <div className="flex items-center gap-2.5 w-full sm:w-fit">
@@ -69,7 +64,22 @@ const InnerMap = memo(
             </div>
           </div>
           <div className="sm:w-fit w-full ">
-            <SwitchButton leftLabel="Mateřské Školy" leftIcon={PuzzlePieceIcon} rightLabel="Základní Školy" rightIcon={AcademicCapIcon} defaultValue={schoolType} leftValue={SchoolType.Kindergarten} rightValue={SchoolType.Elementary} onValueChange={(value) => handleChange(value)} />
+            <SwitchButton
+              segments={[
+                {
+                  label: texts.schoolsKindergarten,
+                  icon: PuzzlePieceIcon,
+                  value: SchoolType.Kindergarten,
+                },
+                {
+                  label: texts.schoolsElementary,
+                  icon: AcademicCapIcon,
+                  value: SchoolType.Elementary,
+                },
+              ]}
+              defaultValue={schoolType}
+              onValueChange={handleChange}
+            />
           </div>
           <div></div>
         </div>
@@ -80,7 +90,6 @@ const InnerMap = memo(
         <div className="absolute top-[10px] left-[70px] z-1000 w-[min(430px,calc(100vw-80px))]">
           <SearchInput onSelect={onSelect} />
         </div> */}
-
 
         <div
           className="absolute z-1000 bottom-0 left-0

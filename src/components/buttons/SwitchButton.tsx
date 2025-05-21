@@ -1,36 +1,53 @@
 "use client";
 
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ReactNode } from "react";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { SchoolType } from "@/types/basicTypes";
 
-export default function SwitchButton({
-  leftLabel,
-  rightLabel,
-  leftValue,
-  rightIcon,
-  leftIcon,
-  rightValue,
-  defaultValue = rightValue,
+export type Segment = {
+  label: string;
+  icon: React.ElementType;
+  value: SchoolType;
+};
+
+export function SwitchButton({
+  segments = [],
+  defaultValue = segments[0]?.value,
   onValueChange,
 }: {
-  leftLabel: string,
-  rightLabel: string,
-  rightIcon: React.ElementType,
-  leftIcon: React.ElementType,
-  leftValue: any
-  rightValue: any
-  defaultValue?: any
-  onValueChange?: (value: string) => void
+  segments?: Segment[];
+  defaultValue?: SchoolType;
+  onValueChange?: (value: any) => void;
 }) {
-  const IconLeft = leftIcon;
-  const IconRight = rightIcon;
+  const handleValueChange = (value: string) => {
+    if (onValueChange) {
+      onValueChange(Number(value) as SchoolType);
+    }
+  };
 
   return (
-    <Tabs defaultValue={defaultValue} onValueChange={onValueChange} className="h-[50px] w-full">
-      <TabsList className="h-full w-full border border-gray-300 rounded-md">
-        <TabsTrigger className="rounded-sm  text-gray-900 data-[state=inactive]:cursor-pointer data-[state=active]:bg-[#155dfc] data-[state=active]:text-white data-[state=active]:font-medium" value={leftValue}><IconLeft />{leftLabel}</TabsTrigger>
-        <TabsTrigger className="rounded-sm  text-gray-900 data-[state=inactive]:cursor-pointer data-[state=active]:bg-[#03b703] data-[state=active]:text-white data-[state=active]:font-medium" value={rightValue}><IconRight/> {rightLabel}</TabsTrigger>
+    <Tabs
+      defaultValue={String(defaultValue)}
+      onValueChange={handleValueChange}
+      className="h-[50px] w-full "
+    >
+      <TabsList className="h-full p-[5px] w-full border border-gray-300 rounded-md">
+        {segments.map((segment, idx) => {
+          const Icon = segment.icon;
+          const activeBg =
+            idx % 2 === 1
+              ? `data-[state=active]:bg-[#03b703]`
+              : `data-[state=active]:bg-[#155dfc]`;
+          return (
+            <TabsTrigger
+              key={segment.value}
+              className={`rounded-sm text-gray-900 data-[state=inactive]:cursor-pointer data-[state=active]:text-white data-[state=active]:font-medium ${activeBg}`}
+              value={String(segment.value)}
+            >
+              <Icon /> {segment.label}
+            </TabsTrigger>
+          );
+        })}
       </TabsList>
     </Tabs>
-  )
+  );
 }

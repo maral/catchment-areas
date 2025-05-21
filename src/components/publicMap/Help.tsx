@@ -72,13 +72,23 @@ export default function Help({ isOpen, closeModal }: HelpProps) {
                 <P>
                   Mapa zobrazuje přehled spádových oblastí pro největších 300
                   obcí a&nbsp;měst v&nbsp;České republice, které zřizují dvě
-                  a&nbsp;více základních škol a&nbsp;jsou povinny určit jejich
-                  spádovost. V další fázi budou přidány spádové oblasti
-                  mateřských škol.
+                  a&nbsp;více základních či mateřských škol a&nbsp;jsou povinny
+                  určit jejich spádovost.
                 </P>
 
                 <H3>Orientace v mapě</H3>
                 <P>Každá spádová oblast je barevně odlišena:</P>
+                <P>
+                  <Image
+                    src={"/blue_triangle.svg"}
+                    alt="zelený trojúhelník"
+                    width={24}
+                    height={24}
+                    className="inline-block"
+                  />{" "}
+                  <strong>Modrý trojúhelník</strong> - města a obce s již
+                  zpracovanou vyhláškou - mateřské školy.
+                </P>
                 <P>
                   <Image
                     src={"/green_triangle.svg"}
@@ -88,7 +98,7 @@ export default function Help({ isOpen, closeModal }: HelpProps) {
                     className="inline-block"
                   />{" "}
                   <strong>Zelený trojúhelník</strong> - města a obce s již
-                  zpracovanou vyhláškou.
+                  zpracovanou vyhláškou - první stupeň základních škol
                 </P>
                 <P>
                   <Image
@@ -214,7 +224,7 @@ export default function Help({ isOpen, closeModal }: HelpProps) {
                 </P>
 
                 <P>
-                  <em className="text-sm">Verze 1.0 (2024)</em>
+                  <em className="text-sm">Verze 2.0 (2025)</em>
                 </P>
 
                 <div className="mt-4 flex justify-end">

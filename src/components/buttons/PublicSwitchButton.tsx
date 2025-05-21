@@ -1,24 +1,36 @@
 "use client";
 
-import Spinner from "@/components/common/Spinner";
 import dynamic from "next/dynamic";
 import { useMemo } from "react";
-
 import { SchoolType } from "@/types/basicTypes";
-import  SwitchButton  from "@/components/buttons/SwitchButton";
-import {
-  AcademicCapIcon,
-  PuzzlePieceIcon,
-} from "@heroicons/react/24/solid";
+import { AcademicCapIcon, PuzzlePieceIcon } from "@heroicons/react/24/solid";
+import { useRouter } from "next/navigation";
+import { texts } from "@/utils/shared/texts";
+import { SwitchButton } from "@/components/buttons/SwitchButton";
 
-export default function PublicSwitchButton() {
-  const Btn = useMemo(
-    () =>
-      dynamic(() => import("@/components/buttons/SwitchButton"), {
-        ssr: false,
-      }),
-    []
+export function PublicSwitchButton() {
+  const router = useRouter();
+  const onValueChange = (value: SchoolType) => {
+    const paramVal = value === SchoolType.Kindergarten ? "ms" : "zs";
+    router.push(`?type=${paramVal}`);
+  };
+
+  return (
+    <SwitchButton
+      segments={[
+        {
+          label: texts.schoolsKindergarten,
+          icon: PuzzlePieceIcon,
+          value: SchoolType.Kindergarten,
+        },
+        {
+          label: texts.schoolsElementary,
+          icon: AcademicCapIcon,
+          value: SchoolType.Elementary,
+        },
+      ]}
+      defaultValue={SchoolType.Elementary}
+      onValueChange={onValueChange}
+    />
   );
-
-  return <Btn leftLabel="Mateřské Školy" leftIcon={PuzzlePieceIcon} rightLabel="Základní Školy" rightIcon={AcademicCapIcon} leftValue={SchoolType.Kindergarten} rightValue={SchoolType.Elementary} />;
 }
