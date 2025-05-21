@@ -3,6 +3,7 @@ import Image from "next/image";
 import { Fragment } from "react";
 import PublicButton from "../buttons/PublicButton";
 import CloseModalButton from "./CloseModalButton";
+import { H3, P } from "./Typography";
 
 type IntroProps = {
   closeModal: () => void;
@@ -44,11 +45,49 @@ export default function Intro({ isOpen, closeModal }: IntroProps) {
                 >
                   Vítejte v mapě spádovosti
                 </Dialog.Title>
-                <p className="pb-8">
-                  Tato aplikace vám pomůže jednoduše zjistit spádovou školu dle
-                  vaší adresy. Aktuálně zobrazuje spádovost základních škol v
-                  300 největších městech ČR.
-                </p>
+                <P>
+                  Mapa zobrazuje přehled spádových oblastí pro největších 300
+                  obcí a&nbsp;měst v&nbsp;České republice, které zřizují dvě
+                  a&nbsp;více základních či mateřských škol a&nbsp;jsou povinny
+                  určit jejich spádovost.
+                </P>
+
+                <H3>Orientace v mapě</H3>
+                <P>Každá spádová oblast je barevně odlišena:</P>
+                <P>
+                  <Image
+                    src={"/blue_triangle.svg"}
+                    alt="zelený trojúhelník"
+                    width={24}
+                    height={24}
+                    className="inline-block"
+                  />{" "}
+                  <strong>Modrý trojúhelník</strong> - města a obce s již
+                  zpracovanou vyhláškou - mateřské školy.
+                </P>
+                <P>
+                  <Image
+                    src={"/green_triangle.svg"}
+                    alt="zelený trojúhelník"
+                    width={24}
+                    height={24}
+                    className="inline-block"
+                  />{" "}
+                  <strong>Zelený trojúhelník</strong> - města a obce s již
+                  zpracovanou vyhláškou - první stupeň základních škol
+                </P>
+                <P>
+                  <Image
+                    src={"/grey_triangle.svg"}
+                    alt="zelený trojúhelník"
+                    width={24}
+                    height={24}
+                    className="inline-block"
+                  />{" "}
+                  <strong>Šedý trojúhelník</strong> - města a obce čekající na
+                  zpracování.
+                </P>
+                <H3>Ovladací prvky</H3>
                 <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 items-baseline">
                   <Image
                     src={"/intro-search.png"}
