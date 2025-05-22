@@ -1,4 +1,4 @@
-import { Dialog, Transition } from "@headlessui/react";
+import { Dialog, Transition, TransitionChild } from "@headlessui/react";
 import Image from "next/image";
 import { Fragment } from "react";
 import PublicButton from "../buttons/PublicButton";
@@ -14,7 +14,7 @@ export default function Intro({ isOpen, closeModal }: IntroProps) {
   return (
     <Transition appear show={isOpen} as={Fragment}>
       <Dialog as="div" className="relative z-2000 w-full" onClose={closeModal}>
-        <Transition.Child
+        <TransitionChild
           as={Fragment}
           enter="ease-out duration-300"
           enterFrom="opacity-0"
@@ -24,7 +24,7 @@ export default function Intro({ isOpen, closeModal }: IntroProps) {
           leaveTo="opacity-0"
         >
           <div className="fixed inset-0 bg-black/25" />
-        </Transition.Child>
+        </TransitionChild>
 
         <div className="fixed inset-0 overflow-y-auto">
           <div className="flex min-h-full items-center justify-center p-4 text-center">
@@ -57,7 +57,7 @@ export default function Intro({ isOpen, closeModal }: IntroProps) {
                 <P>
                   <Image
                     src={"/blue_triangle.svg"}
-                    alt="zelený trojúhelník"
+                    alt="modrý trojúhelník"
                     width={24}
                     height={24}
                     className="inline-block"
@@ -75,17 +75,6 @@ export default function Intro({ isOpen, closeModal }: IntroProps) {
                   />{" "}
                   <strong>Zelený trojúhelník</strong> - města a obce s již
                   zpracovanou vyhláškou - první stupeň základních škol
-                </P>
-                <P>
-                  <Image
-                    src={"/grey_triangle.svg"}
-                    alt="zelený trojúhelník"
-                    width={24}
-                    height={24}
-                    className="inline-block"
-                  />{" "}
-                  <strong>Šedý trojúhelník</strong> - města a obce čekající na
-                  zpracování.
                 </P>
                 <H3>Ovladací prvky</H3>
                 <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 items-baseline">
