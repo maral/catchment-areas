@@ -70,25 +70,44 @@ export default function Help({ isOpen, closeModal }: HelpProps) {
 
                 <H3>Jak mapa funguje?</H3>
                 <P>
-                  Mapa zobrazuje přehled spádových oblastí pro největších 300
-                  obcí a&nbsp;měst v&nbsp;České republice, které zřizují dvě
-                  a&nbsp;více základních či mateřských škol a&nbsp;jsou povinny
-                  určit jejich spádovost.
+                  Mapa zobrazuje přehled spádových oblastí pro&nbsp;největších
+                  300 obcí a&nbsp;měst v&nbsp;České republice, které zřizují dvě
+                  a&nbsp;více základních či&nbsp;mateřských škol a&nbsp;jsou
+                  povinny určit jejich spádovost.
                 </P>
-
-                <H3>Orientace v mapě</H3>
+                <P>
+                  Ve výchozím stavu&nbsp;se zobrazují základní školy, zobrazení
+                  je&nbsp;možné přepnout&nbsp;na mateřské školy pomocí přepínače
+                  nahoře&nbsp;–&nbsp;uprostřed.
+                </P>
+                <div className="flex flex-wrap justify-start items-center gap-4 mb-4">
+                  <Image
+                    src={"/prepinac-zs.png"}
+                    alt="přepínač ZŠ"
+                    width={280}
+                    height={50}
+                    className="block"
+                  />
+                  <Image
+                    src={"/prepinac-ms.png"}
+                    alt="přepínač MŠ"
+                    width={280}
+                    height={50}
+                    className="block"
+                  />
+                </div>
                 <P>Každá spádová oblast je barevně odlišena:</P>
                 <P>
                   <Image
                     src={"/blue_triangle.svg"}
-                    alt="zelený trojúhelník"
+                    alt="modrý trojúhelník"
                     width={24}
                     height={24}
                     className="inline-block"
                   />{" "}
-                  <strong>Modrý trojúhelník</strong> - města a obce s již
-                  zpracovanou vyhláškou - mateřské školy.
+                  <strong>Modrý trojúhelník</strong> označuje mateřské školy.
                 </P>
+
                 <P>
                   <Image
                     src={"/green_triangle.svg"}
@@ -97,19 +116,8 @@ export default function Help({ isOpen, closeModal }: HelpProps) {
                     height={24}
                     className="inline-block"
                   />{" "}
-                  <strong>Zelený trojúhelník</strong> - města a obce s již
-                  zpracovanou vyhláškou - první stupeň základních škol
-                </P>
-                <P>
-                  <Image
-                    src={"/grey_triangle.svg"}
-                    alt="zelený trojúhelník"
-                    width={24}
-                    height={24}
-                    className="inline-block"
-                  />{" "}
-                  <strong>Šedý trojúhelník</strong> - města a obce čekající na
-                  zpracování.
+                  <strong>Zelený trojúhelník</strong> označuje první stupeň
+                  základních škol
                 </P>
 
                 <H3>Vyhledávání spádové oblasti prostřednictvím adresy</H3>
