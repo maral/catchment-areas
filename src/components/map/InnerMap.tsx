@@ -1,7 +1,9 @@
 import { createMap } from "@/components/map/createMap";
 import { DataForMap, MapOptions } from "@/types/mapTypes";
+import { SuggestionItem } from "@/types/suggestionTypes";
 import "leaflet/dist/leaflet.css";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { SearchInput } from "../publicMap/SearchInput";
 
 interface InnerMapProps {
   data: DataForMap;
@@ -10,15 +12,34 @@ interface InnerMapProps {
 
 const InnerMap = ({ data, mapOptions = {} }: InnerMapProps) => {
   const mapRef = useRef<HTMLDivElement>(null);
+  const [onSelect, setOnSelect] = useState<(item: SuggestionItem) => void>(
+    () => () => {}
+  );
 
   useEffect(() => {
     if (mapRef.current) {
-      createMap(mapRef.current, data, mapOptions);
+      const { onSuggestionSelect, destructor } = createMap(
+        mapRef.current,
+        data,
+        mapOptions
+      );
+
+      if (onSuggestionSelect) {
+        setOnSelect(() => onSuggestionSelect);
+      }
+      return destructor;
     }
   }, [data, mapOptions, mapRef]);
 
   return (
     <>
+      {mapOptions.showSearch && (
+        <div className="absolute left-[10px] top-[10px] z-1000 w-[calc(100vw-20px)] max-w-[400px]">
+          <div></div>
+          <SearchInput onSelect={onSelect} />
+        </div>
+      )}
+
       <div
         ref={mapRef}
         className={`${

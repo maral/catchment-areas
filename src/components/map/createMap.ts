@@ -1,24 +1,42 @@
-import { DataForMap, MapOptions } from "@/types/mapTypes";
 import {
+  AddressMarkerMap,
+  CreateMapResult,
+  DataForMap,
+  MapOptions,
+} from "@/types/mapTypes";
+import { SuggestionItem } from "@/types/suggestionTypes";
+import {
+  centerLeafletMapOnMarker,
   createCityLayers,
+  findPointByGPS,
+  getUnknownPopupContent,
   prepareMap,
   setupPopups,
 } from "@/utils/client/mapUtils";
+import { createTempMarker } from "@/utils/client/markers";
 import { texts } from "@/utils/shared/texts";
 import L, { LayerGroup, Map as LeafletMap } from "leaflet";
 
 let map: LeafletMap;
+let dataForMap: DataForMap;
+let markers: AddressMarkerMap;
+let mapInitialized = false;
+let unknownAddressMessage: string | undefined;
 
 export const createMap = (
   element: HTMLElement,
   data: DataForMap,
   options: MapOptions = {}
-): (() => void) => {
-  if (!element || map) {
-    return () => null;
+): CreateMapResult => {
+  if (!element || mapInitialized) {
+    return {
+      destructor: () => {},
+      onSuggestionSelect: () => {},
+    };
   }
 
   map = prepareMap(element, options.showControls ?? false);
+  mapInitialized = true;
 
   const {
     addressesLayerGroup,
@@ -26,10 +44,14 @@ export const createMap = (
     unmappedLayerGroup,
     unmappedRegistrationNumberLayerGroup,
     polygonLayerGroup,
+    addressMarkers,
   } = createCityLayers({
     data,
     options,
   });
+  dataForMap = data;
+  unknownAddressMessage = options.unknownAddressMessage;
+  markers = addressMarkers;
 
   const layerGroupsForControl: Record<string, LayerGroup> = {};
 
@@ -63,7 +85,29 @@ export const createMap = (
     polygonLayerGroup.bringToBack();
   });
 
-  return () => {
-    map.remove();
+  return {
+    destructor: () => {
+      map.remove();
+      mapInitialized = false;
+    },
+    onSuggestionSelect: onSuggest,
   };
+};
+
+export const onSuggest = (item: SuggestionItem) => {
+  const addressPoint = findPointByGPS(
+    dataForMap?.municipalities ?? [],
+    item.position
+  );
+  const marker = addressPoint ? markers[addressPoint.address] : null;
+
+  if (marker) {
+    centerLeafletMapOnMarker(map, marker[0]);
+  } else {
+    const tempMarker = createTempMarker(item)
+      .bindPopup(getUnknownPopupContent(item, unknownAddressMessage))
+      .addTo(map)
+      .openPopup();
+    map.flyTo(tempMarker.getLatLng());
+  }
 };

@@ -126,6 +126,12 @@ export const texts = {
   statusPublished: "Zveřejněno",
   streetEditorLabel: "ulice",
   status: "Stav",
+  unknownAddressMessageCity: (city: string) =>
+    `Tato adresa nespadá pod ${
+      city[0].toLocaleLowerCase() + city.substring(1)
+    } nebo nemá přiřazenou spádovou školu.`,
+  unknownAddressMessageSchool: (school: string) =>
+    `Tato adresa nepatří do spádové oblasti školy ${school}.`,
   unknownStatus: "Neznámý stav",
   unmappedAddressPoints: "Neurčená adresní místa",
   unmappedRegistrationNumberAddressPoints: "Neurčená adresní místa s č.ev.",

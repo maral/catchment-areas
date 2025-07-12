@@ -1,3 +1,4 @@
+import { SchoolType } from "@/types/basicTypes";
 import {
   AddressLayerGroup,
   AddressMarkerMap,
@@ -11,6 +12,7 @@ import {
   SchoolMarkerMap,
   isPopupWithMarker,
 } from "@/types/mapTypes";
+import { SuggestionItem, SuggestionPosition } from "@/types/suggestionTypes";
 import booleanPointInPolygon from "@turf/boolean-point-in-polygon";
 import {
   Feature,
@@ -27,8 +29,8 @@ import L, {
   PopupEvent,
 } from "leaflet";
 import shuffleSeed from "shuffle-seed";
+import { Municipality } from "text-to-map";
 import { createMarkers } from "./markers";
-import { SchoolType } from "@/types/basicTypes";
 
 export const colors = [
   "#d33d81", // pink
@@ -220,7 +222,6 @@ export const centerLeafletMapOnMarker = (
     selectSchool(school);
   });
   markerClone = newMarker;
-  map.once("moveend", function () {});
   map.flyToBounds(markerBounds, { padding: [150, 150], duration: 0.7 });
 };
 
@@ -407,4 +408,50 @@ const handleMouseMove = (
       deselectSchool(marker);
     }
   });
+};
+
+export const getUnknownPopupContent = (
+  item: SuggestionItem,
+  unknownAddressMessage?: string
+) => {
+  return `${createAddressForSuggestionItem(item)}<br><br>${
+    unknownAddressMessage ??
+    "K této adrese aktuálně nemáme informace o spádové škole."
+  }`;
+};
+
+export const createAddressForSuggestionItem = (item: SuggestionItem) => {
+  const municipality = item.regionalStructure.find(
+    (rs) => rs.type === "regional.municipality"
+  );
+
+  return `${item.name}, ${item.zip} ${municipality ? municipality.name : ""}`;
+};
+
+export const findPointByGPS = (
+  municipalities: Municipality[],
+  position: SuggestionPosition
+) => {
+  let minDistance = 9;
+  let minDistancePoint = null;
+
+  for (const municipality of municipalities) {
+    for (const area of municipality.areas) {
+      for (const point of area.addresses) {
+        if (!point.lat || !point.lng) {
+          continue;
+        }
+        const distance =
+          Math.abs(point.lat - position.lat) +
+          Math.abs(point.lng - position.lon);
+        if (distance < 0.00001) {
+          return point;
+        } else if (distance < 0.0001 && distance < minDistance) {
+          minDistance = distance;
+          minDistancePoint = point;
+        }
+      }
+    }
+  }
+  return minDistancePoint;
 };

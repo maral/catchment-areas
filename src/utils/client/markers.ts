@@ -1,22 +1,23 @@
-import { School, ExportAddressPoint, Area } from "text-to-map";
-import {
-  SchoolMarker,
-  PopupWithMarker,
-  MarkerWithSchools,
-  DataForMap,
-  AddressLayerGroup,
-  AddressesLayerGroup,
-  SchoolLayerGroup,
-  SchoolMarkerMap,
-  AddressMarkerMap,
-  CityOnMap,
-  MapOptions,
-} from "@/types/mapTypes";
-import { colors, markerRadius, markerWeight } from "./mapUtils";
-import L, { Marker } from "leaflet";
 import { ButtonVariant, buttonVariants } from "@/components/ui/button";
-import { SchoolType } from "@/types/basicTypes";
 import { getRootPathBySchoolType } from "@/entities/School";
+import { SchoolType } from "@/types/basicTypes";
+import {
+  AddressLayerGroup,
+  AddressMarkerMap,
+  AddressesLayerGroup,
+  CityOnMap,
+  DataForMap,
+  MapOptions,
+  MarkerWithSchools,
+  PopupWithMarker,
+  SchoolLayerGroup,
+  SchoolMarker,
+  SchoolMarkerMap,
+} from "@/types/mapTypes";
+import { SuggestionItem } from "@/types/suggestionTypes";
+import L, { Marker } from "leaflet";
+import { Area, ExportAddressPoint, School } from "text-to-map";
+import { colors, markerRadius, markerWeight } from "./mapUtils";
 
 const unmappedMarkerColor = "#ff0000";
 
@@ -198,6 +199,12 @@ export const createAddressMarker = (
   return markers;
 };
 
+export const createTempMarker = (item: SuggestionItem) => {
+  return new L.Marker([item.position.lat, item.position.lon], {
+    icon: tempMarkerIcon,
+  });
+};
+
 const createMarkerByColorCount = (
   point: ExportAddressPoint,
   colors: string[]
@@ -262,6 +269,7 @@ export const createSvgIcon = (color: string): L.DivIcon => {
 const publicIconElementary = createSvgIcon("#03b703");
 const publicIconKindergarten = createSvgIcon("#155dfc");
 const notReadyIcon = createSvgIcon("#999");
+const tempMarkerIcon = createSvgIcon("#e43f16");
 
 export const createCityMarker = (
   city: CityOnMap,
@@ -270,8 +278,10 @@ export const createCityMarker = (
   bounds: L.LatLngBounds,
   schoolType: SchoolType
 ) => {
-
-  const markerIcon = schoolType === SchoolType.Elementary ? publicIconElementary : publicIconKindergarten;
+  const markerIcon =
+    schoolType === SchoolType.Elementary
+      ? publicIconElementary
+      : publicIconKindergarten;
 
   const marker = L.marker([city.lat, city.lng], {
     icon: city.isPublished ? markerIcon : notReadyIcon,
@@ -280,7 +290,7 @@ export const createCityMarker = (
       city.name
     }</h4>${
       city.isPublished
-        ? `${createCityMarkerButtons(city.code,schoolType)}`
+        ? `${createCityMarkerButtons(city.code, schoolType)}`
         : "zatím není připraveno"
     }</div>`
   );
@@ -315,7 +325,10 @@ const createAddressMarkerButton = () => `
 </button></div>`;
 
 const createCityMarkerButtons = (cityCode: number, schoolType: SchoolType) => `
-<div class="flex flex-col gap-2"><a href="${getRootPathBySchoolType(schoolType, true)}/m/${cityCode}?controls=1" target="_blank" class="city-marker ${getButtonClasses()}">
+<div class="flex flex-col gap-2"><a href="${getRootPathBySchoolType(
+  schoolType,
+  true
+)}/m/${cityCode}?controls=1" target="_blank" class="city-marker ${getButtonClasses()}">
   ${getNewWindowHeroicon()} Zobrazit v novém okně
 </a><a href="/api/ordinances/download/by-city-code/${cityCode}" target="_blank" class="city-marker ${getButtonClasses(
   "secondary"

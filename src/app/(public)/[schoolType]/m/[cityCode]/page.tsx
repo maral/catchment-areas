@@ -1,12 +1,12 @@
 import { api } from "@/app/api/[...remult]/api";
 import CatchmentMap from "@/components/map/CatchmentMap";
 import { getSchoolTypeCode } from "@/entities/School";
-import { SchoolType } from "@/types/basicTypes";
 import { getOrCreateDataForMapByCityCodes } from "@/utils/server/textToMap";
+import { texts } from "@/utils/shared/texts";
 import { notFound } from "next/navigation";
 
 export default async function CityMapPage(props: {
-  params: Promise<{ cityCode: string, schoolType: string }>;
+  params: Promise<{ cityCode: string; schoolType: string }>;
 }) {
   const params = await props.params;
 
@@ -17,10 +17,7 @@ export default async function CityMapPage(props: {
   const numberCityCode = Number(cityCode);
   const data = await api.withRemult(
     async () =>
-      await getOrCreateDataForMapByCityCodes(
-        [numberCityCode],
-        schoolTypeCode
-      )
+      await getOrCreateDataForMapByCityCodes([numberCityCode], schoolTypeCode)
   );
 
   if (data === null) {
@@ -31,7 +28,14 @@ export default async function CityMapPage(props: {
   return (
     <CatchmentMap
       data={data[numberCityCode]}
-      mapOptions={{ fullHeight: true, showControls: true, pageType: "city" }}
+      mapOptions={{
+        fullHeight: true,
+        showControls: true,
+        pageType: "city",
+        unknownAddressMessage: texts.unknownAddressMessageCity(
+          data[numberCityCode].municipalities[0].municipalityName
+        ),
+      }}
     />
   );
 }

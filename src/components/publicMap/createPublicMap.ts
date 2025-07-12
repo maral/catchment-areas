@@ -1,19 +1,25 @@
-import { CityData, CityOnMap } from "@/types/mapTypes";
+import { SchoolType } from "@/types/basicTypes";
+import { CityData, CityOnMap, CreateMapResult } from "@/types/mapTypes";
+import { SuggestionItem } from "@/types/suggestionTypes";
+import { onCitiesLoaded, triggerCityLoaded } from "@/utils/client/events";
 import {
   centerLeafletMapOnMarker,
+  createAddressForSuggestionItem,
   createCityLayers,
+  findPointByGPS,
+  getUnknownPopupContent,
   loadMunicipalitiesByCityCodes,
   prepareMap,
   resetAllHighlights,
   setupPopups,
 } from "@/utils/client/mapUtils";
+import {
+  createCityMarker,
+  createSvgIcon,
+  createTempMarker,
+} from "@/utils/client/markers";
 import L, { Map as LeafletMap, Marker } from "leaflet";
 import debounce from "lodash/debounce";
-import { SuggestionItem, SuggestionPosition } from "@/types/suggestionTypes";
-import { onCitiesLoaded, triggerCityLoaded } from "@/utils/client/events";
-import { Municipality } from "text-to-map";
-import { createCityMarker, createSvgIcon } from "@/utils/client/markers";
-import { SchoolType } from "@/types/basicTypes";
 
 const citiesMap: Record<string, CityOnMap> = {};
 let map: LeafletMap;
@@ -27,11 +33,7 @@ export const createPublicMap = (
   cities: CityOnMap[],
   showControls: boolean = true,
   schoolType: SchoolType
-  
-): {
-  destructor: () => void;
-  onSuggestionSelect: (item: SuggestionItem) => void;
-} => {
+): CreateMapResult => {
   if (!element || mapInitialized) {
     return {
       destructor: () => {},
@@ -49,7 +51,9 @@ export const createPublicMap = (
   cities
     .filter((city) => city.isPublished)
     .forEach((city) =>
-      createCityMarker(city, cityMarkers, citiesMap, bounds, schoolType).addTo(map)
+      createCityMarker(city, cityMarkers, citiesMap, bounds, schoolType).addTo(
+        map
+      )
     );
 
   setupPopups(map);
@@ -284,8 +288,12 @@ const onSuggestionSelect = (item: SuggestionItem) => {
   map.flyTo([item.position.lat, item.position.lon], 14, {
     duration: flyingTime / 1000,
   });
-  const tempMarker = new L.Marker(position, { icon: tempMarkerIcon })
-    .bindPopup(`${createAddress(item)}<br><br><em>Načítám podrobnosti...</em>`)
+  const tempMarker = createTempMarker(item)
+    .bindPopup(
+      `${createAddressForSuggestionItem(
+        item
+      )}<br><br><em>Načítám podrobnosti...</em>`
+    )
     .addTo(map);
 
   setTimeout(() => {
@@ -326,7 +334,6 @@ const selectAddress = (
       if (addressPoint) {
         const markers = loadedCity.addressMarkers[addressPoint.address];
         if (markers && markers.length > 0) {
-          tempMarkerIcon;
           setTimeout(() => {
             tempMarker.remove();
             markers[0].openPopup();
@@ -342,46 +349,6 @@ const selectAddress = (
   }
 
   if (!found) {
-    tempMarker.setPopupContent(
-      `${createAddress(
-        item
-      )}<br><br>K této adrese aktuálně nemáme informace o spádové škole.`
-    );
+    tempMarker.setPopupContent(getUnknownPopupContent(item));
   }
-};
-
-const findPointByGPS = (
-  municipalities: Municipality[],
-  position: SuggestionPosition
-) => {
-  let minDistance = 9;
-  let minDistancePoint = null;
-
-  for (const municipality of municipalities) {
-    for (const area of municipality.areas) {
-      for (const point of area.addresses) {
-        if (!point.lat || !point.lng) {
-          continue;
-        }
-        const distance =
-          Math.abs(point.lat - position.lat) +
-          Math.abs(point.lng - position.lon);
-        if (distance < 0.00001) {
-          return point;
-        } else if (distance < 0.0001 && distance < minDistance) {
-          minDistance = distance;
-          minDistancePoint = point;
-        }
-      }
-    }
-  }
-  return minDistancePoint;
-};
-
-const createAddress = (item: SuggestionItem) => {
-  const municipality = item.regionalStructure.find(
-    (rs) => rs.type === "regional.municipality"
-  );
-
-  return `${item.name}, ${item.zip} ${municipality ? municipality.name : ""}`;
 };
