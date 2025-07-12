@@ -2,6 +2,7 @@ import { Founder } from "@/entities/Founder";
 import { School } from "@/entities/School";
 import { SchoolFounder } from "@/entities/SchoolFounder";
 import { Street } from "@/entities/Street";
+import { SchoolType } from "@/types/basicTypes";
 import { texts } from "@/utils/shared/texts";
 import { SuggestionList } from "@/utils/shared/types";
 import { BackendMethod, remult } from "remult";
@@ -9,13 +10,14 @@ import { BackendMethod, remult } from "remult";
 export class StreetController {
   @BackendMethod({ allowed: true })
   static async getAutocompleteSuggestions(
-    founderId: number
+    founderId: number,
+    schoolType: SchoolType
   ): Promise<SuggestionList[]> {
     const founders = await remult.repo(Founder).find({
-      where: { id: founderId},
+      where: { id: founderId },
       load: (f) => [f.city!],
     });
-    
+
     const founder = founders[0];
 
     const streets = await remult.repo(Street).find({
@@ -29,7 +31,7 @@ export class StreetController {
     ).map((sf) => sf.schoolIzo);
 
     const schools = await remult.repo(School).find({
-      where: { izo: { $in: schoolIzos } },
+      where: { izo: { $in: schoolIzos }, type: schoolType },
     });
 
     const streetSuggestionList: SuggestionList = {
