@@ -202,6 +202,20 @@ export default function Help({ isOpen, closeModal }: HelpProps) {
                   </li>
                 </Ul>
 
+                <H3>Datový zdroj</H3>
+                <P>
+                  Zdrojem dat pro mapu spádovosti jsou aktuálně platné vyhlášky
+                  obcí zveřejňované ve{" "}
+                  <a
+                    href="https://sbirkapp.gov.cz/"
+                    className="text-sky-600"
+                    target="_blank"
+                  >
+                    Sbírce právních předpisů územních samosprávných celků
+                  </a>
+                  .
+                </P>
+
                 <H3>Nahlášení chyby</H3>
                 <P>
                   Pokud najdete chybu v zobrazené lokalitě, prosím, nahlaste ji
