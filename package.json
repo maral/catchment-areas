@@ -59,7 +59,7 @@
     "lucide-react": "^0.487.0",
     "monaco-editor": "^0.39.0",
     "multer": "^1.4.5-lts.1",
-    "next": "15.3.1",
+    "next": "^15.4.1",
     "next-auth": "^5.0.0-beta.26",
     "node-fetch": "^3.3.1",
     "officeparser": "^5.1.1",
