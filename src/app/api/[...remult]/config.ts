@@ -6,6 +6,7 @@ import { StreetController } from "@/controllers/StreetController";
 import { StreetMarkdownController } from "@/controllers/StreetMarkdownController";
 import { UserController } from "@/controllers/UserController";
 import { Account } from "@/entities/Account";
+import { AnalyticsData } from "@/entities/AnalyticsData";
 import { City } from "@/entities/City";
 import { CityDistrict } from "@/entities/CityDistrict";
 import { Founder } from "@/entities/Founder";
@@ -53,6 +54,7 @@ export function getRemultOptions(
         SchoolFounder,
         StreetMarkdown,
         User,
+        AnalyticsData,
       ],
       controllers: [
         FounderController,

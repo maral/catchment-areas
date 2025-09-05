@@ -1,0 +1,23 @@
+import { AnalyticsDataType } from "@/types/basicTypes";
+import { Entity, Fields, Field } from "remult";
+import { School } from "./School";
+
+@Entity("analytics-data", {
+  dbName: "analytics_data",
+})
+export class AnalyticsData {
+  @Fields.autoIncrement()
+  id = 0;
+
+  @Field(() => School, { dbName: "school_izo", lazy: true })
+  school!: School;
+
+  @Fields.integer()
+  type: number = AnalyticsDataType.StudentsTotal;
+
+  @Fields.number({ allowNull: true })
+  percentage: number | null = null;
+
+  @Fields.integer()
+  count: number = 0;
+}
