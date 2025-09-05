@@ -8,6 +8,7 @@ import {
   MapIcon,
   PuzzlePieceIcon,
   UserIcon,
+  ChartPieIcon,
 } from "@heroicons/react/24/solid";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
@@ -56,6 +57,13 @@ export default function AppSidebar({ className }: { className?: string }) {
               icon={UserIcon}
               text={texts.users}
               requiredRole={Role.Admin}
+            />
+
+            <MenuItem
+              href={routes.analytics}
+              icon={ChartPieIcon}
+              text={texts.analyticsLayers}
+              requiredRole={Role.Editor}
             />
 
             <hr className="my-4" />
