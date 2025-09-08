@@ -52,7 +52,7 @@ function getSchoolTypeFromCell(type: string): SchoolType | null {
   const normalizedType = type?.trim();
   if (normalizedType === "MS" || normalizedType === "Mateřská škola")
     return SchoolType.Kindergarten;
-  if (normalizedType === "ZŠ" || normalizedType === "Základní škola")
+  if (normalizedType === "ZS" || normalizedType === "Základní škola")
     return SchoolType.Elementary;
 
   return null;
@@ -150,18 +150,23 @@ async function insertAnalyticsData(
 ): Promise<number> {
   return await api.withRemult(async () => {
     try {
-      const schoolRepo = remult.repo(School);
-
-      // Delete all existing data for this type (I assume we always import whole batch for all schools so no need to rewrite old data)
+      // Delete all existing data for this type (I assume we always import whole batch for all schools so no need to look for old data and edit them)
       const knex = KnexDataProvider.getDb();
       await knex("analytics_data")
         .where({ type: Number(dataType) })
         .del();
 
-      // Load all schools from DB
-      const allSchools = await schoolRepo.find();
+      // Load schools from cities with 2+ schools of the relevant type (I assume that school count doesn't change much if at all, so we can filter it here and not at every api request)
+      const relevantSchools = await knex("school as s")
+        .join("school_founder as sf", "s.izo", "sf.school_izo")
+        .join("founder as f", "sf.founder_id", "f.id")
+        .join("city as c", "f.city_code", "c.code")
+        .where("c.school_count", ">=", 2)
+        .orWhere("c.kindergarten_count", ">=", 2)
+        .select("s.*");
+
       const schoolsMap = new Map<string, School>();
-      for (const school of allSchools) {
+      for (const school of relevantSchools) {
         const key = `${school.redizo}:${school.type}`;
         schoolsMap.set(key, school);
       }
@@ -172,6 +177,7 @@ async function insertAnalyticsData(
         type: number;
         count: number;
         percentage: number | null;
+        school_type: SchoolType;
       }> = [];
 
       for (const row of data) {
@@ -184,6 +190,7 @@ async function insertAnalyticsData(
             type: Number(dataType),
             count: row.value,
             percentage: null,
+            school_type: school.type,
           });
         }
       }

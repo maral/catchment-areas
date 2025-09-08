@@ -1,4 +1,4 @@
-import { AnalyticsDataType } from "@/types/basicTypes";
+import { AnalyticsDataType, SchoolType } from "@/types/basicTypes";
 import { Entity, Fields, Field } from "remult";
 import { School } from "./School";
 
@@ -20,4 +20,7 @@ export class AnalyticsData {
 
   @Fields.integer()
   count: number = 0;
+
+  @Fields.integer({ dbName: "school_type" })
+  schoolType: number = SchoolType.Kindergarten;
 }

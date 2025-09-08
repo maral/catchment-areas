@@ -4,6 +4,7 @@ CREATE TABLE analytics_data (
   type INT NOT NULL DEFAULT 0,
   percentage DECIMAL(5,2) NULL,
   count INT NOT NULL DEFAULT 0,
+  school_type INT NOT NULL DEFAULT 0,
   INDEX idx_school_izo (school_izo),
   INDEX idx_type (type),
   CONSTRAINT analytics_data_school_izo_fk
