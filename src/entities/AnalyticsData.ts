@@ -1,5 +1,6 @@
 import { AnalyticsDataType, SchoolType } from "@/types/basicTypes";
-import { Entity, Fields, Field } from "remult";
+import { Entity, Field, Fields } from "remult";
+import { City } from "./City";
 import { School } from "./School";
 
 @Entity("analytics-data", {
@@ -23,4 +24,7 @@ export class AnalyticsData {
 
   @Fields.integer({ dbName: "school_type" })
   schoolType: number = SchoolType.Kindergarten;
+
+  @Field(() => City, { dbName: "city_code", lazy: true })
+  city!: City;
 }
