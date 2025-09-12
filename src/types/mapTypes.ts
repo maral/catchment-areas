@@ -62,6 +62,8 @@ export interface CityData {
   schoolsLayerGroup: SchoolLayerGroup;
   polygonLayerGroup: FeatureGroup;
   addressMarkers: AddressMarkerMap;
+  analyticsUaLayerGroup: LayerGroup;
+  analyticsNpiLayerGroup: LayerGroup;
 }
 
 export type MapOptions = {

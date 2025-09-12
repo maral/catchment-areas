@@ -8,6 +8,7 @@ import {
   createCityLayers,
   findPointByGPS,
   getUnknownPopupContent,
+  loadAnalyticsDataByCityCodes,
   loadMunicipalitiesByCityCodes,
   prepareMap,
   resetAllHighlights,
@@ -18,12 +19,15 @@ import {
   createSvgIcon,
   createTempMarker,
 } from "@/utils/client/markers";
+import { texts } from "@/utils/shared/texts";
 import L, { Map as LeafletMap, Marker } from "leaflet";
 import debounce from "lodash/debounce";
 
 const citiesMap: Record<string, CityOnMap> = {};
 let map: LeafletMap;
 let mapInitialized = false;
+let isAnalyticsMode = false;
+let analyticsGroups: Record<string, L.LayerGroup> = {};
 
 const tempMarkerIcon = createSvgIcon("#e43f16");
 const loadCitiesDebounceTime = 300;
@@ -32,7 +36,8 @@ export const createPublicMap = (
   element: HTMLElement,
   cities: CityOnMap[],
   showControls: boolean = true,
-  schoolType: SchoolType
+  schoolType: SchoolType,
+  showAnalyticsData: boolean = false
 ): CreateMapResult => {
   if (!element || mapInitialized) {
     return {
@@ -41,8 +46,35 @@ export const createPublicMap = (
     };
   }
 
+  isAnalyticsMode = showAnalyticsData;
+
   map = prepareMap(element, showControls);
   mapInitialized = true;
+
+  if (isAnalyticsMode) {
+    analyticsGroups = {
+      schools: L.layerGroup(),
+      polygons: L.layerGroup(),
+      addresses: L.layerGroup(),
+      uaStudents: L.layerGroup(),
+      npiConsultations: L.layerGroup(),
+    };
+
+    L.control
+      .layers(undefined, {
+        [texts.schools]: analyticsGroups.schools,
+        [texts.catchmentAreas]: analyticsGroups.polygons,
+        [texts.addressPoints]: analyticsGroups.addresses,
+        [texts.uaStudents]: analyticsGroups.uaStudents,
+        [texts.consultationsNpi]: analyticsGroups.npiConsultations,
+      })
+      .addTo(map);
+
+    map.addLayer(analyticsGroups.schools);
+    map.addLayer(analyticsGroups.polygons);
+    map.addLayer(analyticsGroups.uaStudents);
+    map.addLayer(analyticsGroups.npiConsultations);
+  }
 
   const bounds = L.latLngBounds([]);
 
@@ -145,7 +177,14 @@ const createPublicMoveAndZoomEndHandler = (
 
 const hideAddresses = (code: number) => {
   if (loadedCities.has(code)) {
-    map.removeLayer(loadedCities.get(code)!.addressesLayerGroup);
+    const cityData = loadedCities.get(code)!;
+
+    if (isAnalyticsMode) {
+      analyticsGroups.addresses.removeLayer(cityData.addressesLayerGroup);
+    } else {
+      map.removeLayer(cityData.addressesLayerGroup);
+    }
+
     citiesWithShownAddresses.delete(code);
   }
 };
@@ -153,23 +192,63 @@ const hideAddresses = (code: number) => {
 const showAddresses = (code: number) => {
   if (!citiesWithShownAddresses.has(code) && loadedCities.has(code)) {
     citiesWithShownAddresses.add(code);
-    map.addLayer(loadedCities.get(code)!.addressesLayerGroup);
-    loadedCities.get(code)!.schoolsLayerGroup.bringToFront();
+
+    const cityData = loadedCities.get(code)!;
+
+    if (isAnalyticsMode) {
+      analyticsGroups.addresses.addLayer(cityData.addressesLayerGroup);
+    } else {
+      map.addLayer(cityData.addressesLayerGroup);
+    }
   }
 };
 
 const showSchools = (code: number) => {
   if (!citiesWithShownSchools.has(code) && loadedCities.has(code)) {
     citiesWithShownSchools.add(code);
-    map.addLayer(loadedCities.get(code)!.polygonLayerGroup);
-    map.addLayer(loadedCities.get(code)!.schoolsLayerGroup);
+
+    const cityData = loadedCities.get(code)!;
+    if (isAnalyticsMode) {
+      analyticsGroups.schools.addLayer(cityData.schoolsLayerGroup);
+      analyticsGroups.polygons.addLayer(cityData.polygonLayerGroup);
+
+      // Add analytics layers if they exist
+      if (cityData.analyticsUaLayerGroup) {
+        analyticsGroups.uaStudents.addLayer(cityData.analyticsUaLayerGroup);
+      }
+      if (cityData.analyticsNpiLayerGroup) {
+        analyticsGroups.npiConsultations.addLayer(
+          cityData.analyticsNpiLayerGroup
+        );
+      }
+    } else {
+      map.addLayer(cityData.polygonLayerGroup);
+      map.addLayer(cityData.schoolsLayerGroup);
+    }
   }
 };
 
 const hideSchools = (code: number) => {
   if (loadedCities.has(code)) {
-    map.removeLayer(loadedCities.get(code)!.schoolsLayerGroup);
-    map.removeLayer(loadedCities.get(code)!.polygonLayerGroup);
+    const cityData = loadedCities.get(code)!;
+
+    if (isAnalyticsMode) {
+      analyticsGroups.schools.removeLayer(cityData.schoolsLayerGroup);
+      analyticsGroups.polygons.removeLayer(cityData.polygonLayerGroup);
+
+      if (cityData.analyticsUaLayerGroup) {
+        analyticsGroups.uaStudents.removeLayer(cityData.analyticsUaLayerGroup);
+      }
+      if (cityData.analyticsNpiLayerGroup) {
+        analyticsGroups.npiConsultations.removeLayer(
+          cityData.analyticsNpiLayerGroup
+        );
+      }
+    } else {
+      map.removeLayer(cityData.schoolsLayerGroup);
+      map.removeLayer(cityData.polygonLayerGroup);
+    }
+
     citiesWithShownSchools.delete(code);
   }
 };
@@ -240,6 +319,14 @@ const loadNewCities = async (
       schoolType
     );
 
+    let analyticsResult = [];
+    if (isAnalyticsMode) {
+      analyticsResult = await loadAnalyticsDataByCityCodes(
+        newCities.map((c) => c.code),
+        schoolType
+      );
+    }
+
     if (result) {
       for (const id of Object.keys(result)) {
         const {
@@ -247,10 +334,14 @@ const loadNewCities = async (
           schoolsLayerGroup,
           polygonLayerGroup,
           addressMarkers,
+          analyticsUaLayerGroup,
+          analyticsNpiLayerGroup,
         } = createCityLayers({
           data: result[Number(id)],
           cityCode: id,
+          analyticsData: analyticsResult,
         });
+
         loadedCities.set(Number(id), {
           city: citiesMap[id],
           data: result[Number(id)],
@@ -258,6 +349,8 @@ const loadNewCities = async (
           schoolsLayerGroup,
           polygonLayerGroup,
           addressMarkers,
+          analyticsUaLayerGroup,
+          analyticsNpiLayerGroup,
         });
 
         triggerCityLoaded(Number(id));

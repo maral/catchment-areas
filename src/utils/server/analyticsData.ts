@@ -1,10 +1,9 @@
 import { api } from "@/app/api/[...remult]/api";
+import { AnalyticsData } from "@/entities/AnalyticsData";
 import { School } from "@/entities/School";
 import { AnalyticsDataType, SchoolType } from "@/types/basicTypes";
 import ExcelJS from "exceljs";
-import { remult } from "remult";
 import { KnexDataProvider } from "remult/remult-knex";
-
 interface ExtractedRowData {
   redIzo: string;
   schoolType: SchoolType;
@@ -163,9 +162,9 @@ async function insertAnalyticsData(
         .join("city as c", "f.city_code", "c.code")
         .where("c.school_count", ">=", 2)
         .orWhere("c.kindergarten_count", ">=", 2)
-        .select("s.*");
+        .select("s.*", "c.code as city_code");
 
-      const schoolsMap = new Map<string, School>();
+      const schoolsMap = new Map<string, School & { city_code: number }>();
       for (const school of relevantSchools) {
         const key = `${school.redizo}:${school.type}`;
         schoolsMap.set(key, school);
@@ -178,19 +177,40 @@ async function insertAnalyticsData(
         count: number;
         percentage: number | null;
         school_type: SchoolType;
+        city_code: number;
       }> = [];
 
+      let globalMaxValue = 0;
+
+      // Find N for ConsultationsNpi (1-N scale to show in map)
+      if (dataType === AnalyticsDataType.ConsultationsNpi) {
+        globalMaxValue = Math.max(...data.map((row) => row.value));
+      }
+
+      // Then prepare data with percentages
       for (const row of data) {
         const schoolKey = `${row.redIzo}:${row.schoolType}`;
         const school = schoolsMap.get(schoolKey);
 
         if (school) {
+          let percentage = null;
+
+          if (
+            dataType === AnalyticsDataType.ConsultationsNpi &&
+            globalMaxValue > 0
+          ) {
+            percentage = Number(
+              ((row.value / globalMaxValue) * 100).toFixed(2)
+            );
+          }
+
           sqlInsertData.push({
             school_izo: school.izo,
             type: Number(dataType),
             count: row.value,
-            percentage: null,
+            percentage,
             school_type: school.type,
+            city_code: school.city_code,
           });
         }
       }
@@ -199,7 +219,7 @@ async function insertAnalyticsData(
         await knex("analytics_data").insert(sqlInsertData);
       }
 
-      //If updated data is important for percentage calculation then recalculate
+      // If updated data is important for percentage calculation then recalculate
       if (
         dataType === AnalyticsDataType.StudentsTotal ||
         dataType === AnalyticsDataType.StudentsUa
@@ -228,4 +248,38 @@ async function recalculatePercentagesInternal(knex: any): Promise<void> {
   `,
     [AnalyticsDataType.StudentsTotal, AnalyticsDataType.StudentsUa]
   );
+}
+
+export async function getAnalyticsData(
+  cityCodes: number[],
+  schoolType: SchoolType
+): Promise<AnalyticsData[]> {
+  try {
+    return await api.withRemult(async () => {
+      const knex = KnexDataProvider.getDb();
+
+      const result = await knex("analytics_data")
+        .where("city_code", "in", cityCodes)
+        .where("school_type", schoolType)
+        .whereIn("type", [
+          AnalyticsDataType.StudentsUa,
+          AnalyticsDataType.ConsultationsNpi,
+        ]);
+
+      return result.map(
+        (row: any): AnalyticsData => ({
+          id: row.id,
+          school: row.school_izo,
+          type: row.type,
+          percentage: row.percentage,
+          count: row.count,
+          schoolType: row.school_type,
+          city: row.city_code,
+        })
+      );
+    });
+  } catch (error) {
+    console.error("Failed to load analytics data:", error);
+    return [];
+  }
 }

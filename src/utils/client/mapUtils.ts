@@ -1,3 +1,4 @@
+import { AnalyticsData } from "@/entities/AnalyticsData";
 import { SchoolType } from "@/types/basicTypes";
 import {
   AddressLayerGroup,
@@ -24,6 +25,7 @@ import L, {
   Circle,
   FeatureGroup,
   LatLngBounds,
+  LayerGroup,
   Map as LeafletMap,
   Polyline,
   PopupEvent,
@@ -270,10 +272,12 @@ export const createCityLayers = ({
   data,
   cityCode,
   options = {},
+  analyticsData = [],
 }: {
   data: DataForMap;
   options?: MapOptions;
   cityCode?: string;
+  analyticsData?: AnalyticsData[];
 }): {
   addressesLayerGroup: AddressLayerGroup;
   schoolsLayerGroup: SchoolLayerGroup;
@@ -282,6 +286,8 @@ export const createCityLayers = ({
   unmappedRegistrationNumberLayerGroup: AddressLayerGroup;
   municipalityLayerGroups: AddressLayerGroup[];
   addressMarkers: AddressMarkerMap;
+  analyticsUaLayerGroup: LayerGroup;
+  analyticsNpiLayerGroup: LayerGroup;
 } => {
   const addressesLayerGroup: AddressesLayerGroup = L.layerGroup(undefined, {
     pane: "markerPane",
@@ -291,6 +297,8 @@ export const createCityLayers = ({
   const schoolMarkers: SchoolMarkerMap = {};
   const addressMarkers: AddressMarkerMap = {};
   const areaColorIndicesMap: Record<string, number> = {};
+  const analyticsUaLayerGroup: LayerGroup = L.layerGroup();
+  const analyticsNpiLayerGroup: LayerGroup = L.layerGroup();
 
   addressesLayerGroup.cityCode = cityCode;
   addressesLayerGroup.type = "addresses";
@@ -323,6 +331,9 @@ export const createCityLayers = ({
     schoolMarkers,
     addressMarkers,
     areaColorIndicesMap,
+    analyticsData,
+    analyticsUaLayerGroup,
+    analyticsNpiLayerGroup,
     options,
   });
 
@@ -338,6 +349,8 @@ export const createCityLayers = ({
     unmappedRegistrationNumberLayerGroup,
     municipalityLayerGroups,
     addressMarkers,
+    analyticsUaLayerGroup,
+    analyticsNpiLayerGroup,
   };
 };
 
@@ -454,4 +467,25 @@ export const findPointByGPS = (
     }
   }
   return minDistancePoint;
+};
+
+export const loadAnalyticsDataByCityCodes = async (
+  cityCodes: number[],
+  schoolType: SchoolType
+) => {
+  const response = await fetch("/api/map/analytics-data", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ cityCodes, schoolType }),
+  });
+
+  if (response.ok) {
+    const analyticsData = await response.json();
+    return analyticsData.data;
+  } else {
+    console.error("Error while loading analytics data");
+    return null;
+  }
 };

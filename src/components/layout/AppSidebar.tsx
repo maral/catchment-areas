@@ -5,10 +5,10 @@ import { Role, isAllowedRoute } from "@/utils/shared/permissions";
 import { texts } from "@/utils/shared/texts";
 import {
   AcademicCapIcon,
+  ChartPieIcon,
   MapIcon,
   PuzzlePieceIcon,
   UserIcon,
-  ChartPieIcon,
 } from "@heroicons/react/24/solid";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
@@ -65,7 +65,12 @@ export default function AppSidebar({ className }: { className?: string }) {
               text={texts.analyticsLayers}
               requiredRole={Role.Editor}
             />
-
+            <MenuItem
+              href="/admin/map/zs"
+              icon={MapIcon}
+              text="Mapa pro experty"
+              requiredRole={Role.User}
+            />
             <hr className="my-4" />
 
             <SidebarMenuItem>
