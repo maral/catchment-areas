@@ -1,16 +1,25 @@
 import { AnalyticsData } from "@/entities/AnalyticsData";
-import { SchoolType, AnalyticsDataType } from "@/types/basicTypes";
+import { AnalyticsDataType, SchoolType } from "@/types/basicTypes";
 import { remult } from "remult";
 
 const analyticsRepo = remult.repo(AnalyticsData);
 
 export async function loadAnalyticsData(
-  schoolType: SchoolType | undefined,
-  dataType: AnalyticsDataType | undefined
+  schoolType?: SchoolType,
+  dataType?: AnalyticsDataType,
+  city?: number
 ) {
+  const whereCondition: any = {};
+  if (schoolType !== undefined) {
+    whereCondition.schoolType = schoolType;
+  }
+  if (city !== undefined) {
+    whereCondition.city = city;
+  }
+
   const analyticsData = await analyticsRepo.find({
-    where: schoolType !== undefined ? { schoolType: schoolType } : {},
-    load: (item) => [item.school],
+    where: whereCondition,
+    load: (item) => [item.school, item.city],
   });
 
   const groupedData = new Map();
@@ -22,6 +31,7 @@ export async function loadAnalyticsData(
       groupedData.set(schoolKey, {
         school: record.school,
         analytics: {},
+        city: record.city,
       });
     }
 
@@ -56,8 +66,6 @@ export async function loadAnalyticsData(
             return analytics.studentsUa;
           case AnalyticsDataType.ConsultationsNpi:
             return analytics.consultationsNpi;
-          case AnalyticsDataType.StudentsTotal:
-            return analytics.total;
           default:
             return false;
         }

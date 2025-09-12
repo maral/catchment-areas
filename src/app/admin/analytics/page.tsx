@@ -1,7 +1,9 @@
 import { api } from "@/app/api/[...remult]/api";
 import AnalyticsActions from "@/components/analyticsData/AnalyticsActions";
+import AnalyticsFilter from "@/components/analyticsData/AnalyticsFilter";
 import HeaderBox from "@/components/common/HeaderBox";
 import { loadAnalyticsData } from "@/components/table/fetchFunctions/loadAnalyticsData";
+import { loadCities } from "@/components/table/fetchFunctions/loadCities";
 import { Card, CardContent, CardHeader } from "@/components/ui/card"; // Updated import
 import {
   Table,
@@ -11,7 +13,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import AnalyticsFilter from "@/components/analyticsData/AnalyticsFilter";
 import { SchoolType } from "@/types/basicTypes";
 import { texts } from "@/utils/shared/texts";
 
@@ -22,6 +23,7 @@ export default async function Analytics(props: {
 
   const selectedSchoolType = searchParams.schoolType || "all";
   const selectedDataType = searchParams.dataType || "all";
+  const selectedCity = searchParams.city || "all";
 
   const schoolTypeCode =
     selectedSchoolType === "all" ? undefined : Number(selectedSchoolType);
@@ -29,9 +31,24 @@ export default async function Analytics(props: {
   const dataTypeCode =
     selectedDataType === "all" ? undefined : Number(selectedDataType);
 
+  const cityCode = selectedCity === "all" ? undefined : Number(selectedCity);
+
   const { data, count } = await api.withRemult(async () => {
-    const data = await loadAnalyticsData(schoolTypeCode, dataTypeCode);
+    const data = await loadAnalyticsData(
+      schoolTypeCode,
+      dataTypeCode,
+      cityCode
+    );
     return { data, count: data.length };
+  });
+
+  const cities = await api.withRemult(async () => {
+    const cities = await loadCities();
+
+    return cities.map((city) => ({
+      code: city.code,
+      name: city.name,
+    }));
   });
 
   return (
@@ -47,6 +64,8 @@ export default async function Analytics(props: {
             selectedSchoolType={selectedSchoolType}
             count={count}
             selectedDataType={selectedDataType}
+            selectedCity={selectedCity}
+            cities={cities}
           />
         </div>
 
@@ -57,14 +76,22 @@ export default async function Analytics(props: {
             <col span={1} style={{ width: "10%" }} />
             <col span={1} style={{ width: "10%" }} />
             <col span={1} style={{ width: "10%" }} />
+            <col span={1} style={{ width: "10%" }} />
           </colgroup>
           <TableHeader>
             <TableRow>
-              <TableHead>Škola</TableHead>
-              <TableHead>Typ školy</TableHead>
-              <TableHead>Studentů celkem</TableHead>
-              <TableHead>Ukrajinských studentů</TableHead>
-              <TableHead>Počet konzultací NPI</TableHead>
+              <TableHead>{texts.school}</TableHead>
+              <TableHead>{texts.city}</TableHead>
+              <TableHead>{texts.schoolType}</TableHead>
+              <TableHead className="whitespace-break-spaces">
+                {texts.analyticsTotalStudents}
+              </TableHead>
+              <TableHead className="whitespace-break-spaces">
+                {texts.analyticsUaStudents}
+              </TableHead>
+              <TableHead className="whitespace-break-spaces">
+                {texts.analyticsConsultationsNpi}
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -73,6 +100,7 @@ export default async function Analytics(props: {
                 <TableCell className="whitespace-break-spaces">
                   {item.school.name}
                 </TableCell>
+                <TableCell>{item.city.name}</TableCell>
                 <TableCell>
                   {item.school.type === SchoolType.Kindergarten ? "MŠ" : "ZŠ"}
                 </TableCell>

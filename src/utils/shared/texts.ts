@@ -11,6 +11,7 @@ export const texts = {
   addOrdinance: "Přidat vyhlášku",
   addOrdinanceFromCollection: "Přidat vyhlášku ze sbírky právních předpisů",
   addressPoints: "Adresní místa",
+  all: "Vše",
   allRegions: "Všechny kraje",
   analyticsDataType: "Typ analytických dat",
   analyticsFile: "Soubor analytických dat",
@@ -19,6 +20,7 @@ export const texts = {
   analyticsTotalStudents: "Celkový počet studentů",
   analyticsUaStudents: "Počet studentů z Ukrajiny",
   analyticsConsultationsNpi: "Počet konzultací NPI",
+  analyticsDataNotFound: "Nebyla nalezena žádná analytická data",
   author: "Autor",
   cancel: "Zrušit",
   cancelRejection: "Zrušit zamítnutí",
@@ -26,6 +28,7 @@ export const texts = {
   city: "Město",
   comment: "Komentář",
   confirm: "Potvrdit",
+  consultationsNpi: "Konzultace NPI",
   dataForDownload: "Data ke stažení",
   delete: "Smazat",
   deleteOrdinanceTitle: "Smazat vyhlášku",
@@ -106,6 +109,7 @@ export const texts = {
   schoolEditorLabel: "škola",
   school: "Škola",
   schools: "Školy",
+  schoolType: "Typ školy",
   schoolsDeclined: (schoolsCount: number, schoolType: SchoolType) => {
     const schoolForms = ["škola", "školy", "škol"];
     const elementaryForms = ["základní", "základní", "základních"];
@@ -150,6 +154,9 @@ export const texts = {
   validTo: "Platnost do",
   viewOnMap: "Zobrazit na mapě",
   yes: "Ano",
+  uaStudents: "Studenti z Ukrajiny",
+
+  totalStudents: "Celkový počet studentů",
   URL_reportBug: "https://forms.gle/gRQGb77MvNnJfpA16",
 };
 

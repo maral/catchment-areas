@@ -1,5 +1,7 @@
 "use client";
 
+import { Card, CardContent } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -7,20 +9,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Card, CardContent } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { SchoolType, AnalyticsDataType } from "@/types/basicTypes";
+import { AnalyticsDataType, SchoolType } from "@/types/basicTypes";
 
-import { useSearchParams, useRouter } from "next/navigation";
-
+import { City } from "@/types/embed";
+import { texts } from "@/utils/shared/texts";
+import { useRouter, useSearchParams } from "next/navigation";
 export default function AnalyticsFilter({
   selectedSchoolType,
   selectedDataType,
   count,
+  selectedCity,
+  cities,
 }: {
   selectedSchoolType: string | null;
   selectedDataType: string | null;
   count: number;
+  selectedCity: string | null;
+  cities: City[];
 }) {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -39,23 +44,24 @@ export default function AnalyticsFilter({
     updateParam("schoolType", schoolType);
   const handleDataTypeChange = (dataType: string) =>
     updateParam("dataType", dataType);
+  const handleCityChange = (city: string) => updateParam("city", city);
 
   return (
     <Card>
       <CardContent>
-        <div className="grid grid-cols-3 gap-8">
+        <div className="grid grid-cols-4 gap-8">
           <div className="">
-            <Label className="mb-4">Typ školy</Label>
+            <Label className="mb-4">{texts.schoolType}</Label>
             <Select
               onValueChange={handleSchoolTypeChange}
               value={selectedSchoolType ? String(selectedSchoolType) : "all"}
             >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Typ školy" />
+                <SelectValue placeholder={texts.schoolType} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem key="all" value="all">
-                  Vše
+                  {texts.all}
                 </SelectItem>
                 <SelectItem
                   key={SchoolType.Kindergarten}
@@ -73,30 +79,51 @@ export default function AnalyticsFilter({
             </Select>
           </div>
           <div>
-            <Label className="mb-4">Typ dat</Label>
+            <Label className="mb-4">{texts.analyticsDataType}</Label>
             <Select
               onValueChange={handleDataTypeChange}
               value={selectedDataType ? String(selectedDataType) : "all"}
             >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Typ dat" />
+                <SelectValue placeholder={texts.analyticsDataType} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem key="all" value="all">
-                  Vše
+                  {texts.all}
                 </SelectItem>
                 <SelectItem
                   key={AnalyticsDataType.StudentsUa}
                   value={String(AnalyticsDataType.StudentsUa)}
                 >
-                  Studenti UA
+                  {texts.uaStudents}
                 </SelectItem>
                 <SelectItem
                   key={AnalyticsDataType.ConsultationsNpi}
                   value={String(AnalyticsDataType.ConsultationsNpi)}
                 >
-                  Konzultace NPI
+                  {texts.consultationsNpi}
                 </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="mb-4">{texts.city}</Label>
+            <Select
+              onValueChange={handleCityChange}
+              value={selectedCity ? String(selectedCity) : "all"}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder={texts.city} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem key="all" value="all">
+                  {texts.all}
+                </SelectItem>
+                {cities.map((city) => (
+                  <SelectItem key={city.code} value={String(city.code)}>
+                    {city.name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
