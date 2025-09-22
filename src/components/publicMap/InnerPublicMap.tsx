@@ -1,8 +1,10 @@
 "use client";
 
 import { createPublicMap } from "@/components/publicMap/createPublicMap";
+import { SchoolType } from "@/types/basicTypes";
 import { CityOnMap } from "@/types/mapTypes";
 import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
+import { AcademicCapIcon, PuzzlePieceIcon } from "@heroicons/react/24/solid";
 import "leaflet/dist/leaflet.css";
 import Image from "next/image";
 import Link from "next/link";
@@ -10,12 +12,9 @@ import { memo, useEffect, useRef, useState } from "react";
 import { SuggestionItem } from "../../types/suggestionTypes";
 import { texts } from "../../utils/shared/texts";
 import PublicButton from "../buttons/PublicButton";
-import { SearchInput } from "./SearchInput";
-import { Menu } from "./Menu";
 import { SwitchButton } from "../buttons/SwitchButton";
-import { SchoolType } from "@/types/basicTypes";
-import { useRouter } from "next/navigation";
-import { AcademicCapIcon, PuzzlePieceIcon } from "@heroicons/react/24/solid";
+import { Menu } from "./Menu";
+import { SearchInput } from "./SearchInput";
 
 interface InnerPublicMapProps {
   cities: CityOnMap[];
@@ -83,13 +82,6 @@ const InnerMap = memo(
           </div>
           <div></div>
         </div>
-
-        {/* <div className="absolute top-[10px] left-[10px] z-1001">
-          <Menu />
-        </div>
-        <div className="absolute top-[10px] left-[70px] z-1000 w-[min(430px,calc(100vw-80px))]">
-          <SearchInput onSelect={onSelect} />
-        </div> */}
 
         <div
           className="absolute z-1000 bottom-0 left-0

@@ -1,23 +1,33 @@
-import { CityData, CityOnMap } from "@/types/mapTypes";
+import { SchoolType } from "@/types/basicTypes";
+import { CityData, CityOnMap, CreateMapResult } from "@/types/mapTypes";
+import { SuggestionItem } from "@/types/suggestionTypes";
+import { onCitiesLoaded, triggerCityLoaded } from "@/utils/client/events";
 import {
   centerLeafletMapOnMarker,
+  createAddressForSuggestionItem,
   createCityLayers,
+  findPointByGPS,
+  getUnknownPopupContent,
+  loadAnalyticsDataByCityCodes,
   loadMunicipalitiesByCityCodes,
   prepareMap,
   resetAllHighlights,
   setupPopups,
 } from "@/utils/client/mapUtils";
+import {
+  createCityMarker,
+  createSvgIcon,
+  createTempMarker,
+} from "@/utils/client/markers";
+import { texts } from "@/utils/shared/texts";
 import L, { Map as LeafletMap, Marker } from "leaflet";
 import debounce from "lodash/debounce";
-import { SuggestionItem, SuggestionPosition } from "@/types/suggestionTypes";
-import { onCitiesLoaded, triggerCityLoaded } from "@/utils/client/events";
-import { Municipality } from "text-to-map";
-import { createCityMarker, createSvgIcon } from "@/utils/client/markers";
-import { SchoolType } from "@/types/basicTypes";
 
 const citiesMap: Record<string, CityOnMap> = {};
 let map: LeafletMap;
 let mapInitialized = false;
+let isAnalyticsMode = false;
+let analyticsGroups: Record<string, L.LayerGroup> = {};
 
 const tempMarkerIcon = createSvgIcon("#e43f16");
 const loadCitiesDebounceTime = 300;
@@ -26,12 +36,9 @@ export const createPublicMap = (
   element: HTMLElement,
   cities: CityOnMap[],
   showControls: boolean = true,
-  schoolType: SchoolType
-  
-): {
-  destructor: () => void;
-  onSuggestionSelect: (item: SuggestionItem) => void;
-} => {
+  schoolType: SchoolType,
+  showAnalyticsData: boolean = false
+): CreateMapResult => {
   if (!element || mapInitialized) {
     return {
       destructor: () => {},
@@ -39,8 +46,35 @@ export const createPublicMap = (
     };
   }
 
+  isAnalyticsMode = showAnalyticsData;
+
   map = prepareMap(element, showControls);
   mapInitialized = true;
+
+  if (isAnalyticsMode) {
+    analyticsGroups = {
+      schools: L.layerGroup(),
+      polygons: L.layerGroup(),
+      addresses: L.layerGroup(),
+      uaStudents: L.layerGroup(),
+      npiConsultations: L.layerGroup(),
+    };
+
+    L.control
+      .layers(undefined, {
+        [texts.schools]: analyticsGroups.schools,
+        [texts.catchmentAreas]: analyticsGroups.polygons,
+        [texts.addressPoints]: analyticsGroups.addresses,
+        [texts.uaStudents]: analyticsGroups.uaStudents,
+        [texts.consultationsNpi]: analyticsGroups.npiConsultations,
+      })
+      .addTo(map);
+
+    map.addLayer(analyticsGroups.schools);
+    map.addLayer(analyticsGroups.polygons);
+    map.addLayer(analyticsGroups.uaStudents);
+    map.addLayer(analyticsGroups.npiConsultations);
+  }
 
   const bounds = L.latLngBounds([]);
 
@@ -49,7 +83,9 @@ export const createPublicMap = (
   cities
     .filter((city) => city.isPublished)
     .forEach((city) =>
-      createCityMarker(city, cityMarkers, citiesMap, bounds, schoolType).addTo(map)
+      createCityMarker(city, cityMarkers, citiesMap, bounds, schoolType).addTo(
+        map
+      )
     );
 
   setupPopups(map);
@@ -141,7 +177,14 @@ const createPublicMoveAndZoomEndHandler = (
 
 const hideAddresses = (code: number) => {
   if (loadedCities.has(code)) {
-    map.removeLayer(loadedCities.get(code)!.addressesLayerGroup);
+    const cityData = loadedCities.get(code)!;
+
+    if (isAnalyticsMode) {
+      analyticsGroups.addresses.removeLayer(cityData.addressesLayerGroup);
+    } else {
+      map.removeLayer(cityData.addressesLayerGroup);
+    }
+
     citiesWithShownAddresses.delete(code);
   }
 };
@@ -149,23 +192,63 @@ const hideAddresses = (code: number) => {
 const showAddresses = (code: number) => {
   if (!citiesWithShownAddresses.has(code) && loadedCities.has(code)) {
     citiesWithShownAddresses.add(code);
-    map.addLayer(loadedCities.get(code)!.addressesLayerGroup);
-    loadedCities.get(code)!.schoolsLayerGroup.bringToFront();
+
+    const cityData = loadedCities.get(code)!;
+
+    if (isAnalyticsMode) {
+      analyticsGroups.addresses.addLayer(cityData.addressesLayerGroup);
+    } else {
+      map.addLayer(cityData.addressesLayerGroup);
+    }
   }
 };
 
 const showSchools = (code: number) => {
   if (!citiesWithShownSchools.has(code) && loadedCities.has(code)) {
     citiesWithShownSchools.add(code);
-    map.addLayer(loadedCities.get(code)!.polygonLayerGroup);
-    map.addLayer(loadedCities.get(code)!.schoolsLayerGroup);
+
+    const cityData = loadedCities.get(code)!;
+    if (isAnalyticsMode) {
+      analyticsGroups.schools.addLayer(cityData.schoolsLayerGroup);
+      analyticsGroups.polygons.addLayer(cityData.polygonLayerGroup);
+
+      // Add analytics layers if they exist
+      if (cityData.analyticsUaLayerGroup) {
+        analyticsGroups.uaStudents.addLayer(cityData.analyticsUaLayerGroup);
+      }
+      if (cityData.analyticsNpiLayerGroup) {
+        analyticsGroups.npiConsultations.addLayer(
+          cityData.analyticsNpiLayerGroup
+        );
+      }
+    } else {
+      map.addLayer(cityData.polygonLayerGroup);
+      map.addLayer(cityData.schoolsLayerGroup);
+    }
   }
 };
 
 const hideSchools = (code: number) => {
   if (loadedCities.has(code)) {
-    map.removeLayer(loadedCities.get(code)!.schoolsLayerGroup);
-    map.removeLayer(loadedCities.get(code)!.polygonLayerGroup);
+    const cityData = loadedCities.get(code)!;
+
+    if (isAnalyticsMode) {
+      analyticsGroups.schools.removeLayer(cityData.schoolsLayerGroup);
+      analyticsGroups.polygons.removeLayer(cityData.polygonLayerGroup);
+
+      if (cityData.analyticsUaLayerGroup) {
+        analyticsGroups.uaStudents.removeLayer(cityData.analyticsUaLayerGroup);
+      }
+      if (cityData.analyticsNpiLayerGroup) {
+        analyticsGroups.npiConsultations.removeLayer(
+          cityData.analyticsNpiLayerGroup
+        );
+      }
+    } else {
+      map.removeLayer(cityData.schoolsLayerGroup);
+      map.removeLayer(cityData.polygonLayerGroup);
+    }
+
     citiesWithShownSchools.delete(code);
   }
 };
@@ -236,6 +319,14 @@ const loadNewCities = async (
       schoolType
     );
 
+    let analyticsResult = [];
+    if (isAnalyticsMode) {
+      analyticsResult = await loadAnalyticsDataByCityCodes(
+        newCities.map((c) => c.code),
+        schoolType
+      );
+    }
+
     if (result) {
       for (const id of Object.keys(result)) {
         const {
@@ -243,10 +334,14 @@ const loadNewCities = async (
           schoolsLayerGroup,
           polygonLayerGroup,
           addressMarkers,
+          analyticsUaLayerGroup,
+          analyticsNpiLayerGroup,
         } = createCityLayers({
           data: result[Number(id)],
           cityCode: id,
+          analyticsData: analyticsResult,
         });
+
         loadedCities.set(Number(id), {
           city: citiesMap[id],
           data: result[Number(id)],
@@ -254,6 +349,8 @@ const loadNewCities = async (
           schoolsLayerGroup,
           polygonLayerGroup,
           addressMarkers,
+          analyticsUaLayerGroup,
+          analyticsNpiLayerGroup,
         });
 
         triggerCityLoaded(Number(id));
@@ -284,8 +381,12 @@ const onSuggestionSelect = (item: SuggestionItem) => {
   map.flyTo([item.position.lat, item.position.lon], 14, {
     duration: flyingTime / 1000,
   });
-  const tempMarker = new L.Marker(position, { icon: tempMarkerIcon })
-    .bindPopup(`${createAddress(item)}<br><br><em>Načítám podrobnosti...</em>`)
+  const tempMarker = createTempMarker(item)
+    .bindPopup(
+      `${createAddressForSuggestionItem(
+        item
+      )}<br><br><em>Načítám podrobnosti...</em>`
+    )
     .addTo(map);
 
   setTimeout(() => {
@@ -326,7 +427,6 @@ const selectAddress = (
       if (addressPoint) {
         const markers = loadedCity.addressMarkers[addressPoint.address];
         if (markers && markers.length > 0) {
-          tempMarkerIcon;
           setTimeout(() => {
             tempMarker.remove();
             markers[0].openPopup();
@@ -342,46 +442,6 @@ const selectAddress = (
   }
 
   if (!found) {
-    tempMarker.setPopupContent(
-      `${createAddress(
-        item
-      )}<br><br>K této adrese aktuálně nemáme informace o spádové škole.`
-    );
+    tempMarker.setPopupContent(getUnknownPopupContent(item));
   }
-};
-
-const findPointByGPS = (
-  municipalities: Municipality[],
-  position: SuggestionPosition
-) => {
-  let minDistance = 9;
-  let minDistancePoint = null;
-
-  for (const municipality of municipalities) {
-    for (const area of municipality.areas) {
-      for (const point of area.addresses) {
-        if (!point.lat || !point.lng) {
-          continue;
-        }
-        const distance =
-          Math.abs(point.lat - position.lat) +
-          Math.abs(point.lng - position.lon);
-        if (distance < 0.00001) {
-          return point;
-        } else if (distance < 0.0001 && distance < minDistance) {
-          minDistance = distance;
-          minDistancePoint = point;
-        }
-      }
-    }
-  }
-  return minDistancePoint;
-};
-
-const createAddress = (item: SuggestionItem) => {
-  const municipality = item.regionalStructure.find(
-    (rs) => rs.type === "regional.municipality"
-  );
-
-  return `${item.name}, ${item.zip} ${municipality ? municipality.name : ""}`;
 };

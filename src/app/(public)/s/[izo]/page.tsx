@@ -1,6 +1,7 @@
 import { api } from "@/app/api/[...remult]/api";
 import CatchmentMap from "@/components/map/CatchmentMap";
 import { getOrCreateDataForMapBySchoolIzo } from "@/utils/server/textToMap";
+import { texts } from "@/utils/shared/texts";
 import { notFound } from "next/navigation";
 
 export default async function CityMapPage(props: {
@@ -22,7 +23,14 @@ export default async function CityMapPage(props: {
   return (
     <CatchmentMap
       data={data}
-      mapOptions={{ fullHeight: true, showControls: true, pageType: "school" }}
+      mapOptions={{
+        fullHeight: true,
+        showControls: true,
+        pageType: "school",
+        unknownAddressMessage: texts.unknownAddressMessageSchool(
+          data.municipalities[0].areas[0].schools[0].name
+        ),
+      }}
     />
   );
 }

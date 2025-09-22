@@ -33,7 +33,7 @@ export default function Embed({ schools, cities }: MunicipalityPageProps) {
   const [schoolIzo, setSchoolIzo] = useState(schools[0]?.schools[0]?.izo);
   const [cityCode, setCityCode] = useState(cities[0]?.code);
   const [schoolType, setSchoolType] = useState(SchoolType.Elementary);
-  // const [showSearch, setShowSearch] = useState(defaults.showSearch);
+  const [showSearch, setShowSearch] = useState(defaults.showSearch);
   const [showControls, setShowControls] = useState(defaults.showControls);
   const [fixedColor, setFixedColor] = useState(false);
   const [color, setColor] = useState("#d33d81");
@@ -42,7 +42,7 @@ export default function Embed({ schools, cities }: MunicipalityPageProps) {
     pageType,
     schoolIzo,
     cityCode,
-    // showSearch,
+    showSearch,
     showControls,
     fixedColor,
     color,
@@ -80,7 +80,7 @@ export default function Embed({ schools, cities }: MunicipalityPageProps) {
     const pageType = value as PageType;
     setPageType(pageType);
     const defaults = getDefaultParams(pageType);
-    // setShowSearch(defaults.showSearch);
+    setShowSearch(defaults.showSearch);
     setShowControls(defaults.showControls);
   };
 
@@ -91,7 +91,16 @@ export default function Embed({ schools, cities }: MunicipalityPageProps) {
       setIframeUrl(url);
     },
     300,
-    [pageType, schoolIzo, cityCode, showControls, fixedColor, color, schoolType]
+    [
+      pageType,
+      schoolIzo,
+      cityCode,
+      showControls,
+      showSearch,
+      fixedColor,
+      color,
+      schoolType,
+    ]
   );
 
   return (
@@ -187,6 +196,20 @@ export default function Embed({ schools, cities }: MunicipalityPageProps) {
         <div className="grid gap-4">
           <div className="flex items-center space-x-2">
             <Checkbox
+              id="showSearch"
+              checked={showSearch}
+              onCheckedChange={(value) => setShowSearch(Boolean(value))}
+            />
+            <label
+              htmlFor="showSearch"
+              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+            >
+              Zobrazit vyhledávání
+            </label>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Checkbox
               id="showControls"
               checked={showControls}
               onCheckedChange={(value) => setShowControls(Boolean(value))}
@@ -253,7 +276,7 @@ const createUrl = (
   pageType: PageType,
   schoolIzo: string,
   cityCode: number,
-  // showSearch: boolean,
+  showSearch: boolean,
   showControls: boolean,
   fixedColor: boolean,
   color: string,
@@ -268,7 +291,7 @@ const createUrl = (
     pageType === "school" ? `/s/${schoolIzo}` : `${typePath}/m/${cityCode}`;
 
   const params = new URLSearchParams();
-  // params.set("search", showSearch ? "1" : "0");
+  params.set("search", showSearch ? "1" : "0");
   params.set("controls", showControls ? "1" : "0");
   if (pageType === "school" && fixedColor) {
     params.set("color", color.slice(1));

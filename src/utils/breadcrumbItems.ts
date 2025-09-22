@@ -130,3 +130,14 @@ export const addUserBreadcrumb: BreadcrumbItem = {
   href: `${routes.users}${routes.new}}`,
   title: texts.addUser,
 };
+
+// ANALYTICS DATA
+export const analyticsBreadcrumb: BreadcrumbItem = {
+  href: routes.analytics,
+  title: texts.analyticsLayers,
+};
+
+export const addAnalyticsDataBreadcrumb: BreadcrumbItem = {
+  href: `${routes.analytics}${routes.new}`,
+  title: texts.addAnalyticsData,
+};

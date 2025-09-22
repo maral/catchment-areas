@@ -1,22 +1,26 @@
-import { School, ExportAddressPoint, Area } from "text-to-map";
-import {
-  SchoolMarker,
-  PopupWithMarker,
-  MarkerWithSchools,
-  DataForMap,
-  AddressLayerGroup,
-  AddressesLayerGroup,
-  SchoolLayerGroup,
-  SchoolMarkerMap,
-  AddressMarkerMap,
-  CityOnMap,
-  MapOptions,
-} from "@/types/mapTypes";
-import { colors, markerRadius, markerWeight } from "./mapUtils";
-import L, { Marker } from "leaflet";
 import { ButtonVariant, buttonVariants } from "@/components/ui/button";
-import { SchoolType } from "@/types/basicTypes";
 import { getRootPathBySchoolType } from "@/entities/School";
+import { AnalyticsDataType, SchoolType } from "@/types/basicTypes";
+import {
+  AddressLayerGroup,
+  AddressMarkerMap,
+  AddressesLayerGroup,
+  CityOnMap,
+  DataForMap,
+  MapOptions,
+  MarkerWithSchools,
+  PopupWithMarker,
+  SchoolLayerGroup,
+  SchoolMarker,
+  SchoolMarkerMap,
+} from "@/types/mapTypes";
+import { LayerGroup } from "leaflet";
+import { SuggestionItem } from "@/types/suggestionTypes";
+import L, { Marker } from "leaflet";
+import { Area, ExportAddressPoint, School } from "text-to-map";
+import { colors, markerRadius, markerWeight } from "./mapUtils";
+import { AnalyticsData } from "@/entities/AnalyticsData";
+import { texts } from "../shared/texts";
 
 const unmappedMarkerColor = "#ff0000";
 
@@ -24,6 +28,106 @@ type MarkersToCreate = Record<
   string,
   { point: ExportAddressPoint; areas: Area[] }
 >;
+
+const getAnalyticsMarkerOffset = (type: AnalyticsDataType) => {
+  switch (type) {
+    case AnalyticsDataType.StudentsUa:
+      return { lat: 0, lng: -0.0005 };
+    case AnalyticsDataType.ConsultationsNpi:
+      return { lat: 0, lng: 0.0005 };
+    default:
+      return { lat: 0, lng: 0 };
+  }
+};
+
+//Calculate color from blue (0%) to red (100%)
+function getColorByPercentage(percentage: number): string {
+  const colorStops = [
+    { percent: 0, r: 100, g: 200, b: 255 }, // light blue
+    { percent: 20, r: 100, g: 255, b: 100 }, // green
+    { percent: 45, r: 255, g: 255, b: 50 }, // yellow
+    { percent: 70, r: 255, g: 150, b: 0 }, // orange
+    { percent: 100, r: 255, g: 50, b: 50 }, // red
+  ];
+
+  let lowerStop = colorStops[0];
+  let upperStop = colorStops[colorStops.length - 1];
+
+  for (let i = 0; i < colorStops.length - 1; i++) {
+    if (
+      percentage >= colorStops[i].percent &&
+      percentage <= colorStops[i + 1].percent
+    ) {
+      lowerStop = colorStops[i];
+      upperStop = colorStops[i + 1];
+      break;
+    }
+  }
+
+  const range = upperStop.percent - lowerStop.percent;
+  const ratio = range === 0 ? 0 : (percentage - lowerStop.percent) / range;
+
+  const r = Math.round(lowerStop.r + (upperStop.r - lowerStop.r) * ratio);
+  const g = Math.round(lowerStop.g + (upperStop.g - lowerStop.g) * ratio);
+  const b = Math.round(lowerStop.b + (upperStop.b - lowerStop.b) * ratio);
+
+  const toHex = (value: number): string => {
+    const hex = value.toString(16);
+    return hex.length === 1 ? "0" + hex : hex;
+  };
+
+  return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+}
+
+const createAnalyticsMarker = (school: School, analytics: AnalyticsData) => {
+  const offset = getAnalyticsMarkerOffset(analytics.type);
+
+  const position: [number, number] = [
+    (school.position?.lat ?? defaultPosition[0]) + offset.lat,
+    (school.position?.lng ?? defaultPosition[1]) + offset.lng,
+  ];
+
+  const tooltip = L.tooltip({
+    direction: "top",
+    content: `<div style="text-align: center;">
+    <strong>${school.name}</strong><br>
+    <div> ${
+      analytics.type === AnalyticsDataType.StudentsUa
+        ? texts.analyticsUaStudents
+        : texts.analyticsConsultationsNpi
+    }</div>
+    ${
+      analytics.type === AnalyticsDataType.StudentsUa
+        ? `${analytics.percentage?.toFixed(0)}% (${analytics.count})`
+        : `${analytics.count}`
+    }
+  </div>`,
+    opacity: 1,
+  });
+
+  const dataToShow =
+    analytics.type === AnalyticsDataType.StudentsUa
+      ? `${analytics.percentage?.toFixed(0)}%`
+      : `${analytics.count}`;
+
+  const analyticsDiv = L.divIcon({
+    className:
+      analytics.type === AnalyticsDataType.StudentsUa
+        ? "ua-marker"
+        : "npi-marker",
+    html: `<div style="background: ${getColorByPercentage(
+      analytics.percentage ?? 0
+    )};">
+      ${dataToShow}
+    </div>`,
+    iconSize: [30, 30],
+  });
+
+  return L.marker(position, {
+    icon: analyticsDiv,
+    riseOnHover: true,
+  }).bindTooltip(tooltip);
+};
 
 export const createMarkers = ({
   data,
@@ -35,6 +139,9 @@ export const createMarkers = ({
   schoolMarkers,
   addressMarkers,
   areaColorIndicesMap,
+  analyticsData,
+  analyticsUaLayerGroup,
+  analyticsNpiLayerGroup,
   options,
 }: {
   data: DataForMap;
@@ -46,6 +153,9 @@ export const createMarkers = ({
   schoolMarkers: SchoolMarkerMap;
   addressMarkers: AddressMarkerMap;
   areaColorIndicesMap: Record<string, number>;
+  analyticsData: AnalyticsData[];
+  analyticsUaLayerGroup?: LayerGroup;
+  analyticsNpiLayerGroup?: LayerGroup;
   options: MapOptions;
 }) => {
   const markersToCreate: MarkersToCreate = {};
@@ -109,6 +219,30 @@ export const createMarkers = ({
       }
     });
   });
+
+  if (
+    analyticsData?.length &&
+    analyticsUaLayerGroup &&
+    analyticsNpiLayerGroup
+  ) {
+    analyticsData.forEach((analytics) => {
+      const school = data.municipalities
+        .flatMap((m) => m.areas)
+        .flatMap((a) => a.schools)
+        .find((s) => s.izo === String(analytics.school));
+
+      if (!school) return;
+
+      const marker = createAnalyticsMarker(school, analytics);
+
+      const targetGroup =
+        analytics.type === AnalyticsDataType.StudentsUa
+          ? analyticsUaLayerGroup
+          : analyticsNpiLayerGroup;
+
+      targetGroup.addLayer(marker);
+    });
+  }
 };
 
 const addToMarkersToCreate = (
@@ -198,6 +332,12 @@ export const createAddressMarker = (
   return markers;
 };
 
+export const createTempMarker = (item: SuggestionItem) => {
+  return new L.Marker([item.position.lat, item.position.lon], {
+    icon: tempMarkerIcon,
+  });
+};
+
 const createMarkerByColorCount = (
   point: ExportAddressPoint,
   colors: string[]
@@ -262,6 +402,7 @@ export const createSvgIcon = (color: string): L.DivIcon => {
 const publicIconElementary = createSvgIcon("#03b703");
 const publicIconKindergarten = createSvgIcon("#155dfc");
 const notReadyIcon = createSvgIcon("#999");
+const tempMarkerIcon = createSvgIcon("#e43f16");
 
 export const createCityMarker = (
   city: CityOnMap,
@@ -270,8 +411,10 @@ export const createCityMarker = (
   bounds: L.LatLngBounds,
   schoolType: SchoolType
 ) => {
-
-  const markerIcon = schoolType === SchoolType.Elementary ? publicIconElementary : publicIconKindergarten;
+  const markerIcon =
+    schoolType === SchoolType.Elementary
+      ? publicIconElementary
+      : publicIconKindergarten;
 
   const marker = L.marker([city.lat, city.lng], {
     icon: city.isPublished ? markerIcon : notReadyIcon,
@@ -280,7 +423,7 @@ export const createCityMarker = (
       city.name
     }</h4>${
       city.isPublished
-        ? `${createCityMarkerButtons(city.code,schoolType)}`
+        ? `${createCityMarkerButtons(city.code, schoolType)}`
         : "zatím není připraveno"
     }</div>`
   );
@@ -315,7 +458,10 @@ const createAddressMarkerButton = () => `
 </button></div>`;
 
 const createCityMarkerButtons = (cityCode: number, schoolType: SchoolType) => `
-<div class="flex flex-col gap-2"><a href="${getRootPathBySchoolType(schoolType, true)}/m/${cityCode}?controls=1" target="_blank" class="city-marker ${getButtonClasses()}">
+<div class="flex flex-col gap-2"><a href="${getRootPathBySchoolType(
+  schoolType,
+  true
+)}/m/${cityCode}?controls=1" target="_blank" class="city-marker ${getButtonClasses()}">
   ${getNewWindowHeroicon()} Zobrazit v novém okně
 </a><a href="/api/ordinances/download/by-city-code/${cityCode}" target="_blank" class="city-marker ${getButtonClasses(
   "secondary"

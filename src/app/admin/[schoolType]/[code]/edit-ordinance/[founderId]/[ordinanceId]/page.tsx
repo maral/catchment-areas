@@ -69,7 +69,8 @@ export default async function EditorPage(props: {
       founderJson: remult.repo(Founder).toJson(founder),
       streetMarkdownJson,
       suggestions: await StreetController.getAutocompleteSuggestions(
-        Number(founderId)
+        Number(founderId),
+        getSchoolTypeCode(schoolType)
       ),
       founderCount,
     };

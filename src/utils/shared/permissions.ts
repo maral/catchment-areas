@@ -81,4 +81,12 @@ export const restrictedRoutes: Route[] = [
     path: "/admin/kindergarten(.*)",
     role: Role.Editor,
   },
+  {
+    path: "/admin/analytics(.*)",
+    role: Role.Editor,
+  },
+  {
+    path: "/admin/map(.*)",
+    role: Role.User,
+  },
 ];

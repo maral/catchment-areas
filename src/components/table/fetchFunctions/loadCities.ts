@@ -6,12 +6,21 @@ const citiesRepo = remult.repo(City);
 
 // CITIES
 export async function loadCities(
-  schoolType: SchoolType,
-  regionCode: number | undefined
+  schoolType?: SchoolType,
+  regionCode?: number
 ): Promise<City[]> {
   return await citiesRepo.find({
     where: {
-      [getCountPropertyBySchoolType(schoolType)]: { $gte: 2 },
+      ...(schoolType === undefined
+        ? {
+            $or: [
+              { schoolCount: { $gte: 2 } },
+              { kindergartenCount: { $gte: 2 } },
+            ],
+          }
+        : {
+            [getCountPropertyBySchoolType(schoolType)]: { $gte: 2 },
+          }),
       ...(regionCode
         ? { region: await remult.repo(Region).findFirst({ code: regionCode }) }
         : {}),

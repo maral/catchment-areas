@@ -6,11 +6,21 @@ export const texts = {
   add: "Přidat",
   addUser: "Přidat uživatele",
   admin: "Administrátor",
+  addAnalyticsData: "Importovat analytická data",
   addOrdinanceManually: "Přidat vyhlášku ručně",
   addOrdinance: "Přidat vyhlášku",
   addOrdinanceFromCollection: "Přidat vyhlášku ze sbírky právních předpisů",
   addressPoints: "Adresní místa",
+  all: "Vše",
   allRegions: "Všechny kraje",
+  analyticsDataType: "Typ analytických dat",
+  analyticsFile: "Soubor analytických dat",
+  analyticsLayers: "Analytické vrstvy",
+  analyticsSelect: "Vyberte typ analytické vrstvy",
+  analyticsTotalStudents: "Celkový počet studentů",
+  analyticsUaStudents: "Počet studentů z Ukrajiny",
+  analyticsConsultationsNpi: "Počet konzultací NPI",
+  analyticsDataNotFound: "Nebyla nalezena žádná analytická data",
   author: "Autor",
   cancel: "Zrušit",
   cancelRejection: "Zrušit zamítnutí",
@@ -18,6 +28,7 @@ export const texts = {
   city: "Město",
   comment: "Komentář",
   confirm: "Potvrdit",
+  consultationsNpi: "Konzultace NPI",
   dataForDownload: "Data ke stažení",
   delete: "Smazat",
   deleteOrdinanceTitle: "Smazat vyhlášku",
@@ -46,6 +57,7 @@ export const texts = {
   fullName: "Jméno a příjmení",
   gpt: "GPT",
   help: "Nápověda",
+  importAnalytics: "Importovat data",
   logout: "Odhlásit se",
   map: "Mapa",
   mapForPublic: "Mapa pro veřejnost",
@@ -97,6 +109,7 @@ export const texts = {
   schoolEditorLabel: "škola",
   school: "Škola",
   schools: "Školy",
+  schoolType: "Typ školy",
   schoolsDeclined: (schoolsCount: number, schoolType: SchoolType) => {
     const schoolForms = ["škola", "školy", "škol"];
     const elementaryForms = ["základní", "základní", "základních"];
@@ -126,6 +139,12 @@ export const texts = {
   statusPublished: "Zveřejněno",
   streetEditorLabel: "ulice",
   status: "Stav",
+  unknownAddressMessageCity: (city: string) =>
+    `Tato adresa nespadá pod ${
+      city[0].toLocaleLowerCase() + city.substring(1)
+    } nebo nemá přiřazenou spádovou školu.`,
+  unknownAddressMessageSchool: (school: string) =>
+    `Tato adresa nepatří do spádové oblasti školy ${school}.`,
   unknownStatus: "Neznámý stav",
   unmappedAddressPoints: "Neurčená adresní místa",
   unmappedRegistrationNumberAddressPoints: "Neurčená adresní místa s č.ev.",
@@ -135,7 +154,9 @@ export const texts = {
   validTo: "Platnost do",
   viewOnMap: "Zobrazit na mapě",
   yes: "Ano",
+  uaStudents: "Studenti z Ukrajiny",
 
+  totalStudents: "Celkový počet studentů",
   URL_reportBug: "https://forms.gle/gRQGb77MvNnJfpA16",
 };
 

@@ -2,6 +2,7 @@ import { FeatureCollection } from "@turf/helpers";
 import { Circle, FeatureGroup, LayerGroup, Marker, Popup } from "leaflet";
 import { Municipality } from "text-to-map";
 import { FounderType } from "../entities/Founder";
+import { SuggestionItem } from "./suggestionTypes";
 
 export type SchoolMarker = Circle;
 
@@ -61,6 +62,8 @@ export interface CityData {
   schoolsLayerGroup: SchoolLayerGroup;
   polygonLayerGroup: FeatureGroup;
   addressMarkers: AddressMarkerMap;
+  analyticsUaLayerGroup: LayerGroup;
+  analyticsNpiLayerGroup: LayerGroup;
 }
 
 export type MapOptions = {
@@ -71,6 +74,8 @@ export type MapOptions = {
   showControls?: boolean;
   showLayerControls?: boolean;
   showDebugInfo?: boolean;
+  showSearch?: boolean;
+  unknownAddressMessage?: string;
 };
 
 export type PageType = "city" | "school";
@@ -80,3 +85,8 @@ export interface EmbedQueryParams {
   showSearch: boolean;
   showControls: boolean;
 }
+
+export type CreateMapResult = {
+  destructor: () => void;
+  onSuggestionSelect: (item: SuggestionItem) => void;
+};

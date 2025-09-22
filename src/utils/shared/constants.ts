@@ -22,6 +22,7 @@ export const routes = {
   download: "/download",
   new: "/new",
   signIn: "/admin/auth/signin",
+  analytics: "/admin/analytics",
 };
 
 export const textToMapOptions: OpenDataSyncOptionsPartial = {

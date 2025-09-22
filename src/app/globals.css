@@ -44,6 +44,26 @@
       color: #171717 !important;
     }
   }
+
+  .ua-marker div,
+  .npi-marker div {
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    padding: 0.2rem;
+    border: 3px solid;
+  }
+  .ua-marker div {
+    border-top-color: #2196f3;
+    border-right-color: #ffeb3b;
+    border-bottom-color: #ffeb3b;
+    border-left-color: #2196f3;
+  }
+  .npi-marker div {
+    border-color: #fff;
+  }
 }
 
 @layer base {

@@ -5,6 +5,7 @@ import { Role, isAllowedRoute } from "@/utils/shared/permissions";
 import { texts } from "@/utils/shared/texts";
 import {
   AcademicCapIcon,
+  ChartPieIcon,
   MapIcon,
   PuzzlePieceIcon,
   UserIcon,
@@ -58,6 +59,18 @@ export default function AppSidebar({ className }: { className?: string }) {
               requiredRole={Role.Admin}
             />
 
+            <MenuItem
+              href={routes.analytics}
+              icon={ChartPieIcon}
+              text={texts.analyticsLayers}
+              requiredRole={Role.Editor}
+            />
+            <MenuItem
+              href="/admin/map/zs"
+              icon={MapIcon}
+              text="Mapa pro experty"
+              requiredRole={Role.User}
+            />
             <hr className="my-4" />
 
             <SidebarMenuItem>
