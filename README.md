@@ -69,7 +69,3 @@ On the backend, there is a bit of magic going on - first of all, ordinances in a
 #### Crons
 
 There are several Cron jobs that are required for the app to work well: open-data sync (address points and streets are added every day), ordinances sync from the registry, possibly some others. These are not implemented yet - the scripts have to be run manually for now (see issues).
-
-## Issues
-
-The app is already usable, but there are several critical issues to be done. All those issues have been added here to GitHub issues.
