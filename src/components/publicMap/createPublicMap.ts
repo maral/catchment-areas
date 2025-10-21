@@ -490,7 +490,7 @@ const createAnalyticsPopupContent = async (
     return;
   }
 
-  const title = `<h5 class="font-semibold mb-1">Statistiky všech ${texts.numberOfSchools(
+  const title = `<h5 class="font-semibold mb-1">${texts.statsOfSchools(
     schoolType
   )}</h5>`;
 

@@ -96,6 +96,7 @@ export interface LegendItem {
   title: string;
   minValue: string;
   maxValue: string;
+  icon: string;
 }
 
 export type CitiesAnalyticsData = Record<

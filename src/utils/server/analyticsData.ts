@@ -551,6 +551,7 @@ export async function getLegendDataForSchoolType(
               title: texts.analyticsConsultationsNpi,
               minValue: String(Math.max(minValue, 1)),
               maxValue: String(maxValue),
+              icon: `<div class="npi-marker" style="height: 12px; width: 12px;"><div ></div></div>`,
             });
             break;
 
@@ -560,6 +561,7 @@ export async function getLegendDataForSchoolType(
               title: texts.analyticsUaStudents,
               minValue: "0 %",
               maxValue: "100 %",
+              icon: `<div class="ua-marker" style="height: 12px; width: 12px; "><div></div></div>`,
             });
             break;
 
@@ -569,6 +571,17 @@ export async function getLegendDataForSchoolType(
               title: texts.isv,
               minValue: "0",
               maxValue: String(maxValue),
+
+              icon: ` <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 100 100"
+                      version="1.1"
+                      preserveAspectRatio="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path d="M0 0 L50 100 L100 0 Z" fill="gray"></path>
+                    </svg>`,
             });
             break;
         }

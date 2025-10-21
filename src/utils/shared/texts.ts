@@ -91,6 +91,7 @@ export const texts = {
         : "Počet mateřských škol";
     }
   },
+
   ordinanceDocument: "Dokument vyhlášky",
   ordinanceFile: "Soubor vyhlášky",
   ordinanceName: "Název vyhlášky",
@@ -146,6 +147,11 @@ export const texts = {
   statusNoExistingOrdinance: "Vyhláška neexistuje",
   statusNoOrdinance: "Bez vyhlášky",
   statusPublished: "Zveřejněno",
+  statsOfSchools: (schoolType?: SchoolType) => {
+    return schoolType === SchoolType.Elementary
+      ? "Všechny zakladní školy ve městě"
+      : "Všechny mateřské školy ve městě";
+  },
   streetEditorLabel: "ulice",
   status: "Stav",
   unknownAddressMessageCity: (city: string) =>

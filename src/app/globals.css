@@ -45,6 +45,11 @@
     }
   }
 
+  .ua-marker,
+  .npi-marker {
+    position: relative;
+  }
+
   .ua-marker div,
   .npi-marker div {
     border-radius: 50%;
@@ -54,6 +59,9 @@
     flex-direction: column;
     padding: 0.2rem;
     border: 3px solid;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #000;
   }
   .ua-marker div {
     border-top-color: #2196f3;
@@ -62,7 +70,7 @@
     border-left-color: #2196f3;
   }
   .npi-marker div {
-    border-color: #fff;
+    border-color: #07477f;
   }
 }
 

@@ -30,15 +30,19 @@ export default function AnalyticsMapLegend({ items }: AnalyticsMapLegendProps) {
           </div>
           <div className="mt-5">
             {items.map((item, idx) => (
-              <p key={idx} className="text-gray-500 text-xs font-bold">
-                {item.title}
-              </p>
+              <div
+                key={idx}
+                className="text-gray-500 text-xs font-bold flex items-center justify-start gap-1"
+              >
+                <div dangerouslySetInnerHTML={{ __html: item.icon }} />
+                <div>{item.title}</div>
+              </div>
             ))}
           </div>
         </div>
 
         <div>
-          <div className="w-64 h-8 rounded mb-1 flex">
+          <div className=" w-full max-w-64 h-8 rounded mb-1 flex">
             {percentages.map((percent, idx) => {
               const width =
                 idx < percentages.length - 1
@@ -58,7 +62,7 @@ export default function AnalyticsMapLegend({ items }: AnalyticsMapLegendProps) {
             })}
           </div>
           <div
-            className="grid w-64"
+            className="grid w-full max-w-64"
             style={{
               gridTemplateColumns: `repeat(${percentages.length}, 1fr)`,
               columnGap: "20px",
