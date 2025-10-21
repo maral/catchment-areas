@@ -29,7 +29,7 @@ const loadOptions = debounce(
     callback: (options: { label: string; value: SuggestionItem }[]) => void
   ) => {
     fetch(
-      `https://api.mapy.cz/v1/suggest?lang=cs&limit=5&locality=cz&type=regional.address&apikey=${API_KEY}&query=${inputValue}`
+      `https://api.mapy.cz/v1/suggest?lang=cs&limit=5&locality=cz&type=regional.address,regional.municipality&apikey=${API_KEY}&query=${inputValue}`
     )
       .then((response) => response.json())
       .then((jsonData: SuggestionsResponse) => {
