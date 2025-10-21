@@ -1,5 +1,9 @@
 import AnalyticsMap from "@/components/analyticsData/AnalyticsMap";
 import { getSchoolTypeCode } from "@/entities/School";
+import {
+  getAnalyticsDataForCities,
+  getLegendDataForSchoolType,
+} from "@/utils/server/analyticsData";
 import { getCitiesForMap } from "@/utils/server/map";
 import { notFound } from "next/navigation";
 
@@ -14,9 +18,20 @@ export default async function MapPage(props: {
 
   const cities = await getCitiesForMap(schoolTypeCode);
 
+  const citiesData = await getAnalyticsDataForCities();
+
+  const legendData = await getLegendDataForSchoolType(schoolTypeCode);
+
   if (cities === null) {
     notFound();
   }
 
-  return <AnalyticsMap cities={cities} schoolType={schoolTypeCode} />;
+  return (
+    <AnalyticsMap
+      cities={cities}
+      schoolType={schoolTypeCode}
+      citiesData={citiesData}
+      legendData={legendData}
+    />
+  );
 }

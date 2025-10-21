@@ -72,10 +72,18 @@ export const prepareMap = (
 
 let lastListener: () => void;
 
-export const setupPopups = (map: LeafletMap): void => {
-  map.on("popupopen", function (e: PopupEvent) {
+export const setupPopups = (
+  map: LeafletMap,
+  onPopupOpen?: (popup: L.Popup) => void | Promise<void>
+): void => {
+  map.on("popupopen", async function (e: PopupEvent) {
     resetAllHighlights();
     const popup = e.popup;
+
+    if (onPopupOpen) {
+      await onPopupOpen(popup);
+    }
+
     if (isPopupWithMarker(popup)) {
       lastListener = () => {
         centerLeafletMapOnMarker(map, popup.marker);
@@ -479,6 +487,23 @@ export const loadAnalyticsDataByCityCodes = async (
       "Content-Type": "application/json",
     },
     body: JSON.stringify({ cityCodes, schoolType }),
+  });
+
+  if (response.ok) {
+    const analyticsData = await response.json();
+    return analyticsData.data;
+  } else {
+    console.error("Error while loading analytics data");
+    return null;
+  }
+};
+
+export const loadAnalyticsDataForCities = async () => {
+  const response = await fetch("/api/map/analytics-data/cities", {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
   });
 
   if (response.ok) {

@@ -3,21 +3,25 @@
 import { createPublicMap } from "@/components/publicMap/createPublicMap";
 import { SearchInput } from "@/components/publicMap/SearchInput";
 import { SchoolType } from "@/types/basicTypes";
-import { CityOnMap } from "@/types/mapTypes";
+import { CitiesAnalyticsData, CityOnMap, LegendItem } from "@/types/mapTypes";
 import { AcademicCapIcon, PuzzlePieceIcon } from "@heroicons/react/24/solid";
 import "leaflet/dist/leaflet.css";
 import { memo, useEffect, useRef, useState } from "react";
 import { SuggestionItem } from "../../types/suggestionTypes";
 import { texts } from "../../utils/shared/texts";
 import { SwitchButton } from "../buttons/SwitchButton";
+import Analytics from "@/app/admin/analytics/page";
+import AnalyticsMapLegend from "./AnalyticsMapLegend";
 
 interface InnerAnalyticsMapProps {
   cities: CityOnMap[];
+  citiesData?: CitiesAnalyticsData;
   schoolType: SchoolType;
+  legendData?: LegendItem[];
 }
 
 const InnerAnalyticsMap = memo(
-  ({ cities, schoolType }: InnerAnalyticsMapProps) => {
+  ({ cities, schoolType, citiesData, legendData }: InnerAnalyticsMapProps) => {
     const mapRef = useRef<HTMLDivElement>(null);
     const [onSelect, setOnSelect] = useState<(item: SuggestionItem) => void>(
       () => () => {}
@@ -30,7 +34,8 @@ const InnerAnalyticsMap = memo(
           cities,
           true,
           schoolType,
-          true
+          true,
+          citiesData
         );
         if (onSuggestionSelect) {
           setOnSelect(() => onSuggestionSelect);
@@ -77,6 +82,11 @@ const InnerAnalyticsMap = memo(
               />
             </div>
             <div></div>
+          </div>
+          <div className="absolute bottom-[10px] left-[10px] z-1000">
+            {legendData && legendData.length > 0 && (
+              <AnalyticsMapLegend items={legendData} />
+            )}
           </div>
         </div>
       </>

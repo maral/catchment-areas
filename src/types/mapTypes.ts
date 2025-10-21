@@ -1,6 +1,7 @@
 import { FeatureCollection } from "@turf/helpers";
 import { Circle, FeatureGroup, LayerGroup, Marker, Popup } from "leaflet";
 import { Municipality } from "text-to-map";
+import { AnalyticsData } from "../entities/AnalyticsData";
 import { FounderType } from "../entities/Founder";
 import { SuggestionItem } from "./suggestionTypes";
 
@@ -90,3 +91,18 @@ export type CreateMapResult = {
   destructor: () => void;
   onSuggestionSelect: (item: SuggestionItem) => void;
 };
+
+export interface LegendItem {
+  title: string;
+  minValue: string;
+  maxValue: string;
+}
+
+export type CitiesAnalyticsData = Record<
+  number,
+  {
+    earlySchoolLeavers?: AnalyticsData;
+    populationDensity?: AnalyticsData;
+    socialExclusionIndex?: AnalyticsData;
+  }
+>;

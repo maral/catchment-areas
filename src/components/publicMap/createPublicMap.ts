@@ -1,5 +1,10 @@
 import { SchoolType } from "@/types/basicTypes";
-import { CityData, CityOnMap, CreateMapResult } from "@/types/mapTypes";
+import {
+  CitiesAnalyticsData,
+  CityData,
+  CityOnMap,
+  CreateMapResult,
+} from "@/types/mapTypes";
 import { SuggestionItem } from "@/types/suggestionTypes";
 import { onCitiesLoaded, triggerCityLoaded } from "@/utils/client/events";
 import {
@@ -18,6 +23,7 @@ import {
   createCityMarker,
   createSvgIcon,
   createTempMarker,
+  createAnalyticsCityMarker,
 } from "@/utils/client/markers";
 import { texts } from "@/utils/shared/texts";
 import L, { Map as LeafletMap, Marker } from "leaflet";
@@ -37,7 +43,8 @@ export const createPublicMap = (
   cities: CityOnMap[],
   showControls: boolean = true,
   schoolType: SchoolType,
-  showAnalyticsData: boolean = false
+  showAnalyticsData: boolean = false,
+  cityData: CitiesAnalyticsData = {}
 ): CreateMapResult => {
   if (!element || mapInitialized) {
     return {
@@ -82,13 +89,34 @@ export const createPublicMap = (
 
   cities
     .filter((city) => city.isPublished)
-    .forEach((city) =>
-      createCityMarker(city, cityMarkers, citiesMap, bounds, schoolType).addTo(
-        map
-      )
-    );
+    .forEach((city) => {
+      if (isAnalyticsMode) {
+        createAnalyticsCityMarker(
+          city,
+          cityMarkers,
+          citiesMap,
+          bounds,
+          cityData
+        ).addTo(map);
+      } else {
+        createCityMarker(
+          city,
+          cityMarkers,
+          citiesMap,
+          bounds,
+          schoolType
+        ).addTo(map);
+      }
+    });
 
-  setupPopups(map);
+  setupPopups(
+    map,
+    isAnalyticsMode
+      ? async (popup) => {
+          await createAnalyticsPopupContent(popup, schoolType);
+        }
+      : undefined
+  );
 
   map.fitBounds(bounds);
 
@@ -381,6 +409,12 @@ const onSuggestionSelect = (item: SuggestionItem) => {
   map.flyTo([item.position.lat, item.position.lon], 14, {
     duration: flyingTime / 1000,
   });
+
+  //If search item is municipality not address only fly to location without marker
+  if (item.type === "regional.municipality") {
+    return;
+  }
+
   const tempMarker = createTempMarker(item)
     .bindPopup(
       `${createAddressForSuggestionItem(
@@ -443,5 +477,72 @@ const selectAddress = (
 
   if (!found) {
     tempMarker.setPopupContent(getUnknownPopupContent(item));
+  }
+};
+
+const createAnalyticsPopupContent = async (
+  popup: L.Popup,
+  schoolType: SchoolType
+) => {
+  const popupContent = popup.getElement();
+  const cityDataEl = popupContent?.querySelector(".city-data");
+  if (!cityDataEl) {
+    return;
+  }
+
+  const title = `<h5 class="font-semibold mb-1">Statistiky všech ${texts.numberOfSchools(
+    schoolType
+  )}</h5>`;
+
+  cityDataEl.innerHTML = `
+            <div class="mt-2 pt-2 border-t">
+              ${title}
+              <em>Načítání...</em>
+            </div>
+          `;
+
+  const cityCode = cityDataEl.getAttribute("data-city");
+
+  if (!cityCode) {
+    return;
+  }
+
+  const formData = new FormData();
+
+  formData.set("cityCode", cityCode);
+  formData.set("schoolType", schoolType.toString());
+
+  const fetchInfo = await fetch("/api/map/analytics-data/sum", {
+    method: "POST",
+    body: formData,
+  });
+
+  if (fetchInfo.ok) {
+    const body = await fetchInfo.json();
+
+    cityDataEl.innerHTML = `
+              <div class="mt-2 pt-2 border-t">
+                ${title}
+                <ul class="text-xs">
+                  ${
+                    body.data?.totalStudents
+                      ? `<li>${texts.totalStudents}: ${body.data.totalStudents}</li>`
+                      : ""
+                  }
+                  ${
+                    body.data?.totalStudentsUa
+                      ? `<li>${texts.uaStudents}: ${body.data.totalStudentsUa} (${body.data.percentageStudentsUa}%)</li>`
+                      : ""
+                  }
+                  ${
+                    body.data?.consultationsNpi
+                      ? `<li>${texts.analyticsConsultationsNpi}: ${body.data.consultationsNpi}</li>`
+                      : ""
+                  }
+                </ul>
+              </div>
+            `;
+  } else {
+    cityDataEl.innerHTML = `<em>${texts.noData}</em>`;
   }
 };

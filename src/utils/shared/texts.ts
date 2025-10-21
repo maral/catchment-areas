@@ -60,6 +60,7 @@ export const texts = {
   help: "Nápověda",
   importAnalytics: "Importovat data",
   isv: "Index sociálního vyloučení (ISV)",
+  legend: "Legenda",
   logout: "Odhlásit se",
   map: "Mapa",
   mapForPublic: "Mapa pro veřejnost",

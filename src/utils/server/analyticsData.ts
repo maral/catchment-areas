@@ -1,9 +1,11 @@
 import { api } from "@/app/api/[...remult]/api";
 import { AnalyticsData } from "@/entities/AnalyticsData";
 import { School } from "@/entities/School";
+import { CitiesAnalyticsData, LegendItem } from "@/types/mapTypes";
 import { AnalyticsDataType, SchoolType } from "@/types/basicTypes";
 import ExcelJS from "exceljs";
 import { KnexDataProvider } from "remult/remult-knex";
+import { texts } from "@/utils/shared/texts";
 interface ExtractedRowData {
   redIzo: string | null;
   schoolType: SchoolType | null;
@@ -376,6 +378,206 @@ export async function getAnalyticsData(
     });
   } catch (error) {
     console.error("Failed to load analytics data:", error);
+    return [];
+  }
+}
+
+export async function getAnalyticsDataForCities(): Promise<CitiesAnalyticsData> {
+  try {
+    return await api.withRemult(async () => {
+      const knex = KnexDataProvider.getDb();
+
+      // Get only city-level data (no school_izo)
+      const result = await knex("analytics_data")
+        .whereIn("type", [
+          AnalyticsDataType.EarlySchoolLeavers,
+          AnalyticsDataType.PopulationDensity,
+          AnalyticsDataType.SocialExclusionIndex,
+        ])
+        .orderBy("city_code");
+
+      const groupedData: Record<
+        number,
+        {
+          earlySchoolLeavers?: AnalyticsData;
+          populationDensity?: AnalyticsData;
+          socialExclusionIndex?: AnalyticsData;
+        }
+      > = {};
+
+      result.forEach((row: any) => {
+        const cityCode = row.city_code;
+
+        if (!groupedData[cityCode]) {
+          groupedData[cityCode] = {};
+        }
+
+        const analyticsData: AnalyticsData = {
+          id: row.id,
+          school: row.school_izo,
+          type: row.type,
+          percentage: row.percentage,
+          count: row.count,
+          schoolType: row.school_type,
+          city: row.city_code,
+        };
+
+        switch (row.type) {
+          case AnalyticsDataType.EarlySchoolLeavers:
+            groupedData[cityCode].earlySchoolLeavers = analyticsData;
+            break;
+          case AnalyticsDataType.PopulationDensity:
+            groupedData[cityCode].populationDensity = analyticsData;
+            break;
+          case AnalyticsDataType.SocialExclusionIndex:
+            groupedData[cityCode].socialExclusionIndex = analyticsData;
+            break;
+        }
+      });
+
+      return groupedData;
+    });
+  } catch (error) {
+    console.error("Failed to load analytics data for cities:", error);
+    return {};
+  }
+}
+
+export async function getAnalyticsSummaryForCity(
+  cityCode: number,
+  schoolType: SchoolType
+): Promise<{
+  totalStudents: number;
+  totalStudentsUa: number;
+  percentageStudentsUa: number;
+  consultationsNpi: number;
+} | null> {
+  try {
+    return await api.withRemult(async () => {
+      const knex = KnexDataProvider.getDb();
+
+      // Get school data for the specific city and school type
+      const schoolData = await knex("analytics_data")
+        .where("city_code", cityCode)
+        .where((builder) => {
+          builder.where("school_type", schoolType).orWhereNull("school_type");
+        })
+        .whereIn("type", [
+          AnalyticsDataType.StudentsTotal,
+          AnalyticsDataType.StudentsUa,
+          AnalyticsDataType.ConsultationsNpi,
+        ]);
+
+      const sums = {
+        totalStudents: 0,
+        totalStudentsUa: 0,
+        consultationsNpi: 0,
+      };
+
+      schoolData.forEach((row: any) => {
+        switch (row.type) {
+          case AnalyticsDataType.StudentsTotal:
+            sums.totalStudents += row.count;
+            break;
+          case AnalyticsDataType.StudentsUa:
+            sums.totalStudentsUa += row.count;
+            break;
+          case AnalyticsDataType.ConsultationsNpi:
+            sums.consultationsNpi += row.count;
+            break;
+        }
+      });
+
+      const percentageTotalStudentsUa =
+        sums.totalStudents > 0
+          ? Number(
+              ((sums.totalStudentsUa / sums.totalStudents) * 100).toFixed(2)
+            )
+          : 0;
+
+      return {
+        totalStudents: sums.totalStudents,
+        totalStudentsUa: sums.totalStudentsUa,
+        percentageStudentsUa: percentageTotalStudentsUa,
+        consultationsNpi: sums.consultationsNpi,
+      };
+    });
+  } catch (error) {
+    console.error("Failed to load analytics summary for city:", error);
+    return null;
+  }
+}
+
+export async function getLegendDataForSchoolType(
+  schoolType: SchoolType
+): Promise<LegendItem[]> {
+  try {
+    return await api.withRemult(async () => {
+      const knex = KnexDataProvider.getDb();
+
+      const result = await knex("analytics_data")
+        .select(
+          "type",
+          knex.raw("MIN(count) as min_value"),
+          knex.raw("MAX(count) as max_value")
+        )
+        .where((builder) => {
+          builder
+            .where({
+              type: AnalyticsDataType.StudentsUa,
+              school_type: schoolType,
+            })
+            .orWhere({
+              type: AnalyticsDataType.ConsultationsNpi,
+              school_type: schoolType,
+            })
+            .orWhere({
+              type: AnalyticsDataType.SocialExclusionIndex,
+              school_type: null,
+            });
+        })
+        .groupBy("type");
+
+      const legendItems: LegendItem[] = [];
+
+      result.forEach((row: any) => {
+        const minValue = Math.floor(row.min_value || 0);
+        const maxValue = Math.ceil(row.max_value || 0);
+
+        switch (row.type) {
+          case AnalyticsDataType.ConsultationsNpi:
+            // Real count values (1-N)
+            legendItems.push({
+              title: texts.analyticsConsultationsNpi,
+              minValue: String(Math.max(minValue, 1)),
+              maxValue: String(maxValue),
+            });
+            break;
+
+          case AnalyticsDataType.StudentsUa:
+            // Percentage values (0-100%)
+            legendItems.push({
+              title: texts.analyticsUaStudents,
+              minValue: "0 %",
+              maxValue: "100 %",
+            });
+            break;
+
+          case AnalyticsDataType.SocialExclusionIndex:
+            // Real count values (index)
+            legendItems.push({
+              title: texts.isv,
+              minValue: "0",
+              maxValue: String(maxValue),
+            });
+            break;
+        }
+      });
+
+      return legendItems;
+    });
+  } catch (error) {
+    console.error("Failed to load legend data:", error);
     return [];
   }
 }

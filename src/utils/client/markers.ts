@@ -40,16 +40,15 @@ const getAnalyticsMarkerOffset = (type: AnalyticsDataType) => {
   }
 };
 
-//Calculate color from blue (0%) to red (100%)
-function getColorByPercentage(percentage: number): string {
+//Calculate color from green (0%) to red (100%)
+export function getColorByPercentage(percentage: number): string {
   const colorStops = [
-    { percent: 0, r: 100, g: 200, b: 255 }, // light blue
-    { percent: 20, r: 100, g: 255, b: 100 }, // green
-    { percent: 45, r: 255, g: 255, b: 50 }, // yellow
-    { percent: 70, r: 255, g: 150, b: 0 }, // orange
-    { percent: 100, r: 255, g: 50, b: 50 }, // red
+    { percent: 0, r: 76, g: 255, b: 0 }, // bright green
+    { percent: 40, r: 255, g: 255, b: 0 }, // bright yellow
+    { percent: 65, r: 255, g: 165, b: 0 }, // orange
+    { percent: 85, r: 255, g: 50, b: 50 }, // red
+    { percent: 100, r: 200, g: 0, b: 0 }, // dark red
   ];
-
   let lowerStop = colorStops[0];
   let upperStop = colorStops[colorStops.length - 1];
 
@@ -426,6 +425,59 @@ export const createCityMarker = (
         ? `${createCityMarkerButtons(city.code, schoolType)}`
         : "zatím není připraveno"
     }</div>`
+  );
+  marker.setZIndexOffset(city.isPublished ? 1000 : 900);
+  cityMarkers[city.code] = marker;
+  citiesMap[city.code] = city;
+  bounds.extend(marker.getLatLng());
+  return marker;
+};
+
+export const createAnalyticsCityMarker = (
+  city: CityOnMap,
+  cityMarkers: Record<string, Marker>,
+  citiesMap: Record<string, CityOnMap>,
+  bounds: L.LatLngBounds,
+  cityData: Record<
+    number,
+    {
+      earlySchoolLeavers?: AnalyticsData;
+      populationDensity?: AnalyticsData;
+      socialExclusionIndex?: AnalyticsData;
+    }
+  >
+) => {
+  const info = cityData[city.code] || {};
+
+  const cityIcon = createSvgIcon(
+    getColorByPercentage(info.socialExclusionIndex?.percentage ?? 0)
+  );
+
+  const marker = L.marker([city.lat, city.lng], {
+    icon: info.socialExclusionIndex?.count ? cityIcon : notReadyIcon,
+  }).bindPopup(
+    `<div class="flex flex-col gap-2 items-stretch"><h4 class="text-base text-center font-title">${
+      city.name
+    }</h4>
+      <ul>
+        ${
+          info.populationDensity?.count
+            ? `<li>${texts.population}: ${info.populationDensity.count}</li>`
+            : ""
+        }
+        ${
+          info.socialExclusionIndex?.count
+            ? `<li>${texts.isv}: ${info.socialExclusionIndex.count}</li>`
+            : ""
+        }
+        ${
+          info.earlySchoolLeavers?.count
+            ? `<li>${texts.earlySchoolLeavers}: ${info.earlySchoolLeavers.count}</li>`
+            : ""
+        }
+      </ul>
+      <div class="city-data" data-city="${city.code}"></div>
+      </div>`
   );
   marker.setZIndexOffset(city.isPublished ? 1000 : 900);
   cityMarkers[city.code] = marker;
