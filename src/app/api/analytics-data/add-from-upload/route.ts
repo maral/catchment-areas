@@ -4,6 +4,7 @@ import {
   extractDataFromSheet,
   insertAnalyticsDataAndGetResponse,
 } from "@/utils/server/analyticsData";
+import { AnalyticsDataType } from "@/types/basicTypes";
 
 export async function POST(req: NextRequest) {
   if (!(await isLoggedIn())) {
@@ -22,7 +23,44 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: false });
   }
 
-  const extractedData = await extractDataFromSheet(file, dataType);
+  let extractedData = [];
+
+  if (dataType == AnalyticsDataType.SocialExclusionIndex) {
+    const typesToExtract = [
+      AnalyticsDataType.SocialExclusionIndex,
+      AnalyticsDataType.PopulationDensity,
+      AnalyticsDataType.EarlySchoolLeavers,
+    ];
+    const extractedDataArray = [];
+    for (const type of typesToExtract) {
+      const data = await extractDataFromSheet(file, type);
+      if (data.length > 0) {
+        extractedDataArray.push({ dataType: type, data });
+      }
+    }
+
+    const responses = [];
+    for (const item of extractedDataArray) {
+      const response = await insertAnalyticsDataAndGetResponse(
+        item.data,
+        item.dataType
+      );
+      responses.push(response);
+    }
+
+    const insertedCountTotal = responses.reduce(
+      (sum, r) => sum + r.processedCount,
+      0
+    );
+
+    return NextResponse.json({
+      success: responses.every((r) => r.success),
+      message: `Successfully inserted ${insertedCountTotal} records`,
+      processedCount: insertedCountTotal,
+    });
+  } else {
+    extractedData = await extractDataFromSheet(file, dataType);
+  }
 
   if (extractedData.length === 0) {
     return NextResponse.json({

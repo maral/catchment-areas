@@ -38,6 +38,7 @@ export const texts = {
   downloadJson: "Stáhnout JSON",
   downloadOrdinanceDocument: "Stáhnout dokument vyhlášky",
   downloadSmd: "Stáhnout SMD",
+  earlySchoolLeavers: "Počet předčasných odchodů ze škol",
   edit: "Upravit",
   editedAt: "Datum úpravy",
   editor: "Editor",
@@ -58,6 +59,7 @@ export const texts = {
   gpt: "GPT",
   help: "Nápověda",
   importAnalytics: "Importovat data",
+  isv: "Index sociálního vyloučení (ISV)",
   logout: "Odhlásit se",
   map: "Mapa",
   mapForPublic: "Mapa pro veřejnost",
@@ -79,10 +81,15 @@ export const texts = {
   noDataOrdinanceFromRegister:
     "Obec {{city}} nemá ve Sbírce právních předpisů nahranou žádnou vyhlášku.",
   notRegistered: "neregistrovaný",
-  numberOfSchools: (schoolType: SchoolType) =>
-    schoolType === SchoolType.Elementary
-      ? "Počet zakladních škol"
-      : "Počet mateřských škol",
+  numberOfSchools: (schoolType?: SchoolType) => {
+    if (schoolType === undefined) {
+      return "Počet škol";
+    } else {
+      return schoolType === SchoolType.Elementary
+        ? "Počet zakladních škol"
+        : "Počet mateřských škol";
+    }
+  },
   ordinanceDocument: "Dokument vyhlášky",
   ordinanceFile: "Soubor vyhlášky",
   ordinanceName: "Název vyhlášky",
@@ -91,6 +98,7 @@ export const texts = {
   ordinances: "Vyhlášky",
   originalText: "Původní text",
   polygons: "Oblasti",
+  population: "Počet obyvatel",
   progress: "Přehled",
   region: "Kraj",
   reject: "Zamítnout",

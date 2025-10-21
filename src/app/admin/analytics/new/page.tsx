@@ -4,7 +4,7 @@ import { texts } from "@/utils/shared/texts";
 
 export default function AddAnalytics() {
   return (
-    <Card className="w-1/2 mx-auto my-12">
+    <Card className="w-2/3 mx-auto my-12">
       <CardHeader>
         <CardTitle>{texts.addAnalyticsData}</CardTitle>
       </CardHeader>

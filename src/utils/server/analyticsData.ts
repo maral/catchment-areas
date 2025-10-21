@@ -5,9 +5,10 @@ import { AnalyticsDataType, SchoolType } from "@/types/basicTypes";
 import ExcelJS from "exceljs";
 import { KnexDataProvider } from "remult/remult-knex";
 interface ExtractedRowData {
-  redIzo: string;
-  schoolType: SchoolType;
+  redIzo: string | null;
+  schoolType: SchoolType | null;
   value: number;
+  cityCode: number | null;
 }
 
 const ANALYTICS_DATA_SETTINGS: Record<
@@ -15,10 +16,11 @@ const ANALYTICS_DATA_SETTINGS: Record<
   {
     headerRowIndex: number;
     sheetIndex: number;
-    redIzoIndex: number;
-    schoolTypeIndex: number;
-    valueIndex: number;
-    valueTwoIndex: number;
+    redIzoIndex: number | null;
+    schoolTypeIndex: number | null;
+    valueIndex: number; // For Kindergarten
+    valueTwoIndex: number; // For Elementary
+    cityCodeIndex: number | null;
   }
 > = {
   [AnalyticsDataType.StudentsTotal]: {
@@ -28,6 +30,7 @@ const ANALYTICS_DATA_SETTINGS: Record<
     schoolTypeIndex: 15,
     valueIndex: 21,
     valueTwoIndex: 29,
+    cityCodeIndex: null,
   },
   [AnalyticsDataType.StudentsUa]: {
     headerRowIndex: 4,
@@ -36,6 +39,7 @@ const ANALYTICS_DATA_SETTINGS: Record<
     schoolTypeIndex: 12,
     valueIndex: 14,
     valueTwoIndex: 16,
+    cityCodeIndex: null,
   },
   [AnalyticsDataType.ConsultationsNpi]: {
     headerRowIndex: 3,
@@ -44,6 +48,34 @@ const ANALYTICS_DATA_SETTINGS: Record<
     schoolTypeIndex: 9,
     valueIndex: 26,
     valueTwoIndex: 26,
+    cityCodeIndex: null,
+  },
+  [AnalyticsDataType.SocialExclusionIndex]: {
+    headerRowIndex: 3,
+    sheetIndex: 0,
+    redIzoIndex: null,
+    schoolTypeIndex: null,
+    valueIndex: 12,
+    valueTwoIndex: 12,
+    cityCodeIndex: 1,
+  },
+  [AnalyticsDataType.PopulationDensity]: {
+    headerRowIndex: 3,
+    sheetIndex: 0,
+    redIzoIndex: null,
+    schoolTypeIndex: null,
+    valueIndex: 11,
+    valueTwoIndex: 11,
+    cityCodeIndex: 1,
+  },
+  [AnalyticsDataType.EarlySchoolLeavers]: {
+    headerRowIndex: 3,
+    sheetIndex: 0,
+    redIzoIndex: null,
+    schoolTypeIndex: null,
+    valueIndex: 17,
+    valueTwoIndex: 17,
+    cityCodeIndex: 1,
   },
 };
 
@@ -68,6 +100,7 @@ export async function extractDataFromSheet(
     schoolTypeIndex,
     valueIndex,
     valueTwoIndex,
+    cityCodeIndex,
   } = ANALYTICS_DATA_SETTINGS[dataType];
 
   try {
@@ -84,18 +117,30 @@ export async function extractDataFromSheet(
 
     worksheet.eachRow((row, rowNumber) => {
       if (rowNumber > headerRowIndex) {
-        const redIzoCell = row.getCell(redIzoIndex);
-        const schoolTypeCell = row.getCell(schoolTypeIndex);
+        let redIzo = null;
+        let redIzoCell = null;
+        let cityCodeCell = null;
+        let schoolTypeCell = null;
+        let schoolType = null;
+        let cityCode = null;
 
-        if (!redIzoCell.value || !schoolTypeCell.value) return;
-
-        const redIzo = String(redIzoCell.value).trim();
-        const schoolType = getSchoolTypeFromCell(String(schoolTypeCell.value));
-
-        if (schoolType === null) return;
+        if (redIzoIndex !== null) {
+          redIzoCell = row.getCell(redIzoIndex);
+          if (!redIzoCell.value) return;
+          redIzo = String(redIzoCell.value).trim();
+        }
+        if (schoolTypeIndex !== null) {
+          schoolTypeCell = row.getCell(schoolTypeIndex);
+          if (!schoolTypeCell.value) return;
+          schoolType = getSchoolTypeFromCell(String(schoolTypeCell.value));
+          if (schoolType === null) return;
+        }
 
         const valuePosition =
-          schoolType === SchoolType.Kindergarten ? valueIndex : valueTwoIndex;
+          schoolTypeIndex === null || schoolType === SchoolType.Kindergarten
+            ? valueIndex
+            : valueTwoIndex;
+
         const valueCell = row.getCell(valuePosition);
 
         if (!valueCell.value) return;
@@ -103,14 +148,22 @@ export async function extractDataFromSheet(
         const value = Number(valueCell.value);
         if (isNaN(value) || value < 0) return;
 
+        if (cityCodeIndex !== null) {
+          cityCodeCell = row.getCell(cityCodeIndex);
+          if (!cityCodeCell.value) return;
+          cityCode = Number(cityCodeCell.value);
+          if (isNaN(cityCode) || cityCode < 0) return;
+        }
+
         data.push({
           redIzo,
           schoolType,
           value,
+          cityCode,
         });
       }
     });
-
+    console.log("Extracted rows:", data.length, data);
     return data;
   } catch (err) {
     console.error("Failed to extract data from Excel sheet:", err);
@@ -155,63 +208,106 @@ async function insertAnalyticsData(
         .where({ type: Number(dataType) })
         .del();
 
-      // Load schools from cities with 2+ schools of the relevant type (I assume that school count doesn't change much if at all, so we can filter it here and not at every api request)
-      const relevantSchools = await knex("school as s")
-        .join("school_founder as sf", "s.izo", "sf.school_izo")
-        .join("founder as f", "sf.founder_id", "f.id")
-        .join("city as c", "f.city_code", "c.code")
-        .where("c.school_count", ">=", 2)
-        .orWhere("c.kindergarten_count", ">=", 2)
-        .select("s.*", "c.code as city_code");
-
-      const schoolsMap = new Map<string, School & { city_code: number }>();
-      for (const school of relevantSchools) {
-        const key = `${school.redizo}:${school.type}`;
-        schoolsMap.set(key, school);
-      }
-
       // Prepare data for insert to DB
       const sqlInsertData: Array<{
-        school_izo: string;
+        school_izo: string | null;
         type: number;
         count: number;
         percentage: number | null;
-        school_type: SchoolType;
-        city_code: number;
+        school_type: SchoolType | null;
+        city_code: number | null;
       }> = [];
 
-      let globalMaxValue = 0;
+      if (
+        dataType === AnalyticsDataType.SocialExclusionIndex ||
+        dataType === AnalyticsDataType.PopulationDensity ||
+        dataType === AnalyticsDataType.EarlySchoolLeavers
+      ) {
+        const relevantCities = await knex("city as c")
+          .where("c.school_count", ">=", 2)
+          .orWhere("c.kindergarten_count", ">=", 2)
+          .select("c.*");
 
-      // Find N for ConsultationsNpi (1-N scale to show in map)
-      if (dataType === AnalyticsDataType.ConsultationsNpi) {
-        globalMaxValue = Math.max(...data.map((row) => row.value));
-      }
+        const citiesMap = new Map<number, any>();
+        for (const city of relevantCities) {
+          citiesMap.set(city.code, city);
+        }
 
-      // Then prepare data with percentages
-      for (const row of data) {
-        const schoolKey = `${row.redIzo}:${row.schoolType}`;
-        const school = schoolsMap.get(schoolKey);
+        let maxValue = 0;
+        let percentage = null;
 
-        if (school) {
-          let percentage = null;
+        if (dataType === AnalyticsDataType.SocialExclusionIndex) {
+          maxValue = Math.max(...data.map((row) => row.value));
+        }
 
-          if (
-            dataType === AnalyticsDataType.ConsultationsNpi &&
-            globalMaxValue > 0
-          ) {
-            percentage = Number(
-              ((row.value / globalMaxValue) * 100).toFixed(2)
-            );
+        for (const row of data) {
+          if (row.cityCode && citiesMap.has(row.cityCode)) {
+            if (
+              dataType === AnalyticsDataType.SocialExclusionIndex &&
+              maxValue > 0
+            ) {
+              percentage = Number(((row.value / maxValue) * 100).toFixed(2));
+            } else {
+              percentage = null;
+            }
+
+            sqlInsertData.push({
+              school_izo: null,
+              type: Number(dataType),
+              count: row.value,
+              percentage,
+              school_type: null,
+              city_code: row.cityCode,
+            });
           }
+        }
+      } else {
+        // Load schools from cities with 2+ schools of the relevant type (I assume that school count doesn't change much if at all, so we can filter it here and not at every api request)
+        const relevantSchools = await knex("school as s")
+          .join("school_founder as sf", "s.izo", "sf.school_izo")
+          .join("founder as f", "sf.founder_id", "f.id")
+          .join("city as c", "f.city_code", "c.code")
+          .where("c.school_count", ">=", 2)
+          .orWhere("c.kindergarten_count", ">=", 2)
+          .select("s.*", "c.code as city_code");
 
-          sqlInsertData.push({
-            school_izo: school.izo,
-            type: Number(dataType),
-            count: row.value,
-            percentage,
-            school_type: school.type,
-            city_code: school.city_code,
-          });
+        const schoolsMap = new Map<string, School & { city_code: number }>();
+        for (const school of relevantSchools) {
+          const key = `${school.redizo}:${school.type}`;
+          schoolsMap.set(key, school);
+        }
+        let globalMaxValue = 0;
+
+        // Find N for ConsultationsNpi (1-N scale to show in map)
+        if (dataType === AnalyticsDataType.ConsultationsNpi) {
+          globalMaxValue = Math.max(...data.map((row) => row.value));
+        }
+
+        for (const row of data) {
+          const schoolKey = `${row.redIzo}:${row.schoolType}`;
+          const school = schoolsMap.get(schoolKey);
+
+          if (school) {
+            let percentage = null;
+
+            if (
+              dataType === AnalyticsDataType.ConsultationsNpi &&
+              globalMaxValue > 0
+            ) {
+              percentage = Number(
+                ((row.value / globalMaxValue) * 100).toFixed(2)
+              );
+            }
+
+            sqlInsertData.push({
+              school_izo: school.izo,
+              type: Number(dataType),
+              count: row.value,
+              percentage,
+              school_type: school.type,
+              city_code: school.city_code,
+            });
+          }
         }
       }
 

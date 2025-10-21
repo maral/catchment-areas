@@ -13,6 +13,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionTrigger,
+  AccordionItem,
+} from "@/components/ui/accordion";
 import { SchoolType } from "@/types/basicTypes";
 import { texts } from "@/utils/shared/texts";
 
@@ -39,7 +45,11 @@ export default async function Analytics(props: {
       dataTypeCode,
       cityCode
     );
-    return { data, count: data.length };
+    const totalSchools = data.reduce(
+      (sum, city) => sum + city.schools.length,
+      0
+    );
+    return { data, count: totalSchools };
   });
 
   const cities = await api.withRemult(async () => {
@@ -72,50 +82,135 @@ export default async function Analytics(props: {
         <Table>
           <colgroup>
             <col span={1} style={{ width: "40%" }} />
-            <col span={1} style={{ width: "10%" }} />
-            <col span={1} style={{ width: "10%" }} />
-            <col span={1} style={{ width: "10%" }} />
-            <col span={1} style={{ width: "10%" }} />
-            <col span={1} style={{ width: "10%" }} />
+            <col span={1} style={{ width: "20%" }} />
+            <col span={1} style={{ width: "20%" }} />
+            <col span={1} style={{ width: "20%" }} />
           </colgroup>
           <TableHeader>
             <TableRow>
-              <TableHead>{texts.school}</TableHead>
-              <TableHead>{texts.city}</TableHead>
-              <TableHead>{texts.schoolType}</TableHead>
-              <TableHead className="whitespace-break-spaces">
-                {texts.analyticsTotalStudents}
+              <TableHead>
+                {texts.city} ({texts.numberOfSchools()})
               </TableHead>
-              <TableHead className="whitespace-break-spaces">
-                {texts.analyticsUaStudents}
-              </TableHead>
-              <TableHead className="whitespace-break-spaces">
-                {texts.analyticsConsultationsNpi}
-              </TableHead>
+              <TableHead>{texts.population}</TableHead>
+              <TableHead>{texts.isv}</TableHead>
+              <TableHead>{texts.earlySchoolLeavers}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {data.map((item, index) => (
-              <TableRow key={`${item.school.izo}:${item.school.type}`}>
-                <TableCell className="whitespace-break-spaces">
-                  {item.school.name}
+            {data.map((cityEntry, cityIndex) => (
+              <TableRow key={cityEntry.city.code}>
+                <TableCell colSpan={4} className="p-0">
+                  <Accordion
+                    type="single"
+                    collapsible
+                    defaultValue={`city-${cityEntry.city.code}`}
+                  >
+                    <AccordionItem value={`city-${cityEntry.city.code}`}>
+                      <AccordionTrigger className="hover:no-underline cursor-pointer p-0 bg-muted/50">
+                        <Table className="w-full">
+                          <colgroup>
+                            <col span={1} style={{ width: "40%" }} />
+                            <col span={1} style={{ width: "20%" }} />
+                            <col span={1} style={{ width: "20%" }} />
+                            <col span={1} style={{ width: "20%" }} />
+                          </colgroup>
+                          <TableBody>
+                            <TableRow className="border-0  hover:bg-transparent font-bold">
+                              <TableCell className="py-4">
+                                {cityEntry.city.name} (
+                                {cityEntry.schools.length})
+                              </TableCell>
+                              <TableCell className="py-4">
+                                {cityEntry.populationDensity?.count || "-"}
+                              </TableCell>
+                              <TableCell className="py-4">
+                                {cityEntry.socialExclusionIndex?.count || "-"}
+                              </TableCell>
+                              <TableCell className="py-4">
+                                {cityEntry.earlySchoolLeavers?.count || "-"}
+                              </TableCell>
+                            </TableRow>
+                          </TableBody>
+                        </Table>
+                      </AccordionTrigger>
+                      <AccordionContent className="border-t">
+                        {cityEntry.schools.length > 0 ? (
+                          <Table>
+                            <colgroup>
+                              <col span={1} style={{ width: "25%" }} />
+                              <col span={1} style={{ width: "15%" }} />
+                              <col span={1} style={{ width: "20%" }} />
+                              <col span={1} style={{ width: "20%" }} />
+                              <col span={1} style={{ width: "20%" }} />
+                            </colgroup>
+                            <TableHeader>
+                              <TableRow className="text-xs ">
+                                <TableHead className="font-semibold">
+                                  {texts.school}
+                                </TableHead>
+                                <TableHead className="font-semibold">
+                                  {texts.schoolType}
+                                </TableHead>
+                                <TableHead className="whitespace-break-spaces font-semibold">
+                                  {texts.analyticsTotalStudents}
+                                </TableHead>
+                                <TableHead className="whitespace-break-spaces font-semibold">
+                                  {texts.analyticsUaStudents}
+                                </TableHead>
+                                <TableHead className="whitespace-break-spaces font-semibold">
+                                  {texts.analyticsConsultationsNpi}
+                                </TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {cityEntry.schools.map((schoolItem: any) => (
+                                <TableRow
+                                  key={`${schoolItem.school.izo}:${schoolItem.school.type}`}
+                                >
+                                  <TableCell className="whitespace-break-spaces">
+                                    {schoolItem.school.name}
+                                  </TableCell>
+                                  <TableCell>
+                                    {schoolItem.school.type ===
+                                    SchoolType.Kindergarten
+                                      ? "MŠ"
+                                      : "ZŠ"}
+                                  </TableCell>
+                                  <TableCell>
+                                    {schoolItem.analytics.total?.count || "-"}
+                                  </TableCell>
+                                  <TableCell>
+                                    {schoolItem.analytics.studentsUa?.count ? (
+                                      <>
+                                        {schoolItem.analytics.studentsUa.count}{" "}
+                                        (
+                                        {
+                                          schoolItem.analytics.studentsUa
+                                            .percentage
+                                        }
+                                        %)
+                                      </>
+                                    ) : (
+                                      "-"
+                                    )}
+                                  </TableCell>
+                                  <TableCell>
+                                    {schoolItem.analytics.consultationsNpi
+                                      ?.count || "-"}
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        ) : (
+                          <div className="p-4 text-sm text-muted-foreground">
+                            {texts.noData}
+                          </div>
+                        )}
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
                 </TableCell>
-                <TableCell>{item.city.name}</TableCell>
-                <TableCell>
-                  {item.school.type === SchoolType.Kindergarten ? "MŠ" : "ZŠ"}
-                </TableCell>
-                <TableCell>{item.analytics.total?.count}</TableCell>
-                <TableCell>
-                  {item.analytics.studentsUa?.count ? (
-                    <>
-                      {item.analytics.studentsUa.count} (
-                      {item.analytics.studentsUa.percentage}%)
-                    </>
-                  ) : (
-                    ""
-                  )}
-                </TableCell>
-                <TableCell>{item.analytics.consultationsNpi?.count}</TableCell>
               </TableRow>
             ))}
           </TableBody>

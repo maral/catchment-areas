@@ -33,6 +33,10 @@ const dataTypes: Array<{ value: AnalyticsDataType; label: string }> = [
     value: AnalyticsDataType.ConsultationsNpi,
     label: texts.analyticsConsultationsNpi,
   },
+  {
+    value: AnalyticsDataType.SocialExclusionIndex,
+    label: texts.isv,
+  },
 ];
 
 const validationSchema = Yup.object({

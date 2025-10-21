@@ -10,8 +10,8 @@ export class AnalyticsData {
   @Fields.autoIncrement()
   id = 0;
 
-  @Field(() => School, { dbName: "school_izo", lazy: true })
-  school!: School;
+  @Field(() => School, { dbName: "school_izo", lazy: true, allowNull: true })
+  school?: School;
 
   @Fields.integer()
   type: number = AnalyticsDataType.StudentsTotal;
@@ -22,9 +22,9 @@ export class AnalyticsData {
   @Fields.integer()
   count: number = 0;
 
-  @Fields.integer({ dbName: "school_type" })
-  schoolType: number = SchoolType.Kindergarten;
+  @Fields.integer({ dbName: "school_type", allowNull: true })
+  schoolType: number | null = SchoolType.Kindergarten;
 
-  @Field(() => City, { dbName: "city_code", lazy: true })
-  city!: City;
+  @Field(() => City, { dbName: "city_code", lazy: true, allowNull: true })
+  city?: City;
 }
