@@ -32,9 +32,9 @@ type MarkersToCreate = Record<
 const getAnalyticsMarkerOffset = (type: AnalyticsDataType) => {
   switch (type) {
     case AnalyticsDataType.StudentsUa:
-      return { lat: 0, lng: -0.0005 };
+      return { lat: 0, lng: -0.001 };
     case AnalyticsDataType.ConsultationsNpi:
-      return { lat: 0, lng: 0.0005 };
+      return { lat: 0, lng: 0.001 };
     default:
       return { lat: 0, lng: 0 };
   }
@@ -78,12 +78,21 @@ export function getColorByPercentage(percentage: number): string {
   return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
 }
 
-const createAnalyticsMarker = (school: School, analytics: AnalyticsData) => {
+const createAnalyticsMarker = (
+  school: School,
+  analytics: AnalyticsData,
+  schoolColor: string
+): { marker: L.Marker; line: L.Polyline } => {
   const offset = getAnalyticsMarkerOffset(analytics.type);
 
-  const position: [number, number] = [
-    (school.position?.lat ?? defaultPosition[0]) + offset.lat,
-    (school.position?.lng ?? defaultPosition[1]) + offset.lng,
+  const schoolPosition: [number, number] = [
+    school.position?.lat ?? defaultPosition[0],
+    school.position?.lng ?? defaultPosition[1],
+  ];
+
+  const markerPosition: [number, number] = [
+    schoolPosition[0] + offset.lat,
+    schoolPosition[1] + offset.lng,
   ];
 
   const tooltip = L.tooltip({
@@ -120,12 +129,22 @@ const createAnalyticsMarker = (school: School, analytics: AnalyticsData) => {
       ${dataToShow}
     </div>`,
     iconSize: [30, 30],
+    iconAnchor: [15, 15],
   });
 
-  return L.marker(position, {
+  const marker = L.marker(markerPosition, {
     icon: analyticsDiv,
     riseOnHover: true,
   }).bindTooltip(tooltip);
+
+  const line = L.polyline([markerPosition, schoolPosition], {
+    color: schoolColor,
+    weight: 2,
+    opacity: 1,
+    interactive: false,
+  });
+
+  return { marker, line };
 };
 
 export const createMarkers = ({
@@ -232,13 +251,18 @@ export const createMarkers = ({
 
       if (!school) return;
 
-      const marker = createAnalyticsMarker(school, analytics);
+      const { marker, line } = createAnalyticsMarker(
+        school,
+        analytics,
+        schoolColors[school.izo]
+      );
 
       const targetGroup =
         analytics.type === AnalyticsDataType.StudentsUa
           ? analyticsUaLayerGroup
           : analyticsNpiLayerGroup;
 
+      targetGroup.addLayer(line);
       targetGroup.addLayer(marker);
     });
   }
