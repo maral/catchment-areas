@@ -1,5 +1,6 @@
 import { SchoolType } from "@/types/basicTypes";
 import {
+  AnalyticsMarker,
   CitiesAnalyticsData,
   CityData,
   CityOnMap,
@@ -24,6 +25,7 @@ import {
   createSvgIcon,
   createTempMarker,
   createAnalyticsCityMarker,
+  updateAnalyticsMarkerForZoom,
 } from "@/utils/client/markers";
 import { texts } from "@/utils/shared/texts";
 import L, { Map as LeafletMap, Marker } from "leaflet";
@@ -124,7 +126,8 @@ export const createPublicMap = (
     map,
     cityMarkers,
     citiesMap,
-    schoolType
+    schoolType,
+    isAnalyticsMode
   );
   map.on("zoom", zoomEndHandler);
   map.on("move", zoomEndHandler);
@@ -146,14 +149,40 @@ const loadingCities = new Set<number>();
 const citiesWithShownSchools = new Set<number>();
 const citiesWithShownAddresses = new Set<number>();
 
+const updateAllAnalyticsMarkers = (currentZoom: number) => {
+  loadedCities.forEach((cityData) => {
+    [cityData.analyticsUaLayerGroup, cityData.analyticsNpiLayerGroup].forEach(
+      (layerGroup) => {
+        layerGroup?.eachLayer((layer) => {
+          const marker = layer as AnalyticsMarker;
+
+          if (marker.analyticsInfo && marker.analyticsLine) {
+            updateAnalyticsMarkerForZoom(
+              {
+                marker: marker,
+                line: marker.analyticsLine,
+                ...marker.analyticsInfo,
+              },
+              currentZoom
+            );
+          }
+        });
+      }
+    );
+  });
+};
+
 const createPublicMoveAndZoomEndHandler = (
   map: LeafletMap,
   cityMarkers: Record<string, Marker>,
   citiesMap: Record<string, CityOnMap>,
-  schoolType: SchoolType
+  schoolType: SchoolType,
+  analyticsMode: boolean
 ) => {
   return debounce(async () => {
-    if (map.getZoom() >= minZoomForLoadingCities) {
+    const currentZoom = map.getZoom();
+
+    if (currentZoom >= minZoomForLoadingCities) {
       const publishedCitiesInViewport = getPublishedCitiesInViewport(
         map,
         cityMarkers
@@ -173,7 +202,7 @@ const createPublicMoveAndZoomEndHandler = (
         }
       });
 
-      if (map.getZoom() >= minZoomForAddressPoints) {
+      if (currentZoom >= minZoomForAddressPoints) {
         // show addresses of cities in viewport
         publishedCitiesInViewport.forEach((city) => {
           showAddresses(city.code);
@@ -194,11 +223,15 @@ const createPublicMoveAndZoomEndHandler = (
       resetAllHighlights({ exceptAddressHighlights: true });
     }
 
-    if (map.getZoom() < minZoomForAddressPoints) {
+    if (currentZoom < minZoomForAddressPoints) {
       // hide all addresses
       citiesWithShownAddresses.forEach((code) => {
         hideAddresses(code);
       });
+    }
+
+    if (analyticsMode) {
+      updateAllAnalyticsMarkers(currentZoom);
     }
   }, loadCitiesDebounceTime);
 };
@@ -368,6 +401,7 @@ const loadNewCities = async (
           data: result[Number(id)],
           cityCode: id,
           analyticsData: analyticsResult,
+          currentZoom: map.getZoom(),
         });
 
         loadedCities.set(Number(id), {

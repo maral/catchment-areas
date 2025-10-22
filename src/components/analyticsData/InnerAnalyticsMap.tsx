@@ -10,7 +10,6 @@ import { memo, useEffect, useRef, useState } from "react";
 import { SuggestionItem } from "../../types/suggestionTypes";
 import { texts } from "../../utils/shared/texts";
 import { SwitchButton } from "../buttons/SwitchButton";
-import Analytics from "@/app/admin/analytics/page";
 import AnalyticsMapLegend from "./AnalyticsMapLegend";
 
 interface InnerAnalyticsMapProps {

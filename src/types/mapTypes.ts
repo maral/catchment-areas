@@ -1,6 +1,13 @@
 import { FeatureCollection } from "@turf/helpers";
-import { Circle, FeatureGroup, LayerGroup, Marker, Popup } from "leaflet";
-import { Municipality } from "text-to-map";
+import {
+  Circle,
+  FeatureGroup,
+  LayerGroup,
+  Marker,
+  Popup,
+  Polyline,
+} from "leaflet";
+import { Municipality, School } from "text-to-map";
 import { AnalyticsData } from "../entities/AnalyticsData";
 import { FounderType } from "../entities/Founder";
 import { SuggestionItem } from "./suggestionTypes";
@@ -17,6 +24,19 @@ export interface PopupWithMarker extends Popup {
 
 export const isPopupWithMarker = (popup: Popup): popup is PopupWithMarker => {
   return popup.hasOwnProperty("marker");
+};
+
+export type AnalyticsMarkerInfo = {
+  school: School;
+  analytics: AnalyticsData;
+  schoolColor: string;
+  markerIndex: number;
+  totalMarkers: number;
+};
+
+export type AnalyticsMarker = Marker & {
+  analyticsInfo: AnalyticsMarkerInfo;
+  analyticsLine: Polyline;
 };
 
 export type SchoolMarkerMap = Record<string, SchoolMarker>;

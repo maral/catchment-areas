@@ -5,6 +5,8 @@ import {
   AddressLayerGroup,
   AddressMarkerMap,
   AddressesLayerGroup,
+  AnalyticsMarker,
+  AnalyticsMarkerInfo,
   CityOnMap,
   DataForMap,
   MapOptions,
@@ -23,21 +25,88 @@ import { AnalyticsData } from "@/entities/AnalyticsData";
 import { texts } from "../shared/texts";
 
 const unmappedMarkerColor = "#ff0000";
+const defaultPosition = [49.19506, 16.606837];
 
 type MarkersToCreate = Record<
   string,
   { point: ExportAddressPoint; areas: Area[] }
 >;
 
-const getAnalyticsMarkerOffset = (type: AnalyticsDataType) => {
-  switch (type) {
-    case AnalyticsDataType.StudentsUa:
-      return { lat: 0, lng: -0.001 };
-    case AnalyticsDataType.ConsultationsNpi:
-      return { lat: 0, lng: 0.001 };
-    default:
-      return { lat: 0, lng: 0 };
-  }
+const getAnalyticsMarkerPosition = (
+  schoolLat: number,
+  schoolLng: number,
+  markerIndex: number,
+  totalMarkers: number,
+  zoom: number = 11
+): [number, number] => {
+  const baseRadius = 0.0008;
+  const radius = Math.max(
+    0.00015,
+    Math.min(0.003, baseRadius * Math.pow(1.5, 15 - zoom))
+  );
+  const angle = (360 / totalMarkers) * markerIndex;
+
+  const [lng, lat] = rotatePointOnCircle(schoolLng, schoolLat, radius, angle);
+
+  return [lat, lng];
+};
+
+//linear interpolation for size of icon based on zoom level
+const getAnalyticsIconSize = (zoom: number = 11): number => {
+  const size = 20 + Math.max(0, Math.min(6, zoom - 11)) * (20 / 6);
+  return Math.round(size);
+};
+
+const createAnalyticsDivIcon = (
+  analytics: AnalyticsData,
+  zoom: number
+): L.DivIcon => {
+  const dataToShow =
+    analytics.type === AnalyticsDataType.StudentsUa
+      ? `${analytics.percentage?.toFixed(0)}%`
+      : `${analytics.count}`;
+
+  const iconSize = getAnalyticsIconSize(zoom);
+  const iconAnchor = iconSize / 2;
+
+  return L.divIcon({
+    className:
+      analytics.type === AnalyticsDataType.StudentsUa
+        ? "ua-marker"
+        : "npi-marker",
+    html: `<div style="background: ${getColorByPercentage(
+      analytics.percentage ?? 0
+    )};">
+      ${dataToShow}
+    </div>`,
+    iconSize: [iconSize, iconSize],
+    iconAnchor: [iconAnchor, iconAnchor],
+  });
+};
+
+export const updateAnalyticsMarkerForZoom = (
+  markerInfo: AnalyticsMarkerInfo & {
+    marker: L.Marker;
+    line: L.Polyline;
+  },
+  zoom: number
+) => {
+  const schoolPosition: [number, number] = [
+    markerInfo.school.position?.lat ?? defaultPosition[0],
+    markerInfo.school.position?.lng ?? defaultPosition[1],
+  ];
+
+  const newPosition = getAnalyticsMarkerPosition(
+    schoolPosition[0],
+    schoolPosition[1],
+    markerInfo.markerIndex,
+    markerInfo.totalMarkers,
+    zoom
+  );
+
+  markerInfo.marker.setLatLng(newPosition);
+  markerInfo.line.setLatLngs([newPosition, schoolPosition]);
+  markerInfo.marker.setIcon(createAnalyticsDivIcon(markerInfo.analytics, zoom));
 };
 
 //Calculate color from green (0%) to red (100%)
@@ -81,19 +150,24 @@ export function getColorByPercentage(percentage: number): string {
 const createAnalyticsMarker = (
   school: School,
   analytics: AnalyticsData,
-  schoolColor: string
+  schoolColor: string,
+  markerIndex: number,
+  totalMarkers: number,
+  zoom: number = 11
 ): { marker: L.Marker; line: L.Polyline } => {
-  const offset = getAnalyticsMarkerOffset(analytics.type);
-
   const schoolPosition: [number, number] = [
     school.position?.lat ?? defaultPosition[0],
     school.position?.lng ?? defaultPosition[1],
   ];
 
-  const markerPosition: [number, number] = [
-    schoolPosition[0] + offset.lat,
-    schoolPosition[1] + offset.lng,
-  ];
+  // Calculate dynamic position based on zoom and marker index
+  const markerPosition: [number, number] = getAnalyticsMarkerPosition(
+    schoolPosition[0],
+    schoolPosition[1],
+    markerIndex,
+    totalMarkers,
+    zoom
+  );
 
   const tooltip = L.tooltip({
     direction: "top",
@@ -113,27 +187,8 @@ const createAnalyticsMarker = (
     opacity: 1,
   });
 
-  const dataToShow =
-    analytics.type === AnalyticsDataType.StudentsUa
-      ? `${analytics.percentage?.toFixed(0)}%`
-      : `${analytics.count}`;
-
-  const analyticsDiv = L.divIcon({
-    className:
-      analytics.type === AnalyticsDataType.StudentsUa
-        ? "ua-marker"
-        : "npi-marker",
-    html: `<div style="background: ${getColorByPercentage(
-      analytics.percentage ?? 0
-    )};">
-      ${dataToShow}
-    </div>`,
-    iconSize: [30, 30],
-    iconAnchor: [15, 15],
-  });
-
   const marker = L.marker(markerPosition, {
-    icon: analyticsDiv,
+    icon: createAnalyticsDivIcon(analytics, zoom),
     riseOnHover: true,
   }).bindTooltip(tooltip);
 
@@ -161,6 +216,7 @@ export const createMarkers = ({
   analyticsUaLayerGroup,
   analyticsNpiLayerGroup,
   options,
+  currentZoom,
 }: {
   data: DataForMap;
   municipalityLayerGroups: AddressLayerGroup[];
@@ -175,6 +231,7 @@ export const createMarkers = ({
   analyticsUaLayerGroup?: LayerGroup;
   analyticsNpiLayerGroup?: LayerGroup;
   options: MapOptions;
+  currentZoom?: number;
 }) => {
   const markersToCreate: MarkersToCreate = {};
   const schoolColors: Record<string, string> = {};
@@ -243,28 +300,60 @@ export const createMarkers = ({
     analyticsUaLayerGroup &&
     analyticsNpiLayerGroup
   ) {
+    const analyticsBySchool: Record<string, AnalyticsData[]> = {};
+
     analyticsData.forEach((analytics) => {
-      const school = data.municipalities
-        .flatMap((m) => m.areas)
-        .flatMap((a) => a.schools)
-        .find((s) => s.izo === String(analytics.school));
-
-      if (!school) return;
-
-      const { marker, line } = createAnalyticsMarker(
-        school,
-        analytics,
-        schoolColors[school.izo]
-      );
-
-      const targetGroup =
-        analytics.type === AnalyticsDataType.StudentsUa
-          ? analyticsUaLayerGroup
-          : analyticsNpiLayerGroup;
-
-      targetGroup.addLayer(line);
-      targetGroup.addLayer(marker);
+      const schoolIzo = String(analytics.school);
+      if (!analyticsBySchool[schoolIzo]) {
+        analyticsBySchool[schoolIzo] = [];
+      }
+      analyticsBySchool[schoolIzo].push(analytics);
     });
+
+    Object.entries(analyticsBySchool).forEach(
+      ([schoolIzo, schoolAnalytics]) => {
+        const school = data.municipalities
+          .flatMap((m) => m.areas)
+          .flatMap((a) => a.schools)
+          .find((s) => s.izo === schoolIzo);
+
+        if (!school) return;
+
+        const totalMarkers = schoolAnalytics.length;
+
+        const zoom = currentZoom ?? 11;
+
+        schoolAnalytics.forEach((analytics, index) => {
+          const { marker, line } = createAnalyticsMarker(
+            school,
+            analytics,
+            schoolColors[school.izo],
+            index,
+            totalMarkers,
+            zoom
+          );
+
+          const targetGroup =
+            analytics.type === AnalyticsDataType.StudentsUa
+              ? analyticsUaLayerGroup
+              : analyticsNpiLayerGroup;
+
+          targetGroup.addLayer(line);
+          targetGroup.addLayer(marker);
+
+          // Info for easier resize during zoom changes
+          const analyticsMarker = marker as AnalyticsMarker;
+          analyticsMarker.analyticsInfo = {
+            school,
+            analytics,
+            schoolColor: schoolColors[school.izo],
+            markerIndex: index,
+            totalMarkers,
+          };
+          analyticsMarker.analyticsLine = line;
+        });
+      }
+    );
   }
 };
 
@@ -291,8 +380,6 @@ const addToMarkersToCreate = (
     };
   }
 };
-
-const defaultPosition = [49.19506, 16.606837];
 
 export const createSchoolMarker = (school: School, color: string) => {
   const schoolTooltip = L.tooltip({

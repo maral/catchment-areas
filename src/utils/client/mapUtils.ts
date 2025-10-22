@@ -281,11 +281,13 @@ export const createCityLayers = ({
   cityCode,
   options = {},
   analyticsData = [],
+  currentZoom,
 }: {
   data: DataForMap;
   options?: MapOptions;
   cityCode?: string;
   analyticsData?: AnalyticsData[];
+  currentZoom?: number;
 }): {
   addressesLayerGroup: AddressLayerGroup;
   schoolsLayerGroup: SchoolLayerGroup;
@@ -343,6 +345,7 @@ export const createCityLayers = ({
     analyticsUaLayerGroup,
     analyticsNpiLayerGroup,
     options,
+    currentZoom,
   });
 
   setUpSchoolMarkersEvents(schoolMarkers, polygonLayers);
