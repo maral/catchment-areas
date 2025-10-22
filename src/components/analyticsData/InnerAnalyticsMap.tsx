@@ -41,7 +41,7 @@ const InnerAnalyticsMap = memo(
         }
         return destructor;
       }
-    }, [cities, schoolType, mapRef]);
+    }, [cities, schoolType, mapRef, citiesData]);
 
     const handleChange = (value: SchoolType) => {
       if (value === SchoolType.Elementary) {
