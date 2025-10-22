@@ -21,6 +21,10 @@ export const texts = {
   analyticsUaStudents: "Počet studentů z Ukrajiny",
   analyticsConsultationsNpi: "Počet konzultací NPI",
   analyticsDataNotFound: "Nebyla nalezena žádná analytická data",
+  analyticsConsultationsNpiDescription:
+    "Barva u počtu konzultací NPI je relativní k nejvyššímu počtu konzultací pro jednu školu.",
+  analyticsUaStudentsDescription:
+    "Barva u % ukrajinských žáků je vztažena k procentu z celkového počtu žáků na škole.",
   author: "Autor",
   cancel: "Zrušit",
   cancelRejection: "Zrušit zamítnutí",

@@ -1,6 +1,15 @@
+"use client";
+
 import { getColorByPercentage } from "@/utils/client/markers";
 import { LegendItem } from "@/types/mapTypes";
 import { texts } from "@/utils/shared/texts";
+import {
+  Tooltip,
+  TooltipProvider,
+  TooltipTrigger,
+  TooltipContent,
+} from "../ui/tooltip";
+import { InformationCircleIcon } from "@heroicons/react/24/outline";
 
 interface AnalyticsMapLegendProps {
   items: LegendItem[];
@@ -36,6 +45,18 @@ export default function AnalyticsMapLegend({ items }: AnalyticsMapLegendProps) {
               >
                 <div dangerouslySetInnerHTML={{ __html: item.icon }} />
                 <div>{item.title}</div>
+                {item.description && (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <InformationCircleIcon className="h-4 w-4 text-gray-400" />
+                      </TooltipTrigger>
+                      <TooltipContent className="z-[2000]">
+                        {item.description}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                )}
               </div>
             ))}
           </div>

@@ -552,6 +552,7 @@ export async function getLegendDataForSchoolType(
               minValue: String(Math.max(minValue, 1)),
               maxValue: String(maxValue),
               icon: `<div class="npi-marker" style="height: 12px; width: 12px;"><div ></div></div>`,
+              description: texts.analyticsConsultationsNpiDescription,
             });
             break;
 
@@ -562,6 +563,7 @@ export async function getLegendDataForSchoolType(
               minValue: "0 %",
               maxValue: "100 %",
               icon: `<div class="ua-marker" style="height: 12px; width: 12px; "><div></div></div>`,
+              description: texts.analyticsUaStudentsDescription,
             });
             break;
 
@@ -582,6 +584,7 @@ export async function getLegendDataForSchoolType(
                     >
                       <path d="M0 0 L50 100 L100 0 Z" fill="gray"></path>
                     </svg>`,
+              description: undefined,
             });
             break;
         }
