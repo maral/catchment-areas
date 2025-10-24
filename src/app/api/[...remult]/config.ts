@@ -39,14 +39,6 @@ export function getRemultOptions(
     }
     const [host, port, user, password, database] =
       process.env.TEXTTOMAP_MYSQL_CONNECTION_DATA.split(":");
-    console.log(
-      "DB CONNECTION INFO:",
-      host,
-      "Database:",
-      database,
-      "User:",
-      user
-    );
     remultOptions = {
       entities: [
         Account,
