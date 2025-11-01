@@ -62,7 +62,7 @@ export default function Embed({ schools, cities }: MunicipalityPageProps) {
     if (!filteredCities.some((city) => city.code === cityCode)) {
       setCityCode(filteredCities[0]?.code);
     }
-  }, [filteredCities]);
+  }, [filteredCities, cityCode]);
 
   const filteredSchools = useMemo(() => {
     const allowedCities = filteredCities.map((city) => city.code);
