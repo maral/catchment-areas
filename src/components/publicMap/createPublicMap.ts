@@ -15,6 +15,7 @@ import {
 } from "@/utils/client/mapUtils";
 import {
   createCityMarker,
+  createDownloadOrdinanceButton,
   createSvgIcon,
   createTempMarker,
 } from "@/utils/client/markers";
@@ -270,7 +271,7 @@ const loadNewCities = async (
 
 const flyingTime = 1000;
 
-const onSuggestionSelect = (item: SuggestionItem) => {
+const onSuggestionSelect = (item: SuggestionItem, schoolType: SchoolType) => {
   const position = new L.LatLng(item.position.lat, item.position.lon);
   // find three closest cities
   const closestCities = Object.values(citiesMap)
@@ -308,11 +309,11 @@ const onSuggestionSelect = (item: SuggestionItem) => {
     // if there are cities to load, wait for them to load first
     if (toLoad.length > 0) {
       onCitiesLoaded(toLoad, () => {
-        selectAddress(item, closestCities, tempMarker);
+        selectAddress(item, closestCities, tempMarker, schoolType);
       });
     } else {
       // all cities are already loaded (or not in the viewport)
-      selectAddress(item, closestCities, tempMarker);
+      selectAddress(item, closestCities, tempMarker, schoolType);
     }
   }, flyingTime + loadCitiesDebounceTime + 200);
 };
@@ -320,7 +321,8 @@ const onSuggestionSelect = (item: SuggestionItem) => {
 const selectAddress = (
   item: SuggestionItem,
   cities: CityOnMap[],
-  tempMarker: L.Marker
+  tempMarker: L.Marker,
+  schoolType: SchoolType
 ) => {
   let found = false;
   for (const city of cities) {
@@ -349,6 +351,23 @@ const selectAddress = (
   }
 
   if (!found) {
-    tempMarker.setPopupContent(getUnknownPopupContent(item));
+    const itemCityName = item.regionalStructure.find(
+      (val) => val.type === "regional.municipality"
+    )?.name;
+    console.log("itemCityName", itemCityName);
+    console.log(cities);
+    const city = cities.find((city) => city.name === itemCityName);
+
+    tempMarker.setPopupContent(
+      getUnknownPopupContent(
+        item,
+        city
+          ? `V tomto městě existuje spádová vyhláška, ale nenašli jsme v ní vaši adresu. Zkuste si vyhlášku stáhnout a prohledat sami.<br><br><div class="text-center">${createDownloadOrdinanceButton(
+              city.code,
+              schoolType
+            )}</div>`
+          : undefined
+      )
+    );
   }
 };

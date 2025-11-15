@@ -1,5 +1,8 @@
 import { ButtonVariant, buttonVariants } from "@/components/ui/button";
-import { getRootPathBySchoolType } from "@/entities/School";
+import {
+  getRootPathBySchoolType,
+  getSchoolTypeString,
+} from "@/entities/School";
 import { SchoolType } from "@/types/basicTypes";
 import {
   AddressLayerGroup,
@@ -330,11 +333,16 @@ const createCityMarkerButtons = (cityCode: number, schoolType: SchoolType) => `
   true
 )}/m/${cityCode}?controls=1" target="_blank" class="city-marker ${getButtonClasses()}">
   ${getNewWindowHeroicon()} Zobrazit v novém okně
-</a><a href="/api/ordinances/download/by-city-code/${cityCode}" target="_blank" class="city-marker ${getButtonClasses(
-  "secondary"
-)}">
+</a>${createDownloadOrdinanceButton(cityCode, schoolType)}</div>`;
+
+export const createDownloadOrdinanceButton = (
+  cityCode: number,
+  schoolType: SchoolType
+) => `<a href="/api/ordinances/download/by-city-code/${cityCode}/${getSchoolTypeString(
+  schoolType
+)}" target="_blank" class="city-marker ${getButtonClasses("secondary")}">
   ${getDownloadHeroicon()} Stáhnout vyhlášku
-</a></div>`;
+</a>`;
 
 const getButtonClasses = (variant: ButtonVariant = "default") => {
   return buttonVariants({ size: "xs", variant });

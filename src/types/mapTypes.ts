@@ -3,6 +3,7 @@ import { Circle, FeatureGroup, LayerGroup, Marker, Popup } from "leaflet";
 import { Municipality } from "text-to-map";
 import { FounderType } from "../entities/Founder";
 import { SuggestionItem } from "./suggestionTypes";
+import { SchoolType } from "./basicTypes";
 
 export type SchoolMarker = Circle;
 
@@ -86,5 +87,5 @@ export interface EmbedQueryParams {
 
 export type CreateMapResult = {
   destructor: () => void;
-  onSuggestionSelect: (item: SuggestionItem) => void;
+  onSuggestionSelect: (item: SuggestionItem, schoolType: SchoolType) => void;
 };

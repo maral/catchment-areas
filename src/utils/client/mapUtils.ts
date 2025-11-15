@@ -420,6 +420,16 @@ export const getUnknownPopupContent = (
   }`;
 };
 
+// export const getUnknownInCityPopupContent = (
+//   item: SuggestionItem,
+//   unknownAddressMessage?: string
+// ) => {
+//   return `${createAddressForSuggestionItem(item)}<br><br>${
+//     unknownAddressMessage ??
+//     "K této adrese aktuálně nemáme informace o spádové škole."
+//   }`;
+// };
+
 export const createAddressForSuggestionItem = (item: SuggestionItem) => {
   const municipality = item.regionalStructure.find(
     (rs) => rs.type === "regional.municipality"

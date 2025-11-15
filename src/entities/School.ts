@@ -42,6 +42,10 @@ export const getSchoolTypeCode = (schoolType: string): SchoolType => {
   }
 };
 
+export const getSchoolTypeString = (schoolType: SchoolType): string => {
+  return schoolType === SchoolType.Kindergarten ? "kindergarten" : "elementary";
+};
+
 export const getRootPathBySchoolType = (
   schoolType: SchoolType,
   short = false
