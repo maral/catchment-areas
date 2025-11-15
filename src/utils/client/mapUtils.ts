@@ -416,7 +416,14 @@ export const getUnknownPopupContent = (
 ) => {
   return `${createAddressForSuggestionItem(item)}<br><br>${
     unknownAddressMessage ??
-    "K této adrese aktuálně nemáme informace o spádové škole."
+    `K této adrese aktuálně nemáme informace o spádové škole.<br>
+    <br>
+    V aplikaci publikujeme pouze spádové oblasti obcí se dvěma a více školami. Pokud má vaše obec
+    jen jednu školu, pak se jedná o vaši spádovou školu.<br>
+    <br>
+    Pokud ve vaší obci žádná škola není, doporučujeme vyhledávat ve
+    <a href='https://sbirkapp.gov.cz/vyhledavani' target='_blank'>Sbírce právních předpisů</a>
+    nebo na webu vaší obce. Pokud ani tam nepochodíte, obraťte se na místní úřad.`
   }`;
 };
 
