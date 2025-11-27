@@ -1,5 +1,5 @@
 # ---------- STAGE 1: build ----------
-FROM node:18 AS builder
+FROM node:20 AS builder
 WORKDIR /app
 
 ARG NEXT_PUBLIC_MAPY_CZ_API_KEY
@@ -31,7 +31,7 @@ COPY . .
 RUN npm run build
 
 # ---------- STAGE 2: runtime ----------
-FROM node:18-slim AS runner
+FROM node:20-slim AS runner
 WORKDIR /app
 
 RUN addgroup --system --gid 1001 nodejs
