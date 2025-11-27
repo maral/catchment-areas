@@ -44,6 +44,6 @@ COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
 
 USER nextjs
 
-EXPOSE 3000
+EXPOSE 3003
 
 CMD ["npm", "run", "start"]
