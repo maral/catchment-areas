@@ -39,6 +39,8 @@ RUN adduser --system --uid 1001 nextjs
 
 COPY --from=builder --chown=nextjs:nodejs /app .
 
+RUN mkdir -p data && chown -R nextjs:nodejs data
+
 USER nextjs
 
 EXPOSE 3003
