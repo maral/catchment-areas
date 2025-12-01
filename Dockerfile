@@ -34,14 +34,9 @@ RUN npm run build
 FROM node:20-slim AS runner
 WORKDIR /app
 
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+COPY --from=builder /app .
 
-COPY --from=builder --chown=nextjs:nodejs /app .
-
-RUN mkdir -p data && chown -R nextjs:nodejs data
-
-USER nextjs
+RUN mkdir -p data
 
 EXPOSE 3003
 
