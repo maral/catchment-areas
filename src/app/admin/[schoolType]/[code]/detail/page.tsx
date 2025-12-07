@@ -7,24 +7,20 @@ import {
 } from "@/components/table/fetchFunctions/loadOrdinances";
 import OrdinanceFoundersTable from "@/components/table/tableWrappers/OrdinanceFoundersTable";
 import OrdinancesTable from "@/components/table/tableWrappers/OrdinancesTable";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { City } from "@/entities/City";
 import { Founder } from "@/entities/Founder";
-import { getRootPathBySchoolType, getSchoolTypeCode } from "@/entities/School";
-import { notFound, redirect } from "next/navigation";
+import { getSchoolTypeCode } from "@/entities/School";
+import { notFound } from "next/navigation";
 import { remult } from "remult";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { sortFounders } from "@/utils/shared/founders";
 
-export default async function CityDetailPage(
-  props: {
-    params: Promise<{ schoolType: string; code: string }>;
-  }
-) {
+export default async function CityDetailPage(props: {
+  params: Promise<{ schoolType: string; code: string }>;
+}) {
   const params = await props.params;
 
-  const {
-    schoolType,
-    code
-  } = params;
+  const { schoolType, code } = params;
 
   const cityCode = Number(code);
 
@@ -43,7 +39,10 @@ export default async function CityDetailPage(
       notFound();
     }
 
-    const founders = await remult.repo(Founder).find({ where: { city } });
+    const founders = await remult
+      .repo(Founder)
+      .find({ where: { city }, orderBy: { name: "asc" } });
+    founders.sort((a, b) => sortFounders(a.name, b.name));
     const cityJson = remult.repo(City).toJson(city);
     const ordinances = await loadOrdinancesByCityCode(cityCode, schoolTypeCode);
     return {
