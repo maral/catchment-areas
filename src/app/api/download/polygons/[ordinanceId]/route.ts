@@ -22,13 +22,6 @@ export async function GET(
   }
 
   const { cityName, polygons } = result;
-  const geojson = JSON.stringify(
-    polygons.reduce((acc, featureCollection) => {
-      acc.features.push(...featureCollection.features);
-      return acc;
-    }, featureCollection([]))
-  );
-
   return new Response(
     JSON.stringify(
       format === "geojson"
@@ -49,7 +42,7 @@ export async function GET(
   );
 }
 
-export async function getPolygons(ordinanceId: number) {
+async function getPolygons(ordinanceId: number) {
   const result = await api.withRemult(async () => {
     const ordinance = await remult.repo(Ordinance).findId(ordinanceId);
     if (!ordinance) {
