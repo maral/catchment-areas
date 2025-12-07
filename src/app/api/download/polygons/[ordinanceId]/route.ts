@@ -43,7 +43,7 @@ export async function GET(
         "content-type": "application/json",
         "content-disposition": `attachment; filename="polygony-${slugify(
           cityName
-        ).toLowerCase()}.geojson"`,
+        ).toLowerCase()}.${format}"`,
       },
     }
   );
