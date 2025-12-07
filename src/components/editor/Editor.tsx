@@ -36,6 +36,10 @@ import HeaderBox from "../common/HeaderBox";
 import Spinner from "../common/Spinner";
 import { Button } from "../ui/button";
 import { Monaco, configureMonaco } from "./configureMonaco";
+import {
+  getMarkersFromLines,
+  getPreprocessedText,
+} from "@/utils/client/editor";
 
 const owner = "street-markdown";
 
@@ -206,7 +210,7 @@ export default function Editor({
           </LinkButton>
           <Button
             variant="secondary"
-            onClick={() => preprocessText()}
+            onClick={preprocessText}
             disabled={isPreprocessing}
           >
             <SparklesIcon />
@@ -269,115 +273,4 @@ function Saved() {
       {texts.saved}
     </div>
   );
-}
-
-async function getPreprocessedText(
-  ordinance: Ordinance,
-  founder: Founder,
-  setPreprocessedText: Dispatch<SetStateAction<string | null>>,
-  setStreetMarkdown: Dispatch<SetStateAction<StreetMarkdown | null>>,
-  setIsPreprocessing: Dispatch<SetStateAction<boolean>>
-) {
-  if (founder.founderType === FounderType.City) {
-    const response = await fetch("/api/text-to-map/preprocess-text", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        ordinanceId: ordinance.id,
-        founderId: founder.id,
-      }),
-    });
-
-    if (response.ok) {
-      const json = (await response.json()) as {
-        processedText: string;
-        autosaveStreetMarkdownId: number;
-      };
-
-      setPreprocessedText(json.processedText);
-      setStreetMarkdown(
-        await streetMarkdownRepo.findId(json.autosaveStreetMarkdownId)
-      );
-      setIsPreprocessing(false);
-      return;
-    } else {
-      console.error("Error while preprocessing text");
-    }
-  }
-  setStreetMarkdown(
-    await StreetMarkdownController.insertAutoSaveStreetMarkdown(
-      ordinance,
-      founder,
-      ordinance.originalText
-    )
-  );
-
-  setPreprocessedText(ordinance.originalText);
-  setIsPreprocessing(false);
-}
-
-async function getMarkersFromLines(
-  lines: string[],
-  founderId: number,
-  schoolType: SchoolType
-): Promise<editor.IMarkerData[]> {
-  const markers: editor.IMarkerData[] = [];
-  const response = await fetch("/api/text-to-map/validate", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ lines, founderId, schoolType }),
-  });
-  const { errors, warnings } = (await response.json()) as {
-    errors: TextToMapError[];
-    warnings: TextToMapError[];
-  };
-
-  errors.forEach((error) => {
-    markers.push(
-      createMarker(
-        8, //MarkerSeverity.Error,
-        error.message,
-        error.lineNumber,
-        error.line,
-        error.startOffset,
-        error.endOffset
-      )
-    );
-  });
-
-  warnings.forEach((warning) => {
-    markers.push(
-      createMarker(
-        4, //MarkerSeverity.Warning,
-        warning.message,
-        warning.lineNumber,
-        warning.line,
-        warning.startOffset,
-        warning.endOffset
-      )
-    );
-  });
-  return markers;
-}
-
-function createMarker(
-  severity: number, //MarkerSeverity,
-  message: string,
-  lineNumber: number,
-  line: string,
-  startOffset: number,
-  endOffset: number
-): editor.IMarkerData {
-  return {
-    severity,
-    message,
-    startLineNumber: lineNumber,
-    startColumn: startOffset + 1,
-    endLineNumber: lineNumber,
-    endColumn: endOffset + 1,
-  };
 }
