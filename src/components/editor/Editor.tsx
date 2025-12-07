@@ -1,13 +1,16 @@
 "use client";
 
-import { StreetMarkdownController } from "@/controllers/StreetMarkdownController";
-import { Founder, FounderType } from "@/entities/Founder";
+import { Founder } from "@/entities/Founder";
 import { Ordinance } from "@/entities/Ordinance";
 import { StreetMarkdown } from "@/entities/StreetMarkdown";
 import { SchoolType } from "@/types/basicTypes";
+import {
+  getMarkersFromLines,
+  getPreprocessedText,
+} from "@/utils/client/editor";
 import { routes } from "@/utils/shared/constants";
 import { texts } from "@/utils/shared/texts";
-import { SuggestionList, TextToMapError } from "@/utils/shared/types";
+import { SuggestionList } from "@/utils/shared/types";
 import {
   ArrowDownTrayIcon,
   CloudArrowDownIcon,
@@ -19,15 +22,7 @@ import {
 import MonacoEditor, { useMonaco } from "@monaco-editor/react";
 import debounce from "lodash/debounce";
 import type { editor } from "monaco-editor";
-import {
-  Dispatch,
-  SetStateAction,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { remult } from "remult";
 import { MapDataController } from "../../controllers/MapDataController";
 import { getRootPathBySchoolType } from "../../entities/School";
@@ -36,10 +31,7 @@ import HeaderBox from "../common/HeaderBox";
 import Spinner from "../common/Spinner";
 import { Button } from "../ui/button";
 import { Monaco, configureMonaco } from "./configureMonaco";
-import {
-  getMarkersFromLines,
-  getPreprocessedText,
-} from "@/utils/client/editor";
+import { PreprocessDialog } from "./PreprocessDialog";
 
 const owner = "street-markdown";
 
@@ -69,8 +61,10 @@ export default function Editor({
   const [preprocessedText, setPreprocessedText] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isPreprocessing, setIsPreprocessing] = useState(false);
+  const [showPreprocessDialog, setShowPreprocessDialog] = useState(false);
   const isValidating = useRef(false);
   const shouldValidate = useRef(false);
+  const isMountedRef = useRef(true);
 
   const ordinance = useMemo(() => {
     return ordinanceRepo.fromJson(ordinanceJson);
@@ -79,6 +73,17 @@ export default function Editor({
   const founder = useMemo(() => {
     return remult.repo(Founder).fromJson(founderJson);
   }, [founderJson]);
+
+  const preprocessProps = useMemo(
+    () => ({
+      ordinance,
+      founder,
+      setPreprocessedText,
+      setStreetMarkdown,
+      setIsPreprocessing,
+    }),
+    [ordinance, founder]
+  );
 
   const monacoInstance = useMonaco();
 
@@ -95,7 +100,10 @@ export default function Editor({
       } else {
         isValidating.current = true;
         const lines = monacoInstance.editor.getModels()[0].getLinesContent();
-        setMarkers(await getMarkersFromLines(lines, founder.id, schoolType));
+        const markers = await getMarkersFromLines(lines, founder.id, schoolType);
+        if (isMountedRef.current) {
+          setMarkers(markers);
+        }
         isValidating.current = false;
         if (shouldValidate.current) {
           shouldValidate.current = false;
@@ -129,6 +137,13 @@ export default function Editor({
     [monacoInstance, streetMarkdown]
   );
 
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
   // run initial validation / set content after preprocess
   useEffect(() => {
     if (monacoInstance) {
@@ -140,16 +155,15 @@ export default function Editor({
     }
   }, [monacoInstance, validate, preprocessedText]);
 
-  const preprocessText = useCallback(() => {
+  const preprocessText = useCallback((customText?: string) => {
     setIsPreprocessing(true);
-    getPreprocessedText(
-      ordinance,
-      founder,
-      setPreprocessedText,
-      setStreetMarkdown,
-      setIsPreprocessing
-    );
-  }, [ordinance, founder]);
+    getPreprocessedText({ ...preprocessProps, customText });
+  }, [preprocessProps]);
+
+  const handlePreprocessDialogSubmit = useCallback((customText: string) => {
+    setShowPreprocessDialog(false);
+    preprocessText(customText);
+  }, [preprocessText]);
 
   // preprocess the original text if no text is provided
   useEffect(() => {
@@ -210,7 +224,7 @@ export default function Editor({
           </LinkButton>
           <Button
             variant="secondary"
-            onClick={preprocessText}
+            onClick={() => setShowPreprocessDialog(true)}
             disabled={isPreprocessing}
           >
             <SparklesIcon />
@@ -254,6 +268,14 @@ export default function Editor({
           />
         </div>
       </div>
+      
+      <PreprocessDialog
+        open={showPreprocessDialog}
+        onOpenChange={setShowPreprocessDialog}
+        originalText={ordinance.originalText}
+        onSubmit={handlePreprocessDialogSubmit}
+        isProcessing={isPreprocessing}
+      />
     </div>
   );
 }

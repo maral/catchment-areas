@@ -5,59 +5,72 @@ import { StreetMarkdown } from "@/entities/StreetMarkdown";
 import { SchoolType } from "@/types/basicTypes";
 import { TextToMapError } from "@/utils/shared/types";
 import type { editor } from "monaco-editor";
-import {
-  Dispatch,
-  SetStateAction
-} from "react";
+import { Dispatch, SetStateAction } from "react";
 import { remult } from "remult";
 
 const streetMarkdownRepo = remult.repo(StreetMarkdown);
 
-export async function getPreprocessedText(
-  ordinance: Ordinance,
-  founder: Founder,
-  setPreprocessedText: Dispatch<SetStateAction<string | null>>,
-  setStreetMarkdown: Dispatch<SetStateAction<StreetMarkdown | null>>,
-  setIsPreprocessing: Dispatch<SetStateAction<boolean>>
-) {
-  if (founder.founderType === FounderType.City) {
-    const response = await fetch("/api/text-to-map/preprocess-text", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        ordinanceId: ordinance.id,
-        founderId: founder.id,
-      }),
-    });
+export type PreprocessTextProps = {
+  ordinance: Ordinance;
+  founder: Founder;
+  customText?: string;
+  setPreprocessedText: Dispatch<SetStateAction<string | null>>;
+  setStreetMarkdown: Dispatch<SetStateAction<StreetMarkdown | null>>;
+  setIsPreprocessing: Dispatch<SetStateAction<boolean>>;
+};
 
-    if (response.ok) {
-      const json = (await response.json()) as {
-        processedText: string;
-        autosaveStreetMarkdownId: number;
-      };
+export async function getPreprocessedText({
+  ordinance,
+  founder,
+  customText,
+  setPreprocessedText,
+  setStreetMarkdown,
+  setIsPreprocessing,
+}: PreprocessTextProps) {
+  try {
+    if (founder.founderType === FounderType.City || customText) {
+      const response = await fetch("/api/text-to-map/preprocess-text", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ordinanceId: ordinance.id,
+          founderId: founder.id,
+          customText: customText || "",
+        }),
+      });
 
-      setPreprocessedText(json.processedText);
-      setStreetMarkdown(
-        await streetMarkdownRepo.findId(json.autosaveStreetMarkdownId)
-      );
-      setIsPreprocessing(false);
-      return;
-    } else {
-      console.error("Error while preprocessing text");
+      if (response.ok) {
+        const json = (await response.json()) as {
+          processedText: string;
+          autosaveStreetMarkdownId: number;
+        };
+
+        setPreprocessedText(json.processedText);
+        setStreetMarkdown(
+          await streetMarkdownRepo.findId(json.autosaveStreetMarkdownId)
+        );
+        setIsPreprocessing(false);
+        return;
+      } else {
+        console.error("Error while preprocessing text");
+      }
     }
-  }
-  setStreetMarkdown(
-    await StreetMarkdownController.insertAutoSaveStreetMarkdown(
-      ordinance,
-      founder,
-      ordinance.originalText
-    )
-  );
+    setStreetMarkdown(
+      await StreetMarkdownController.insertAutoSaveStreetMarkdown(
+        ordinance,
+        founder,
+        ordinance.originalText
+      )
+    );
 
-  setPreprocessedText(ordinance.originalText);
-  setIsPreprocessing(false);
+    setPreprocessedText(ordinance.originalText);
+    setIsPreprocessing(false);
+  } catch (error) {
+    console.error("Error in getPreprocessedText:", error);
+    setIsPreprocessing(false);
+  }
 }
 
 export async function getMarkersFromLines(

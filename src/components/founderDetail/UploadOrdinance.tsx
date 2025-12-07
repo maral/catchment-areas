@@ -108,7 +108,7 @@ export default function UploadOrdinance({
             `${rootPath}/${cityCode}${routes.editOrdinance}/${result.founderId}/${result.ordinanceId}`
           );
         } else {
-          router.push(`${rootPath}${cityCode}${routes.detail}`);
+          router.push(`${rootPath}/${cityCode}${routes.detail}`);
         }
       }
     } else {

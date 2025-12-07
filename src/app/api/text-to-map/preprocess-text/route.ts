@@ -28,21 +28,24 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+const ordinanceRepo = remult.repo(Ordinance);
+const streetMarkdownRepo = remult.repo(StreetMarkdown);
+
 export async function POST(request: NextRequest) {
   if (!(await isLoggedIn())) {
     return getNotLoggedInResponse();
   }
 
-  const { ordinanceId, founderId } = await request.json();
+  const { ordinanceId, founderId, customText } = await request.json();
 
-  const ordinanceRepo = remult.repo(Ordinance);
   const ordinance = await api.withRemult(async () => {
     return await ordinanceRepo.findId(ordinanceId);
   });
 
-  const processedText = await getProcessedText(ordinance.originalText);
+  const processedText = await getProcessedText(
+    customText || ordinance.originalText
+  );
 
-  const streetMarkdownRepo = remult.repo(StreetMarkdown);
   const streetMarkdown = await api.withRemult(async () => {
     const user = await remult.repo(User).findId(remult.user!.id);
     const founder = await remult.repo(Founder).findId(founderId);
