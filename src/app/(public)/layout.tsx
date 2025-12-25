@@ -14,11 +14,11 @@ export default function PublicRootLayout({
       {process.env.NEXT_PUBLIC_IS_LOCALHOST !== "1" && (
         <>
           <GoogleTagManager gtmId="GTM-KWMX4GBK" />
-          <Script
+          {/* <Script
             defer
             data-domain="mapaspadovosti.zapojmevsechny.cz"
             src="https://npi-plausible.nomodo.app/js/script.js"
-          />
+          /> */}
         </>
       )}
     </>
