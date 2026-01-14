@@ -40,4 +40,4 @@ RUN mkdir -p data
 
 EXPOSE 3003
 
-CMD ["npm", "run", "start"]
+CMD ["sh", "-c", "npm run start 2>&1 | tee -a /app/data/app.log"]
