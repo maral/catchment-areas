@@ -4,7 +4,7 @@ import {
   getAnalyticsDataForCities,
   getLegendDataForSchoolType,
 } from "@/utils/server/analyticsData";
-import { getCitiesForMap } from "@/utils/server/map";
+import { getAllCitiesForMap } from "@/utils/server/map";
 import { notFound } from "next/navigation";
 
 export default async function MapPage(props: {
@@ -16,7 +16,7 @@ export default async function MapPage(props: {
 
   const schoolTypeCode = getSchoolTypeCode(schoolType);
 
-  const cities = await getCitiesForMap(schoolTypeCode);
+  const cities = await getAllCitiesForMap();
 
   const citiesData = await getAnalyticsDataForCities();
 

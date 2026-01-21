@@ -15,6 +15,7 @@ import {
   SchoolLayerGroup,
   SchoolMarker,
   SchoolMarkerMap,
+  CityMarkerWithAnalyticsData,
 } from "@/types/mapTypes";
 import { LayerGroup } from "leaflet";
 import { SuggestionItem } from "@/types/suggestionTypes";
@@ -39,10 +40,10 @@ const getAnalyticsMarkerPosition = (
   totalMarkers: number,
   zoom: number = 11
 ): [number, number] => {
-  const baseRadius = 0.0008;
+  const baseRadius = 0.0014;
   const radius = Math.max(
-    0.00015,
-    Math.min(0.003, baseRadius * Math.pow(1.5, 15 - zoom))
+    0.0002,
+    Math.min(0.006, baseRadius * Math.pow(1.5, 15 - zoom))
   );
   const angle = (360 / totalMarkers) * markerIndex;
 
@@ -53,7 +54,15 @@ const getAnalyticsMarkerPosition = (
 
 //linear interpolation for size of icon based on zoom level
 const getAnalyticsIconSize = (zoom: number = 11): number => {
-  const size = 20 + Math.max(0, Math.min(6, zoom - 11)) * (20 / 6);
+  const minSize = 15;
+  const maxSize = 40;
+  const minZoom = 8;
+  const maxZoom = 17;
+  const normalizedZoom = Math.max(
+    0,
+    Math.min(1, (zoom - minZoom) / (maxZoom - minZoom))
+  );
+  const size = minSize + (maxSize - minSize) * normalizedZoom;
   return Math.round(size);
 };
 
@@ -108,6 +117,87 @@ export const updateAnalyticsMarkerForZoom = (
   markerInfo.line.setLatLngs([newPosition, schoolPosition]);
   markerInfo.marker.setIcon(createAnalyticsDivIcon(markerInfo.analytics, zoom));
 };
+
+export function getClusterRadius(zoom: number): number {
+  if (zoom <= 8) return 60;
+  if (zoom <= 10) return 50;
+  return 0;
+}
+
+export function calculateClusterStats(cluster: L.MarkerCluster): {
+  sum: number;
+  percentage: number;
+  count: number;
+  color: string;
+  childCount: number;
+} {
+  const childMarkers = cluster.getAllChildMarkers();
+  let sum = 0;
+  let percentage = 0;
+  let count = 0;
+
+  childMarkers.forEach((marker) => {
+    const customData = (marker as any).customData;
+    if (
+      customData &&
+      typeof customData.socialExclusionIndex.count === "number"
+    ) {
+      if (customData.socialExclusionIndex.percentage > 0) {
+        percentage += customData.socialExclusionIndex.percentage;
+        sum += customData.socialExclusionIndex.count;
+        count++;
+      }
+    }
+  });
+
+  const color = sum > 0 ? getColorByPercentage(percentage / count) : "gray";
+
+  return { sum, percentage, count, color, childCount: childMarkers.length };
+}
+
+export function buildClusterIconHtml(stats: {
+  sum: number;
+  count: number;
+  color: string;
+  childCount: number;
+}): string {
+  const displayValue = stats.sum > 0 ? Math.round(stats.sum / stats.count) : "";
+
+  return `
+    <div>
+      <div class="marker-cluster-custom rounded-full flex justify-center items-center flex-col" 
+           style="background-color: ${stats.color}; width: 40px; height: 40px;">
+        <div class="flex justify-center items-center mb-1">
+          <span style="font-size: 10px; line-height: 10px; font-weight: bold">
+            ${displayValue}
+          </span>
+        </div>
+        <div class="flex justify-center gap-0.5 items-center">
+          <svg class="rotate-180" xmlns="http://www.w3.org/2000/svg" width="10px" height="10px" viewBox="0 0 2048 2048">
+            <path fill="currentColor" d="M1920 1920H0L960 0z"/>
+          </svg>
+          <span style="font-size: 10px; line-height: 10px; color: #000">
+            ${stats.childCount}
+          </span>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// Complete cluster icon creation
+export function createAnalyticsClusterIcon(
+  cluster: L.MarkerCluster
+): L.DivIcon {
+  const stats = calculateClusterStats(cluster);
+  const html = buildClusterIconHtml(stats);
+
+  return L.divIcon({
+    html,
+    className: "",
+    iconSize: L.point(40, 40),
+  });
+}
 
 //Calculate color from green (0%) to red (100%)
 export function getColorByPercentage(percentage: number): string {
@@ -564,7 +654,7 @@ export const createAnalyticsCityMarker = (
     getColorByPercentage(info.socialExclusionIndex?.percentage ?? 0)
   );
 
-  const marker = L.marker([city.lat, city.lng], {
+  const marker: CityMarkerWithAnalyticsData = L.marker([city.lat, city.lng], {
     icon: info.socialExclusionIndex?.count ? cityIcon : notReadyIcon,
   }).bindPopup(
     `<div class="flex flex-col gap-2 items-stretch"><h4 class="text-base text-center font-title">${
@@ -590,6 +680,14 @@ export const createAnalyticsCityMarker = (
       <div class="city-data" data-city="${city.code}"></div>
       </div>`
   );
+
+  marker.customData = {
+    socialExclusionIndex: {
+      percentage: info.socialExclusionIndex?.percentage ?? 0,
+      count: info.socialExclusionIndex?.count ?? 0,
+    },
+  };
+
   marker.setZIndexOffset(city.isPublished ? 1000 : 900);
   cityMarkers[city.code] = marker;
   citiesMap[city.code] = city;

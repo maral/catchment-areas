@@ -155,7 +155,9 @@ const setUpSchoolMarkersEvents = (
       }
       const map = (polygonLayers[0] as any)._map;
       if (bounds !== null) {
-        map.flyToBounds(bounds, { duration: 0.7 });
+        try {
+          map.flyToBounds(bounds, { duration: 0.7 });
+        } catch (e) {}
       }
       selectSchool(marker);
     });
@@ -514,6 +516,29 @@ export const loadAnalyticsDataForCities = async () => {
     return analyticsData.data;
   } else {
     console.error("Error while loading analytics data");
+    return null;
+  }
+};
+
+export const loadSchoolsWithoutOrdinances = async (
+  cityCodes: number[],
+  schoolType: SchoolType
+): Promise<DataForMapByCityCodes | null> => {
+  const response = await fetch("/api/map/analytics-data/municipalities", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ cityCodes, schoolType }),
+  });
+
+  if (response.ok) {
+    const { dataForMapByCityCodes } = (await response.json()) as {
+      dataForMapByCityCodes: DataForMapByCityCodes;
+    };
+    return dataForMapByCityCodes;
+  } else {
+    console.error("Error while loading municipalities");
     return null;
   }
 };

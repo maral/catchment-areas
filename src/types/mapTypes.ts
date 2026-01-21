@@ -6,6 +6,7 @@ import {
   Marker,
   Popup,
   Polyline,
+  Layer,
 } from "leaflet";
 import { Municipality, School } from "text-to-map";
 import { AnalyticsData } from "../entities/AnalyticsData";
@@ -37,6 +38,23 @@ export type AnalyticsMarkerInfo = {
 export type AnalyticsMarker = Marker & {
   analyticsInfo: AnalyticsMarkerInfo;
   analyticsLine: Polyline;
+};
+
+export interface CityMarkerWithAnalyticsData extends Marker {
+  customData?: {
+    socialExclusionIndex: {
+      percentage: number;
+      count: number;
+    };
+  };
+}
+
+export const isAnalyticsMarker = (layer: Layer): layer is AnalyticsMarker => {
+  return (
+    layer instanceof Marker &&
+    "analyticsInfo" in layer &&
+    "analyticsLine" in layer
+  );
 };
 
 export type SchoolMarkerMap = Record<string, SchoolMarker>;
@@ -128,3 +146,10 @@ export type CitiesAnalyticsData = Record<
     socialExclusionIndex?: AnalyticsData;
   }
 >;
+
+export interface CityPopupAnalyticsData {
+  totalStudents?: number;
+  totalStudentsUa?: number;
+  percentageStudentsUa?: number;
+  consultationsNpi?: number;
+}

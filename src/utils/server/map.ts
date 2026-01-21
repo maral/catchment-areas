@@ -29,3 +29,22 @@ export async function getCitiesForMap(
     );
   });
 }
+
+export async function getAllCitiesForMap(): Promise<CityOnMap[] | null> {
+  return await api.withRemult(async () => {
+    const cities = await remult.repo(City).find();
+
+    return Object.values(
+      cities.reduce((acc, city) => {
+        acc[city.code] = {
+          code: city.code,
+          name: city.name,
+          isPublished: true,
+          lat: city.latitude,
+          lng: city.longitude,
+        };
+        return acc;
+      }, {} as Record<string, CityOnMap>)
+    );
+  });
+}
