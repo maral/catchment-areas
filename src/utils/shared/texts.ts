@@ -62,9 +62,11 @@ export const texts = {
   fullName: "Jméno a příjmení",
   gpt: "GPT",
   help: "Nápověda",
+  hideCitiesWithoutSchools: "Skrýt města bez škol",
   importAnalytics: "Importovat data",
   isv: "Index sociálního vyloučení (ISV)",
   legend: "Legenda",
+  loading: "Načítání ...",
   logout: "Odhlásit se",
   map: "Mapa",
   mapForPublic: "Mapa pro veřejnost",
@@ -77,8 +79,8 @@ export const texts = {
       count === 1
         ? "nová vyhláška"
         : count >= 2 && count <= 4
-        ? "nové vyhlášky"
-        : "nových vyhlášek"
+          ? "nové vyhlášky"
+          : "nových vyhlášek"
     } ze Sbírky právních předpisů k dispozici. Co nejdříve je prosím přidejte.`,
   name: "Název",
   no: "Ne",
@@ -95,7 +97,7 @@ export const texts = {
         : "Počet mateřských škol";
     }
   },
-
+  options: "Možnosti",
   ordinanceDocument: "Dokument vyhlášky",
   ordinanceFile: "Soubor vyhlášky",
   ordinanceName: "Název vyhlášky",
@@ -106,6 +108,7 @@ export const texts = {
   polygons: "Oblasti",
   population: "Počet obyvatel",
   progress: "Přehled",
+  recordCount: "Počet záznamů",
   region: "Kraj",
   reject: "Zamítnout",
   rejected: "Zamítnutá",
@@ -174,14 +177,13 @@ export const texts = {
   viewOnMap: "Zobrazit na mapě",
   yes: "Ano",
   uaStudents: "Studenti z Ukrajiny",
-
   totalStudents: "Celkový počet studentů",
   URL_reportBug: "https://forms.gle/gRQGb77MvNnJfpA16",
 };
 
 export const replacePlaceholders = (
   text: string,
-  placeholders: Record<string, string>
+  placeholders: Record<string, string>,
 ) => {
   let result = text;
   Object.keys(placeholders).forEach((key) => {

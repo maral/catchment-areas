@@ -7,7 +7,7 @@ const analyticsRepo = remult.repo(AnalyticsData);
 export async function loadAnalyticsData(
   schoolType?: SchoolType,
   dataType?: AnalyticsDataType,
-  city?: number
+  city?: number,
 ) {
   const whereCondition: any = {};
   if (schoolType !== undefined) {
@@ -51,7 +51,7 @@ export async function loadAnalyticsData(
       let schoolEntry = cityEntry.schools.find(
         (s: any) =>
           s.school.izo === record.school!.izo &&
-          s.school.type === record.school!.type
+          s.school.type === record.school!.type,
       );
 
       if (!schoolEntry) {
@@ -123,11 +123,27 @@ export async function loadAnalyticsData(
 
   result.forEach((cityEntry: any) => {
     cityEntry.schools.sort((a: any, b: any) =>
-      a.school.name.localeCompare(b.school.name)
+      a.school.name.localeCompare(b.school.name),
     );
   });
 
   result.sort((a: any, b: any) => a.city.name.localeCompare(b.city.name));
 
-  return result;
+  return result.map((cityEntry: any) => ({
+    city: {
+      code: cityEntry.city.code,
+      name: cityEntry.city.name,
+    },
+    socialExclusionIndex: cityEntry.socialExclusionIndex,
+    populationDensity: cityEntry.populationDensity,
+    earlySchoolLeavers: cityEntry.earlySchoolLeavers,
+    schools: cityEntry.schools.map((schoolItem: any) => ({
+      school: {
+        izo: schoolItem.school.izo,
+        name: schoolItem.school.name,
+        type: schoolItem.school.type,
+      },
+      analytics: schoolItem.analytics,
+    })),
+  }));
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -11,21 +12,18 @@ import {
 } from "@/components/ui/select";
 import { AnalyticsDataType, SchoolType } from "@/types/basicTypes";
 
-import { City } from "@/types/embed";
 import { texts } from "@/utils/shared/texts";
 import { useRouter, useSearchParams } from "next/navigation";
 export default function AnalyticsFilter({
   selectedSchoolType,
   selectedDataType,
   count,
-  selectedCity,
-  cities,
+  hideEmpty,
 }: {
   selectedSchoolType: string | null;
   selectedDataType: string | null;
   count: number;
-  selectedCity: string | null;
-  cities: City[];
+  hideEmpty: boolean;
 }) {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -44,7 +42,16 @@ export default function AnalyticsFilter({
     updateParam("schoolType", schoolType);
   const handleDataTypeChange = (dataType: string) =>
     updateParam("dataType", dataType);
-  const handleCityChange = (city: string) => updateParam("city", city);
+
+  const handleHideEmptyChange = (checked: boolean) => {
+    const params = new URLSearchParams(searchParams);
+    if (!checked) {
+      params.set("hideEmpty", "false");
+    } else {
+      params.delete("hideEmpty");
+    }
+    router.push(`?${params.toString()}`);
+  };
 
   return (
     <Card>
@@ -107,28 +114,23 @@ export default function AnalyticsFilter({
             </Select>
           </div>
           <div>
-            <Label className="mb-4">{texts.city}</Label>
-            <Select
-              onValueChange={handleCityChange}
-              value={selectedCity ? String(selectedCity) : "all"}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder={texts.city} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem key="all" value="all">
-                  {texts.all}
-                </SelectItem>
-                {cities.map((city) => (
-                  <SelectItem key={city.code} value={String(city.code)}>
-                    {city.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label className="mb-4">{texts.options}</Label>
+            <div className="flex items-center space-x-2 py-2">
+              <Checkbox
+                id="hideEmpty"
+                checked={hideEmpty}
+                onCheckedChange={handleHideEmptyChange}
+              />
+              <label
+                htmlFor="hideEmpty"
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+              >
+                {texts.hideCitiesWithoutSchools}
+              </label>
+            </div>
           </div>
           <div className="">
-            <Label className="mb-4">Počet záznamů</Label>
+            <Label className="mb-4">{texts.recordCount}</Label>
             <div className="py-2 text-sm">{count}</div>
           </div>
         </div>

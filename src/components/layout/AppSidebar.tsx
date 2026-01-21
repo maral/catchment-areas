@@ -60,7 +60,7 @@ export default function AppSidebar({ className }: { className?: string }) {
             />
 
             <MenuItem
-              href={routes.analytics}
+              href={`${routes.analytics}?letter=A`}
               icon={ChartPieIcon}
               text={texts.analyticsLayers}
               requiredRole={Role.Editor}
@@ -110,7 +110,8 @@ function MenuItem({
   requiredRole?: Role;
 }) {
   const pathname = usePathname();
-  const isActive = pathname.includes(href);
+  const hrefWithoutQuery = href.split('?')[0];
+  const isActive = pathname.includes(hrefWithoutQuery);
   const session = useSession();
   const role = session.data?.user.role as Role;
   const Icon = icon;

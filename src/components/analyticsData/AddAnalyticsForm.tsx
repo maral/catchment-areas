@@ -82,7 +82,7 @@ export default function AddAnalyticsForm({}: {}) {
     if (res.ok) {
       const result = await res.json();
       if (result.success) {
-        router.push(`${routes.analytics}`);
+        router.push(`${routes.analytics}?letter=A`);
       } else {
         console.error(result.message);
       }

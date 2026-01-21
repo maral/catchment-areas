@@ -133,7 +133,7 @@ export const addUserBreadcrumb: BreadcrumbItem = {
 
 // ANALYTICS DATA
 export const analyticsBreadcrumb: BreadcrumbItem = {
-  href: routes.analytics,
+  href: `${routes.analytics}?letter=A`,
   title: texts.analyticsLayers,
 };
 

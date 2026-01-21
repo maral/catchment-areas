@@ -1,11 +1,17 @@
 import { api } from "@/app/api/[...remult]/api";
 import { AnalyticsData } from "@/entities/AnalyticsData";
 import { School } from "@/entities/School";
-import { CitiesAnalyticsData, LegendItem } from "@/types/mapTypes";
+import {
+  CitiesAnalyticsData,
+  DataForMapByCityCodes,
+  LegendItem,
+} from "@/types/mapTypes";
 import { AnalyticsDataType, SchoolType } from "@/types/basicTypes";
 import ExcelJS from "exceljs";
 import { KnexDataProvider } from "remult/remult-knex";
 import { texts } from "@/utils/shared/texts";
+import { Municipality, School as TextToMapSchool } from "text-to-map";
+
 interface ExtractedRowData {
   redIzo: string | null;
   schoolType: SchoolType | null;
@@ -93,7 +99,7 @@ function getSchoolTypeFromCell(type: string): SchoolType | null {
 
 export async function extractDataFromSheet(
   file: File,
-  dataType: AnalyticsDataType
+  dataType: AnalyticsDataType,
 ): Promise<ExtractedRowData[]> {
   const {
     headerRowIndex,
@@ -175,7 +181,7 @@ export async function extractDataFromSheet(
 
 export async function insertAnalyticsDataAndGetResponse(
   data: ExtractedRowData[],
-  dataType: AnalyticsDataType
+  dataType: AnalyticsDataType,
 ): Promise<{
   success: boolean;
   processedCount: number;
@@ -200,7 +206,7 @@ export async function insertAnalyticsDataAndGetResponse(
 
 async function insertAnalyticsData(
   data: ExtractedRowData[],
-  dataType: AnalyticsDataType
+  dataType: AnalyticsDataType,
 ): Promise<number> {
   return await api.withRemult(async () => {
     try {
@@ -225,13 +231,10 @@ async function insertAnalyticsData(
         dataType === AnalyticsDataType.PopulationDensity ||
         dataType === AnalyticsDataType.EarlySchoolLeavers
       ) {
-        const relevantCities = await knex("city as c")
-          .where("c.school_count", ">=", 2)
-          .orWhere("c.kindergarten_count", ">=", 2)
-          .select("c.*");
+        const allCities = await knex("city as c").select("c.*");
 
         const citiesMap = new Map<number, any>();
-        for (const city of relevantCities) {
+        for (const city of allCities) {
           citiesMap.set(city.code, city);
         }
 
@@ -264,13 +267,10 @@ async function insertAnalyticsData(
           }
         }
       } else {
-        // Load schools from cities with 2+ schools of the relevant type (I assume that school count doesn't change much if at all, so we can filter it here and not at every api request)
         const relevantSchools = await knex("school as s")
           .join("school_founder as sf", "s.izo", "sf.school_izo")
           .join("founder as f", "sf.founder_id", "f.id")
           .join("city as c", "f.city_code", "c.code")
-          .where("c.school_count", ">=", 2)
-          .orWhere("c.kindergarten_count", ">=", 2)
           .select("s.*", "c.code as city_code");
 
         const schoolsMap = new Map<string, School & { city_code: number }>();
@@ -297,7 +297,7 @@ async function insertAnalyticsData(
               globalMaxValue > 0
             ) {
               percentage = Number(
-                ((row.value / globalMaxValue) * 100).toFixed(2)
+                ((row.value / globalMaxValue) * 100).toFixed(2),
               );
             }
 
@@ -344,13 +344,13 @@ async function recalculatePercentagesInternal(knex: any): Promise<void> {
     END
     WHERE ua.type = ?
   `,
-    [AnalyticsDataType.StudentsTotal, AnalyticsDataType.StudentsUa]
+    [AnalyticsDataType.StudentsTotal, AnalyticsDataType.StudentsUa],
   );
 }
 
 export async function getAnalyticsData(
   cityCodes: number[],
-  schoolType: SchoolType
+  schoolType: SchoolType,
 ): Promise<AnalyticsData[]> {
   try {
     return await api.withRemult(async () => {
@@ -373,7 +373,7 @@ export async function getAnalyticsData(
           count: row.count,
           schoolType: row.school_type,
           city: row.city_code,
-        })
+        }),
       );
     });
   } catch (error) {
@@ -445,7 +445,7 @@ export async function getAnalyticsDataForCities(): Promise<CitiesAnalyticsData> 
 
 export async function getAnalyticsSummaryForCity(
   cityCode: number,
-  schoolType: SchoolType
+  schoolType: SchoolType,
 ): Promise<{
   totalStudents: number;
   totalStudentsUa: number;
@@ -491,7 +491,7 @@ export async function getAnalyticsSummaryForCity(
       const percentageTotalStudentsUa =
         sums.totalStudents > 0
           ? Number(
-              ((sums.totalStudentsUa / sums.totalStudents) * 100).toFixed(2)
+              ((sums.totalStudentsUa / sums.totalStudents) * 100).toFixed(2),
             )
           : 0;
 
@@ -509,7 +509,7 @@ export async function getAnalyticsSummaryForCity(
 }
 
 export async function getLegendDataForSchoolType(
-  schoolType: SchoolType
+  schoolType: SchoolType,
 ): Promise<LegendItem[]> {
   try {
     return await api.withRemult(async () => {
@@ -519,7 +519,7 @@ export async function getLegendDataForSchoolType(
         .select(
           "type",
           knex.raw("MIN(count) as min_value"),
-          knex.raw("MAX(count) as max_value")
+          knex.raw("MAX(count) as max_value"),
         )
         .where((builder) => {
           builder
@@ -596,4 +596,105 @@ export async function getLegendDataForSchoolType(
     console.error("Failed to load legend data:", error);
     return [];
   }
+}
+
+export async function getSchoolsForAnalyticsMapByCityCodes(
+  cityCodes: number[],
+  schoolType: SchoolType,
+): Promise<DataForMapByCityCodes> {
+  const knex = KnexDataProvider.getDb();
+
+  const query = knex("school as s")
+    .select(
+      "s.izo",
+      "s.redizo",
+      "s.name",
+      "s.capacity",
+      "s.type",
+      "ap.wgs84_latitude as latitude",
+      "ap.wgs84_longitude as longitude",
+      "f.city_code as cityCode",
+      "f.name as founderName",
+    )
+    .join("school_founder as sf", "s.izo", "sf.school_izo")
+    .join("founder as f", "sf.founder_id", "f.id")
+    .join("school_location as sl", "s.izo", "sl.school_izo")
+    .join("address_point as ap", "sl.address_point_id", "ap.id")
+    .whereIn("f.city_code", cityCodes)
+    .whereNotNull("ap.wgs84_latitude")
+    .whereNotNull("ap.wgs84_longitude")
+    .where("s.type", schoolType);
+
+  const schoolsFromDb = await query;
+
+  const schoolsByCityCode: Record<number, any[]> = {};
+
+  for (const school of schoolsFromDb) {
+    if (!schoolsByCityCode[school.cityCode]) {
+      schoolsByCityCode[school.cityCode] = [];
+    }
+    schoolsByCityCode[school.cityCode].push(school);
+  }
+  const result: DataForMapByCityCodes = {};
+
+  for (const [cityCode, schools] of Object.entries(schoolsByCityCode)) {
+    const cityCodeNum = Number(cityCode);
+
+    const textToMapSchools: TextToMapSchool[] = schools.map((school) => ({
+      name: school.name,
+      izo: school.izo,
+      redizo: school.redizo,
+      capacity: school.capacity,
+      position: {
+        address: `${school.name}`,
+        lat: school.latitude,
+        lng: school.longitude,
+      },
+      addressMap: {},
+    }));
+
+    // Create minimal needed municipality for the city without ordinances
+    const municipality: Municipality = {
+      municipalityName: schools[0]?.founderName || `${texts.city} ${cityCode}`,
+      code: cityCodeNum,
+      municipalityType: "city",
+      cityCodes: [cityCodeNum],
+      districtCodes: [],
+      areas: [
+        {
+          index: 0,
+          schools: textToMapSchools,
+          addresses: [],
+        },
+      ],
+      unmappedPoints: [],
+    };
+
+    //For color mapping we create dummy polygon features
+    const polygonFeatures = schools.map((school, index) => ({
+      type: "Feature" as const,
+      properties: {
+        schoolIzos: [school.izo],
+        colorIndex: index,
+        areaIndex: 0,
+      },
+      geometry: {
+        type: "Polygon" as const,
+        coordinates: [[]],
+      },
+    }));
+
+    result[cityCodeNum] = {
+      municipalities: [municipality],
+      polygons: [
+        {
+          type: "FeatureCollection" as const,
+          features: polygonFeatures,
+        },
+      ],
+      text: "",
+    };
+  }
+
+  return result;
 }
