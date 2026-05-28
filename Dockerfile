@@ -2,6 +2,16 @@
 FROM node:22 AS builder
 WORKDIR /app
 
+# Native deps pro `canvas` (pdf-img-convert)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      pkg-config \
+      libcairo2-dev \
+      libpango1.0-dev \
+      libjpeg-dev \
+      libgif-dev \
+      librsvg2-dev \
+    && rm -rf /var/lib/apt/lists/*
+
 ARG NEXT_PUBLIC_MAPY_CZ_API_KEY
 ARG NEXT_PUBLIC_BASE_URL
 ARG TEXTTOMAP_DB_TYPE
@@ -33,6 +43,16 @@ RUN npm run build
 # ---------- STAGE 2: runtime ----------
 FROM node:22-slim AS runner
 WORKDIR /app
+
+# Runtime libs pro `canvas`
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      libcairo2 \
+      libpango-1.0-0 \
+      libpangocairo-1.0-0 \
+      libjpeg62-turbo \
+      libgif7 \
+      librsvg2-2 \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /app .
 
