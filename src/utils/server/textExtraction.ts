@@ -190,7 +190,8 @@ async function extractText(fileName: string): Promise<TextExtractionResult> {
       text = await readDoc(path);
     } else {
       try {
-        text = await officeParser.parseOfficeAsync(path);
+        const ast = await officeParser.parseOffice(path);
+        text = ast.toText();
       } catch (e) {
         console.error(e);
       }

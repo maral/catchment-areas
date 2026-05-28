@@ -14,12 +14,12 @@ import {
 } from "@/types/mapTypes";
 import { SuggestionItem, SuggestionPosition } from "@/types/suggestionTypes";
 import booleanPointInPolygon from "@turf/boolean-point-in-polygon";
-import {
+import type {
   Feature,
   FeatureCollection,
   MultiPolygon,
   Polygon,
-} from "@turf/helpers";
+} from "geojson";
 import L, {
   Circle,
   FeatureGroup,

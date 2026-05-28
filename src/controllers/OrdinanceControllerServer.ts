@@ -1,11 +1,11 @@
 import { SchoolType } from "@/types/basicTypes";
 import { syncOrdinancesToDb } from "@/utils/server/ordinanceMetadataSync";
-import {
+import type {
   FeatureCollection,
   Geometry,
   GeometryCollection,
-  Properties,
-} from "@turf/helpers";
+  GeoJsonProperties,
+} from "geojson";
 import { BackendMethod } from "remult";
 import { KnexDataProvider } from "remult/remult-knex";
 import { Municipality } from "text-to-map";
@@ -75,7 +75,7 @@ export class OrdinanceControllerServer {
 
   static async setPolygons(
     ordinanceId: number,
-    polygons: FeatureCollection<Geometry | GeometryCollection, Properties>[],
+    polygons: FeatureCollection<Geometry | GeometryCollection, GeoJsonProperties>[],
     cityCode?: number,
     founderId?: number
   ) {

@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  serverExternalPackages: ["knex", "fs", "canvas", "pdf-img-convert"],
+  serverExternalPackages: ["knex", "fs", "canvas", "pdf-img-convert", "officeparser", "file-type", "pdfjs-dist"],
   rewrites: async () => {
     return {
       beforeFiles: [

@@ -1,4 +1,4 @@
-import { FeatureCollection } from "@turf/helpers";
+import type { FeatureCollection } from "geojson";
 import { Circle, FeatureGroup, LayerGroup, Marker, Popup } from "leaflet";
 import { Municipality } from "text-to-map";
 import { FounderType } from "../entities/Founder";

@@ -1,6 +1,6 @@
 import { Entity, Fields } from "remult";
 
-import { FeatureCollection } from "@turf/helpers";
+import type { FeatureCollection } from "geojson";
 import { Municipality } from "text-to-map";
 
 @Entity("map-data", {
