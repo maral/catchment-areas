@@ -8,6 +8,7 @@ import {
   Point,
   Polygon,
   featureCollection,
+  polygon,
 } from "@turf/helpers";
 import intersect from "@turf/intersect";
 import { booleanIntersects } from "@turf/boolean-intersects";
@@ -330,6 +331,76 @@ export const buildLabeledCells = (
   } as FeatureCollection<Point>;
 
   return d3DelaunayVoronoi(points);
+};
+
+/** One connected component of an area-set region, clipped to the boundary. */
+export interface AreaSetComponent {
+  /** sorted area indexes this region belongs to; length > 1 = a shared (overlap) okrsek */
+  areaIndexes: number[];
+  /** a single connected polygon (one okrsek candidate, before the C-3 empty-merge) */
+  polygon: Feature<Polygon>;
+}
+
+/**
+ * Dissolve the labeled cells into non-overlapping area-set regions: group cells
+ * by their *exact* areaIndexes set (so a shared `{A,B}` cell forms its own
+ * group), union each group, clip to the municipality/district boundary, and
+ * split into connected components. Each component is one okrsek candidate.
+ *
+ * This is the migration-export counterpart to the renderer's per-area union in
+ * `createPolygons` — the renderer lets shared cells belong to several
+ * overlapping polygons, whereas here a shared cell becomes its own atom that
+ * later links to multiple obvody.
+ */
+export const dissolveAreaSetComponents = (
+  cells: FeatureCollection<Polygon, LabeledCellProps>,
+  boundary: Feature<Polygon | MultiPolygon>
+): AreaSetComponent[] => {
+  const groups = new Map<
+    string,
+    { areaIndexes: number[]; cells: Feature<Polygon, LabeledCellProps>[] }
+  >();
+
+  for (const cell of cells.features) {
+    const areaIndexes = [...cell.properties.areaIndexes].sort((a, b) => a - b);
+    const key = areaIndexes.join(",");
+    const group = groups.get(key);
+    if (group) {
+      group.cells.push(cell);
+    } else {
+      groups.set(key, { areaIndexes, cells: [cell] });
+    }
+  }
+
+  const components: AreaSetComponent[] = [];
+  for (const { areaIndexes, cells: groupCells } of groups.values()) {
+    const merged: Feature<Polygon | MultiPolygon> | null =
+      groupCells.length > 1
+        ? union(featureCollection(groupCells))
+        : (groupCells[0] as Feature<Polygon | MultiPolygon>);
+    if (merged === null) {
+      continue;
+    }
+    const clipped = intersect(merged, boundary);
+    if (clipped === null) {
+      continue;
+    }
+    for (const component of splitPolygons(clipped)) {
+      components.push({ areaIndexes, polygon: component });
+    }
+  }
+
+  return components;
+};
+
+/** Flatten a Polygon/MultiPolygon feature into its connected Polygon components. */
+const splitPolygons = (
+  feature: Feature<Polygon | MultiPolygon>
+): Feature<Polygon>[] => {
+  if (feature.geometry.type === "Polygon") {
+    return [feature as Feature<Polygon>];
+  }
+  return feature.geometry.coordinates.map((rings) => polygon(rings));
 };
 
 const addPoint = (

@@ -3,6 +3,7 @@ import { featureCollection, polygon } from "@turf/helpers";
 import {
   buildLabeledCells,
   createPolygons,
+  dissolveAreaSetComponents,
 } from "../../src/street-markdown/polygons";
 import { Area, Municipality } from "../../src/street-markdown/types";
 
@@ -90,5 +91,45 @@ describe("buildLabeledCells", () => {
 
     expect(cells.features).toHaveLength(1);
     expect(cells.features[0].properties.areaIndexes).toEqual([0, 1]);
+  });
+});
+
+describe("dissolveAreaSetComponents", () => {
+  test("one clipped component per area for a clean left/right split", () => {
+    const components = dissolveAreaSetComponents(
+      buildLabeledCells(areas),
+      boundary
+    );
+
+    expect(components).toHaveLength(2);
+    expect(components.map((c) => c.areaIndexes).sort()).toEqual([[0], [1]]);
+    for (const c of components) {
+      expect(c.polygon.geometry.type).toBe("Polygon");
+    }
+  });
+
+  test("a shared address becomes its own {A,B} component (overlay atom)", () => {
+    const shared = addr("shared", 5, 5);
+    const components = dissolveAreaSetComponents(
+      buildLabeledCells([
+        {
+          index: 0,
+          schools: [{ name: "A", izo: "a" }],
+          addresses: [addr("a", 2, 5), shared],
+        },
+        {
+          index: 1,
+          schools: [{ name: "B", izo: "b" }],
+          addresses: [addr("b", 8, 5), shared],
+        },
+      ]),
+      boundary
+    );
+
+    // three atoms: {0}, {1}, and the shared {0,1}
+    const sets = components.map((c) => c.areaIndexes);
+    expect(sets).toContainEqual([0, 1]);
+    expect(sets).toContainEqual([0]);
+    expect(sets).toContainEqual([1]);
   });
 });
