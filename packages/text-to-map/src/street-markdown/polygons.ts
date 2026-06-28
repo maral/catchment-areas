@@ -8,9 +8,11 @@ import {
   Point,
   Polygon,
   featureCollection,
+  point as turfPoint,
   polygon,
 } from "@turf/helpers";
 import intersect from "@turf/intersect";
+import distance from "@turf/distance";
 import { booleanIntersects } from "@turf/boolean-intersects";
 import Graph from "graphology";
 import { color } from "graphology-color";
@@ -337,8 +339,10 @@ export const buildLabeledCells = (
 export interface AreaSetComponent {
   /** sorted area indexes this region belongs to; length > 1 = a shared (overlap) okrsek */
   areaIndexes: number[];
-  /** a single connected polygon (one okrsek candidate, before the C-3 empty-merge) */
+  /** a single connected polygon (one okrsek candidate) */
   polygon: Feature<Polygon>;
+  /** generating address points ([lng,lat]) that fall inside this component; empty = "empty fragment" */
+  generators: number[][];
 }
 
 /**
@@ -374,6 +378,7 @@ export const dissolveAreaSetComponents = (
 
   const components: AreaSetComponent[] = [];
   for (const { areaIndexes, cells: groupCells } of groups.values()) {
+    const groupGenerators = groupCells.map((c) => c.properties.generator);
     const merged: Feature<Polygon | MultiPolygon> | null =
       groupCells.length > 1
         ? union(featureCollection(groupCells))
@@ -386,7 +391,10 @@ export const dissolveAreaSetComponents = (
       continue;
     }
     for (const component of splitPolygons(clipped)) {
-      components.push({ areaIndexes, polygon: component });
+      const generators = groupGenerators.filter((g) =>
+        booleanIntersects(turfPoint(g), component)
+      );
+      components.push({ areaIndexes, polygon: component, generators });
     }
   }
 
@@ -401,6 +409,145 @@ const splitPolygons = (
     return [feature as Feature<Polygon>];
   }
   return feature.geometry.coordinates.map((rings) => polygon(rings));
+};
+
+/**
+ * Resolve "empty fragments" (OPEN-1 / §7): components with no generating address
+ * inside — artifacts of clipping convex Voronoi cells to a non-convex boundary.
+ * Each empty component is merged into the adjacent okrsek it shares the most
+ * boundary with (preferring a real, non-empty neighbour), absorbing the
+ * address-free land so coverage is preserved and no synthetic def points are
+ * needed. Must run per district, before districts are combined.
+ */
+export const mergeEmptyFragments = (
+  components: AreaSetComponent[]
+): AreaSetComponent[] => {
+  let working = [...components];
+
+  for (;;) {
+    const emptyIndex = working.findIndex((c) => c.generators.length === 0);
+    if (emptyIndex === -1) {
+      break;
+    }
+    const empty = working[emptyIndex];
+
+    // candidate neighbours share a boundary of non-zero length with the fragment
+    const neighbours = working
+      .map((component, index) => ({ component, index }))
+      .filter(({ index }) => index !== emptyIndex)
+      .map((n) => ({
+        ...n,
+        shared: sharedBoundaryLength(empty.polygon, n.component.polygon),
+      }))
+      .filter((n) => n.shared > 0);
+
+    if (neighbours.length === 0) {
+      // isolated fragment (shouldn't happen for a tessellation) — drop it
+      working.splice(emptyIndex, 1);
+      continue;
+    }
+
+    // prefer real neighbours; among the pool the longest shared boundary wins,
+    // tie-broken by a stable pre-code key (lowest area indexes, then min corner)
+    const real = neighbours.filter((n) => n.component.generators.length > 0);
+    const pool = real.length > 0 ? real : neighbours;
+    const target = pool.sort(
+      (a, b) =>
+        b.shared - a.shared ||
+        compareAreaIndexes(a.component.areaIndexes, b.component.areaIndexes) ||
+        compareCorner(a.component.polygon, b.component.polygon)
+    )[0];
+
+    const mergedComponent: AreaSetComponent = {
+      areaIndexes: target.component.areaIndexes,
+      generators: target.component.generators,
+      polygon: mergePolygons(target.component.polygon, empty.polygon),
+    };
+
+    working = working.filter(
+      (_, index) => index !== emptyIndex && index !== target.index
+    );
+    working.push(mergedComponent);
+  }
+
+  return working;
+};
+
+/** Total length (m) of boundary segments shared by two polygons (cm-rounded match). */
+const sharedBoundaryLength = (
+  a: Feature<Polygon>,
+  b: Feature<Polygon>
+): number => {
+  const segmentsA = boundarySegments(a);
+  const segmentsB = boundarySegments(b);
+  let total = 0;
+  for (const [key, length] of segmentsA) {
+    if (segmentsB.has(key)) {
+      total += length;
+    }
+  }
+  return total;
+};
+
+/** Map of undirected, cm-rounded boundary segment -> length in metres. */
+const boundarySegments = (feature: Feature<Polygon>): Map<string, number> => {
+  const segments = new Map<string, number>();
+  for (const ring of feature.geometry.coordinates) {
+    for (let i = 0; i + 1 < ring.length; i++) {
+      const from = roundKey(ring[i]);
+      const to = roundKey(ring[i + 1]);
+      const key = from < to ? `${from}|${to}` : `${to}|${from}`;
+      segments.set(key, distance(ring[i], ring[i + 1], { units: "meters" }));
+    }
+  }
+  return segments;
+};
+
+const roundKey = (coord: number[]): string =>
+  `${coord[0].toFixed(7)},${coord[1].toFixed(7)}`;
+
+/** Union two edge-adjacent polygons; defensively keep the largest part. */
+const mergePolygons = (
+  a: Feature<Polygon>,
+  b: Feature<Polygon>
+): Feature<Polygon> => {
+  const merged = union(featureCollection([a, b]));
+  if (merged === null) {
+    return a;
+  }
+  return splitPolygons(merged).reduce((largest, part) =>
+    part.geometry.coordinates[0].length > largest.geometry.coordinates[0].length
+      ? part
+      : largest
+  );
+};
+
+const compareAreaIndexes = (a: number[], b: number[]): number => {
+  const length = Math.min(a.length, b.length);
+  for (let i = 0; i < length; i++) {
+    if (a[i] !== b[i]) {
+      return a[i] - b[i];
+    }
+  }
+  return a.length - b.length;
+};
+
+const compareCorner = (a: Feature<Polygon>, b: Feature<Polygon>): number => {
+  const [ax, ay] = minCorner(a);
+  const [bx, by] = minCorner(b);
+  return ax - bx || ay - by;
+};
+
+const minCorner = (feature: Feature<Polygon>): [number, number] => {
+  let min: [number, number] = [Infinity, Infinity];
+  for (const ring of feature.geometry.coordinates) {
+    for (const [x, y] of ring) {
+      if (x < min[0] || (x === min[0] && y < min[1])) {
+        min = [x, y];
+      }
+    }
+  }
+  return min;
 };
 
 const addPoint = (

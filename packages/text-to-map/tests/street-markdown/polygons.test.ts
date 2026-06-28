@@ -1,9 +1,11 @@
 import { describe, expect, test } from "@jest/globals";
-import { featureCollection, polygon } from "@turf/helpers";
+import { featureCollection, point as turfPoint, polygon } from "@turf/helpers";
+import { booleanIntersects } from "@turf/boolean-intersects";
 import {
   buildLabeledCells,
   createPolygons,
   dissolveAreaSetComponents,
+  mergeEmptyFragments,
 } from "../../src/street-markdown/polygons";
 import { Area, Municipality } from "../../src/street-markdown/types";
 
@@ -131,5 +133,66 @@ describe("dissolveAreaSetComponents", () => {
     expect(sets).toContainEqual([0, 1]);
     expect(sets).toContainEqual([0]);
     expect(sets).toContainEqual([1]);
+  });
+});
+
+describe("mergeEmptyFragments", () => {
+  // U-shaped obec: bottom bar + left/right arms; the top-centre notch is OUTSIDE.
+  // School A sits in the left arm; school B fills the bottom. A's Voronoi cell
+  // reaches across the notch into the right-arm top, which clips to a
+  // generator-less fragment — the artifact reproduced in §4.
+  const uBoundary = polygon([
+    [
+      B(0, 0),
+      B(10, 0),
+      B(10, 10),
+      B(7, 10),
+      B(7, 3),
+      B(3, 3),
+      B(3, 10),
+      B(0, 10),
+      B(0, 0),
+    ],
+  ]);
+  const uCells = () =>
+    buildLabeledCells([
+      {
+        index: 0,
+        schools: [{ name: "A", izo: "a" }],
+        addresses: [addr("A", 1.5, 8)],
+      },
+      {
+        index: 1,
+        schools: [{ name: "B", izo: "b" }],
+        addresses: [addr("B1", 5, 1), addr("B2", 1.5, 1), addr("B3", 8.5, 1)],
+      },
+    ]);
+
+  test("absorbs the concavity fragment into a neighbour (no coverage gap)", () => {
+    const components = dissolveAreaSetComponents(uCells(), uBoundary);
+    // sanity: the concavity really did produce an empty fragment
+    expect(components.some((c) => c.generators.length === 0)).toBe(true);
+
+    const merged = mergeEmptyFragments(components);
+
+    // no empty okrsek remains
+    expect(merged.every((c) => c.generators.length > 0)).toBe(true);
+    // area 0 collapses to a single (left-arm) okrsek
+    expect(merged.filter((c) => c.areaIndexes.includes(0))).toHaveLength(1);
+
+    // the fragment's land is still covered by a real okrsek — absorbed, not dropped
+    const fragmentInterior = turfPoint(B(8, 9));
+    const covering = merged.find((c) =>
+      booleanIntersects(fragmentInterior, c.polygon)
+    );
+    expect(covering).toBeDefined();
+    expect(covering!.generators.length).toBeGreaterThan(0);
+  });
+
+  test("leaves a clean convex split untouched", () => {
+    const components = dissolveAreaSetComponents(buildLabeledCells(areas), boundary);
+    const merged = mergeEmptyFragments(components);
+    expect(merged).toHaveLength(components.length);
+    expect(merged.every((c) => c.generators.length > 0)).toBe(true);
   });
 });
