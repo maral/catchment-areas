@@ -2,7 +2,12 @@
   "name": "catchment-areas",
   "version": "0.1.0",
   "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
+    "ttm:build": "npm run build -w text-to-map",
+    "ttm:watch": "npm run build:js -w text-to-map -- --watch",
     "dev": "next dev --turbopack -p 3000",
     "build": "next build",
     "start": "next start -p 3003",
@@ -87,7 +92,7 @@
     "tailwindcss": "^4.1.3",
     "tailwindcss-animate": "^1.0.7",
     "tesseract.js": "^4.1.1",
-    "text-to-map": "^1.1.46",
+    "text-to-map": "*",
     "tsx": "^4.7.0",
     "tw-animate-css": "^1.2.5",
     "word-extractor": "^1.0.4",
