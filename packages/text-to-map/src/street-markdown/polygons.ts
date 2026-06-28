@@ -721,6 +721,39 @@ const pickCentralGenerator = (generators: number[][]): number[] => {
   return best;
 };
 
+/** Deterministic per-obec okrsek numbering (CISLO) for one okrsek list. */
+export interface OkrsekNumber {
+  /** index into the okrsky array (matches Seam.ko1/ko2 and DefPoint.ko) */
+  ko: number;
+  /** 1-based, unique and stable within the obec (the CISLO user identification) */
+  cislo: number;
+}
+
+/**
+ * Assign deterministic CISLO numbers to the okrsky of one obec+type (C-6).
+ * Okrsky are ordered by a content-derived key — their def point, then area
+ * indexes, then min corner — so the ordering is independent of parse/processing
+ * order, and re-running on unchanged input yields identical numbers. The global
+ * 6-digit KOD is the caller's concern: app-side B4 applies a running offset
+ * across obce so KOD is unique migration-wide.
+ */
+export const assignOkrsekNumbers = (
+  okrsky: AreaSetComponent[]
+): OkrsekNumber[] => {
+  const defPoints = selectDefPoints(okrsky);
+  const ordered = [...okrsky.keys()].sort((a, b) => {
+    const [ax, ay] = defPoints[a].point.geometry.coordinates;
+    const [bx, by] = defPoints[b].point.geometry.coordinates;
+    return (
+      ax - bx ||
+      ay - by ||
+      compareAreaIndexes(okrsky[a].areaIndexes, okrsky[b].areaIndexes) ||
+      compareCorner(okrsky[a].polygon, okrsky[b].polygon)
+    );
+  });
+  return ordered.map((ko, index) => ({ ko, cislo: index + 1 }));
+};
+
 const addPoint = (
   uniquePoints: Map<string, Feature>,
   point: ExportAddressPoint,

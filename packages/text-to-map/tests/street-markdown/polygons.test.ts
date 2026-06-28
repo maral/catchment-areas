@@ -2,6 +2,7 @@ import { describe, expect, test } from "@jest/globals";
 import { featureCollection, point as turfPoint, polygon } from "@turf/helpers";
 import { booleanIntersects } from "@turf/boolean-intersects";
 import {
+  assignOkrsekNumbers,
   buildLabeledCells,
   createPolygons,
   deriveSeams,
@@ -251,5 +252,39 @@ describe("selectDefPoints", () => {
       );
       expect(isGenerator).toBe(true);
     }
+  });
+});
+
+describe("assignOkrsekNumbers", () => {
+  const okrsky = () =>
+    mergeEmptyFragments(
+      dissolveAreaSetComponents(buildLabeledCells(areas), boundary)
+    );
+
+  // map each okrsek's def point -> its CISLO (identity independent of array order)
+  const cisloByDefPoint = (list: ReturnType<typeof okrsky>) => {
+    const defs = selectDefPoints(list);
+    const map = new Map<string, number>();
+    for (const { ko, cislo } of assignOkrsekNumbers(list)) {
+      const [x, y] = defs[ko].point.geometry.coordinates;
+      map.set(`${x},${y}`, cislo);
+    }
+    return map;
+  };
+
+  test("numbers okrsky 1..N uniquely", () => {
+    const list = okrsky();
+    const cisla = assignOkrsekNumbers(list)
+      .map((o) => o.cislo)
+      .sort((a, b) => a - b);
+    expect(cisla).toEqual(list.map((_, i) => i + 1));
+  });
+
+  test("CISLO is stable regardless of input order", () => {
+    const forward = cisloByDefPoint(okrsky());
+    const reversed = cisloByDefPoint([...okrsky()].reverse());
+    expect([...forward.entries()].sort()).toEqual(
+      [...reversed.entries()].sort()
+    );
   });
 });
