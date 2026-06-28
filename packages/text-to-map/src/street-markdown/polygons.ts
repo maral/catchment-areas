@@ -20,11 +20,22 @@ import truncate from "@turf/truncate";
 import { PolygonsByCodes } from "../db/types";
 import difference from "@turf/difference";
 
-type PolygonProps = {
+/**
+ * Properties carried by a single labeled Voronoi cell. One cell per unique
+ * address point; `areaIndexes` holds every area that address belongs to (more
+ * than one only when an address is deliberately shared between schools).
+ */
+export interface LabeledCellProps {
   areaIndexes: number[];
+  /** index of the generating point within the Delaunay/Voronoi triangulation */
   index: number;
+  /** indexes of the adjacent Voronoi cells */
   neighbors: Set<number>;
-};
+  /** [lng, lat] of the address point that generated this cell */
+  generator: number[];
+  /** address string of the generating point */
+  generatorAddress: string;
+}
 
 export const municipalitiesToPolygons = async (
   municipalities: Municipality[]
@@ -240,28 +251,10 @@ export const createPolygons = (
   const municipalitiesMultipolygon = createMunicipalitiesMultipolygon(
     Object.values(municipalityPolygons)
   );
-  const uniquePoints = new Map<string, Feature>();
   const allAreas = [...municipality.areas, ...extraAreas];
   const extraAreasIndexes = new Set(extraAreas.map((area) => area.index));
 
-  for (const area of allAreas) {
-    const points = [...area.addresses];
-
-    for (const point of points) {
-      if (!uniquePoints.has(point.address)) {
-        addPoint(uniquePoints, point, area.index);
-      } else {
-        uniquePoints.get(point.address).properties.areaIndexes.push(area.index);
-      }
-    }
-  }
-
-  const points = {
-    type: "FeatureCollection",
-    features: Array.from(uniquePoints.values()),
-  } as FeatureCollection<Point>;
-
-  const polygons = d3DelaunayVoronoi(points);
+  const polygons = buildLabeledCells(allAreas);
 
   const unitedPolygons: Feature<Polygon | MultiPolygon>[] = [];
   const extraPolygons = new Map<number, Feature<Polygon | MultiPolygon>>();
@@ -309,6 +302,36 @@ export const createPolygons = (
   };
 };
 
+/**
+ * Build the labeled Voronoi cell layer from a set of areas: one cell per unique
+ * address point, each tagged with the area(s) it belongs to, its neighbors and
+ * its generating point. This is the shared intermediate the public renderer
+ * dissolves into per-area polygons and the migration export dissolves into
+ * okrsky — exposed so both consume the exact same tessellation.
+ */
+export const buildLabeledCells = (
+  allAreas: Area[]
+): FeatureCollection<Polygon, LabeledCellProps> => {
+  const uniquePoints = new Map<string, Feature>();
+
+  for (const area of allAreas) {
+    for (const point of area.addresses) {
+      if (!uniquePoints.has(point.address)) {
+        addPoint(uniquePoints, point, area.index);
+      } else {
+        uniquePoints.get(point.address).properties.areaIndexes.push(area.index);
+      }
+    }
+  }
+
+  const points = {
+    type: "FeatureCollection",
+    features: Array.from(uniquePoints.values()),
+  } as FeatureCollection<Point>;
+
+  return d3DelaunayVoronoi(points);
+};
+
 const addPoint = (
   uniquePoints: Map<string, Feature>,
   point: ExportAddressPoint,
@@ -325,13 +348,14 @@ const addPoint = (
     },
     properties: {
       areaIndexes: [areaIndex],
+      address: point.address,
     },
   });
 };
 
 const d3DelaunayVoronoi = (
   points: FeatureCollection<Point>
-): FeatureCollection<Polygon, PolygonProps> => {
+): FeatureCollection<Polygon, LabeledCellProps> => {
   const converted = points.features.map((p) => {
     return toMercator([p.geometry.coordinates[0], p.geometry.coordinates[1]]);
   });
@@ -357,6 +381,8 @@ const d3DelaunayVoronoi = (
         areaIndexes: points.features[polygon.index].properties.areaIndexes,
         index: polygon.index,
         neighbors: new Set(voronoi.neighbors(polygon.index)),
+        generator: points.features[polygon.index].geometry.coordinates,
+        generatorAddress: points.features[polygon.index].properties.address,
       },
     })),
   };
