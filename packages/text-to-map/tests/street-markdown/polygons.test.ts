@@ -7,6 +7,7 @@ import {
   deriveSeams,
   dissolveAreaSetComponents,
   mergeEmptyFragments,
+  selectDefPoints,
 } from "../../src/street-markdown/polygons";
 import { Area, Municipality } from "../../src/street-markdown/types";
 
@@ -221,5 +222,34 @@ describe("deriveSeams", () => {
     const left = polygon([[B(0, 0), B(2, 0), B(2, 2), B(0, 2), B(0, 0)]]);
     const right = polygon([[B(8, 0), B(10, 0), B(10, 2), B(8, 2), B(8, 0)]]);
     expect(deriveSeams([left, right])).toHaveLength(0);
+  });
+});
+
+describe("selectDefPoints", () => {
+  const okrsky = () =>
+    mergeEmptyFragments(
+      dissolveAreaSetComponents(buildLabeledCells(areas), boundary)
+    );
+
+  test("one strictly-interior def point per okrsek", () => {
+    const list = okrsky();
+    const defs = selectDefPoints(list);
+
+    expect(defs).toHaveLength(list.length);
+    for (const { ko, point } of defs) {
+      expect(point.geometry.type).toBe("Point");
+      expect(booleanIntersects(point, list[ko].polygon)).toBe(true);
+    }
+  });
+
+  test("each def point is one of the okrsek's own addresses (never synthetic)", () => {
+    const list = okrsky();
+    for (const { ko, point } of selectDefPoints(list)) {
+      const [lng, lat] = point.geometry.coordinates;
+      const isGenerator = list[ko].generators.some(
+        (g) => g[0] === lng && g[1] === lat
+      );
+      expect(isGenerator).toBe(true);
+    }
   });
 });

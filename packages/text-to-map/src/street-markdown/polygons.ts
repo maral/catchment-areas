@@ -682,6 +682,45 @@ const chainSegments = (segments: number[][][]): number[][][] => {
   return lines;
 };
 
+/** A definition point for an okrsek (a MIG_DEF_BOD_KO row). */
+export interface DefPoint {
+  /** id (index into the okrsky array) of the okrsek this point defines */
+  ko: number;
+  point: Feature<Point>;
+}
+
+/**
+ * Pick one interior definition point per okrsek (§7 / C-5): the okrsek's own
+ * address point closest to the centroid of its addresses — always a real,
+ * strictly-interior point. Empties were absorbed in C-3, so every okrsek has
+ * at least one generator and no synthetic points are ever required.
+ */
+export const selectDefPoints = (okrsky: AreaSetComponent[]): DefPoint[] =>
+  okrsky.map((okrsek, ko) => ({
+    ko,
+    point: turfPoint(pickCentralGenerator(okrsek.generators)),
+  }));
+
+const pickCentralGenerator = (generators: number[][]): number[] => {
+  if (generators.length === 1) {
+    return generators[0];
+  }
+  const mean = [
+    generators.reduce((sum, g) => sum + g[0], 0) / generators.length,
+    generators.reduce((sum, g) => sum + g[1], 0) / generators.length,
+  ];
+  let best = generators[0];
+  let bestDistance = distance(mean, best, { units: "meters" });
+  for (const generator of generators.slice(1)) {
+    const d = distance(mean, generator, { units: "meters" });
+    if (d < bestDistance) {
+      best = generator;
+      bestDistance = d;
+    }
+  }
+  return best;
+};
+
 const addPoint = (
   uniquePoints: Map<string, Feature>,
   point: ExportAddressPoint,
