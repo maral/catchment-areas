@@ -4,6 +4,7 @@ import { booleanIntersects } from "@turf/boolean-intersects";
 import {
   buildLabeledCells,
   createPolygons,
+  deriveSeams,
   dissolveAreaSetComponents,
   mergeEmptyFragments,
 } from "../../src/street-markdown/polygons";
@@ -194,5 +195,31 @@ describe("mergeEmptyFragments", () => {
     const merged = mergeEmptyFragments(components);
     expect(merged).toHaveLength(components.length);
     expect(merged.every((c) => c.generators.length > 0)).toBe(true);
+  });
+});
+
+describe("deriveSeams", () => {
+  test("one interior seam between adjacent okrsky; obec edges skipped", () => {
+    const okrsky = dissolveAreaSetComponents(
+      buildLabeledCells(areas),
+      boundary
+    ).map((c) => c.polygon);
+
+    const seams = deriveSeams(okrsky);
+
+    // exactly one shared seam (the x=5 bisector); all square-edge segments dropped
+    expect(seams).toHaveLength(1);
+    expect([seams[0].ko1, seams[0].ko2]).toEqual([0, 1]);
+    expect(seams[0].line.geometry.type).toBe("LineString");
+    expect(
+      seams[0].line.geometry.coordinates.length
+    ).toBeGreaterThanOrEqual(2);
+  });
+
+  test("no seam between non-adjacent okrsky", () => {
+    // two separate squares that don't touch -> no shared boundary
+    const left = polygon([[B(0, 0), B(2, 0), B(2, 2), B(0, 2), B(0, 0)]]);
+    const right = polygon([[B(8, 0), B(10, 0), B(10, 2), B(8, 2), B(8, 0)]]);
+    expect(deriveSeams([left, right])).toHaveLength(0);
   });
 });

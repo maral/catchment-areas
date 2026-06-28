@@ -4,10 +4,12 @@ import { Area, ExportAddressPoint, Municipality } from "./types";
 import {
   Feature,
   FeatureCollection,
+  LineString,
   MultiPolygon,
   Point,
   Polygon,
   featureCollection,
+  lineString,
   point as turfPoint,
   polygon,
 } from "@turf/helpers";
@@ -548,6 +550,136 @@ const minCorner = (feature: Feature<Polygon>): [number, number] => {
     }
   }
   return min;
+};
+
+/** An interior boundary shared by two okrsky (a MIG_HRAN_KO row). */
+export interface Seam {
+  /** ids (indexes into the input array) of the two okrsky the seam separates */
+  ko1: number;
+  ko2: number;
+  line: Feature<LineString>;
+}
+
+const SNAP = 1e7; // ~cm grid in WGS-84 degrees (C-7 reprojects/rounds to EPSG:5514 cm)
+const gridKey = (coord: number[]): string =>
+  `${Math.round(coord[0] * SNAP)},${Math.round(coord[1] * SNAP)}`;
+const snap = (coord: number[]): number[] => [
+  Math.round(coord[0] * SNAP) / SNAP,
+  Math.round(coord[1] * SNAP) / SNAP,
+];
+
+/**
+ * Derive interior seams (§7) from a combined set of okrsky (one obec, all its
+ * districts already pooled). Every okrsek-boundary segment is snapped to a cm
+ * grid and keyed by its endpoints: a segment owned by exactly two okrsky is an
+ * interior seam between them, one owned by a single okrsek is the outer obec
+ * edge and is skipped (ČÚZK generates it). Shared segments are grouped by
+ * okrsek pair and chained into polylines — district-line seams pair
+ * automatically, since each such segment is owned by one okrsek from each side.
+ *
+ * `ko1`/`ko2` are array indexes; the caller maps them to minted KO_KOD in C-6.
+ */
+export const deriveSeams = (okrsky: Feature<Polygon>[]): Seam[] => {
+  const segments = new Map<
+    string,
+    { owners: Set<number>; a: number[]; b: number[] }
+  >();
+
+  okrsky.forEach((okrsek, id) => {
+    for (const ring of okrsek.geometry.coordinates) {
+      for (let i = 0; i + 1 < ring.length; i++) {
+        const a = snap(ring[i]);
+        const b = snap(ring[i + 1]);
+        const ka = gridKey(a);
+        const kb = gridKey(b);
+        if (ka === kb) {
+          continue; // zero-length after snapping
+        }
+        const key = ka < kb ? `${ka}|${kb}` : `${kb}|${ka}`;
+        const entry = segments.get(key);
+        if (entry) {
+          entry.owners.add(id);
+        } else {
+          segments.set(key, { owners: new Set([id]), a, b });
+        }
+      }
+    }
+  });
+
+  // group shared segments (owned by exactly two okrsky) by ordered okrsek pair
+  const pairs = new Map<
+    string,
+    { ko1: number; ko2: number; segments: number[][][] }
+  >();
+  for (const { owners, a, b } of segments.values()) {
+    if (owners.size !== 2) {
+      continue; // 1 = obec edge (skip); >2 cannot happen for a partition
+    }
+    const [ko1, ko2] = [...owners].sort((p, q) => p - q);
+    const key = `${ko1},${ko2}`;
+    const entry = pairs.get(key);
+    if (entry) {
+      entry.segments.push([a, b]);
+    } else {
+      pairs.set(key, { ko1, ko2, segments: [[a, b]] });
+    }
+  }
+
+  const seams: Seam[] = [];
+  for (const { ko1, ko2, segments: pairSegments } of pairs.values()) {
+    for (const coords of chainSegments(pairSegments)) {
+      seams.push({ ko1, ko2, line: lineString(coords) });
+    }
+  }
+  return seams;
+};
+
+/** Stitch unordered, endpoint-sharing segments into maximal polylines. */
+const chainSegments = (segments: number[][][]): number[][][] => {
+  const incident = new Map<string, number[]>();
+  segments.forEach(([a, b], i) => {
+    for (const key of [gridKey(a), gridKey(b)]) {
+      const list = incident.get(key);
+      if (list) {
+        list.push(i);
+      } else {
+        incident.set(key, [i]);
+      }
+    }
+  });
+
+  const used = new Array<boolean>(segments.length).fill(false);
+  const otherEnd = (segIndex: number, fromKey: string): number[] => {
+    const [a, b] = segments[segIndex];
+    return gridKey(a) === fromKey ? b : a;
+  };
+  const extend = (endpoint: number[], push: (p: number[]) => void) => {
+    let key = gridKey(endpoint);
+    for (;;) {
+      const next = (incident.get(key) ?? []).find((i) => !used[i]);
+      if (next === undefined) {
+        break;
+      }
+      used[next] = true;
+      const point = otherEnd(next, key);
+      push(point);
+      key = gridKey(point);
+    }
+  };
+
+  const lines: number[][][] = [];
+  for (let start = 0; start < segments.length; start++) {
+    if (used[start]) {
+      continue;
+    }
+    used[start] = true;
+    const [a, b] = segments[start];
+    const line = [a, b];
+    extend(b, (p) => line.push(p));
+    extend(a, (p) => line.unshift(p));
+    lines.push(line);
+  }
+  return lines;
 };
 
 const addPoint = (
