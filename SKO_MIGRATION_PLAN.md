@@ -35,7 +35,14 @@ Answered by **Jiří Jindřich (JJ)** and **Petr Souček (PSO)**.
   obec**; ignore městské části entirely.
 - **Q4 — geometry format & CRS.** Deliver as **GeoPackage (GPKG)**; ČÚZK loads to DB
   themselves via GDAL. CRS: **S-JTSK / EPSG:5514 preferred** (their default, cm rounding);
-  **WGS-84 is acceptable** (GDAL reprojects). → We'll deliver **EPSG:5514 rounded to cm**.
+  **WGS-84 is acceptable** (GDAL reprojects on ingest).
+- **Q-delivery — handover format & timeline** (JJ, later thread). **CSV is enough, but JJ's
+  mental model is "everything in one GeoPackage."** No API / no online delivery. Timeline:
+  ČÚZK will **request the final handover at the start of 2027**, run a last test on the test
+  environment, then **freeze** — no further minor changes folded in, even though migration
+  itself happens ~April 2027. → **Decision:** primary deliverable is **one GeoPackage
+  containing all `MIG_*`** (spatial layers + non-spatial attribute tables); CSV mirror as a
+  convenience/fallback. See §2 + C-7 for the writer/CRS decision.
 
 ### Residual follow-ups — all resolved (our calls, no email needed)
 
@@ -44,9 +51,9 @@ Answered by **Jiří Jindřich (JJ)** and **Petr Souček (PSO)**.
   grades 6–9** (per the CSV); otherwise leave the okrsek **orphan** (allowed by Q1). In scope
   now — no deferral. Caveat below.
 - **Seam-endpoint tolerance:** cm snapping to the RÚIAN obec boundary is sufficient (per Q4).
-- **Descriptive tables:** delivered as **per-table CSVs** (column-matched to `MIG_*`); ČÚZK
-  loads them (geometry stays GPKG). We get **no DB access**. *Format not in the CR — confirm
-  informally with JJ/PSO.*
+- **Descriptive tables:** go into the **single GeoPackage as non-spatial attribute tables**
+  (JJ's "all in one geopackage"), with a **CSV mirror** as fallback ("CSV nám stačí"). ČÚZK
+  loads the file; we get **no DB access**.
 - **`SKOLA_IZO`:** converted to number on our side; no leading-zero collisions. Fine.
 
 > **Caveat on reused 2.stupeň geometry:** correct for single-full-school obce and for
@@ -73,7 +80,14 @@ Answered by **Jiří Jindřich (JJ)** and **Petr Souček (PSO)**.
 - **Interior seams only** in `MIG_HRAN_KO`; obec-boundary edges generated internally by
   ČÚZK. City boundaries used to **terminate** seam endpoints (line∩boundary), not to clip
   polygons.
-- **Geometry deliverable:** **GPKG, EPSG:5514, cm rounding.**
+- **Deliverable:** **one GeoPackage with all `MIG_*`** — spatial layers (`MIG_DEF_BOD_KO`
+  points, `MIG_HRAN_KO` lines) + non-spatial attribute tables for the rest; CSV mirror as
+  fallback. **CRS: ship WGS-84 (EPSG:4326); ČÚZK reprojects to S-JTSK/5514 via GDAL on
+  ingest** (their offer, and their transform is authoritative — avoids a proj4 dep and any
+  Křovák datum-shift error on our side; the existing `jtsk2wgs84.ts` only goes JTSK→WGS-84,
+  not the inverse we'd need). **Writer: hand-rolled via `better-sqlite3`** (already a dep;
+  GeoPackage *is* SQLite) — no new native/binary dependency, so the export stays fully
+  self-contained and re-runnable on demand. Validate the `.gpkg` with GDAL in C-8.
 - **Prague et al. → single obec** (per Q3); pool all district-level catchments under the
   one `OBEC_KOD`.
 - **Grade flags** `TRIDA_1..9` = (school's real grades from ČÚZK CSV) ∩ (type band); type
@@ -149,10 +163,12 @@ Answered by **Jiří Jindřich (JJ)** and **Petr Souček (PSO)**.
 ### Part F — Validation & delivery ✅ READY (lighter than before)
 
 - F1. Self-check harness replicating MI01–MI14 against generated tables before handover.
-- F2. **Delivery (we produce files; ČÚZK loads them — no DB access on our side):** geometry
-  → **GPKG** (GDAL); descriptive `MIG_*` tables → **per-table CSV** (column-matched). ČÚZK
-  fills the interface tables ("v kompetenci ČÚZK", CR l.162/427); `AX_MIGRACE_SKO` is *their*
-  role. CSV format isn't in the CR — confirm informally with JJ/PSO.
+- F2. **Delivery (we produce one file; ČÚZK loads it — no DB access on our side):** a
+  **single GeoPackage** holding *all* `MIG_*` — spatial layers (`MIG_DEF_BOD_KO`,
+  `MIG_HRAN_KO`) + non-spatial attribute tables for the rest — in **WGS-84** (ČÚZK reprojects
+  to 5514 via GDAL). **CSV mirror** as fallback. ČÚZK fills the interface tables ("v
+  kompetenci ČÚZK", CR l.162/427); `AX_MIGRACE_SKO` is *their* role. One-shot final handover
+  ~start of 2027, then frozen (Q-delivery).
 - F3. **Coverage — verified a non-issue.** The Voronoi is built **only from `area.addresses`**
   (each cell labeled with its area); `municipality.unmappedPoints` is never fed into
   `polygons.ts`. So every cell is labeled and the cells tile the whole obec — no coverage gap
@@ -228,9 +244,11 @@ The architectural heart. Ordered; each has a clear acceptance criterion. All ope
 - **C-6 · Deterministic codes.** Assign `KOD`/`CISLO` to okrsky from (obec_kod + type +
   component key); shared with B4. **Done when:** re-running on unchanged input yields
   identical codes.
-- **C-7 · GPKG serialization.** Write `MIG_DEF_BOD_KO` + `MIG_HRAN_KO` as GPKG layers,
-  reprojected to **EPSG:5514**, rounded to **cm**. **Done when:** GDAL opens the file and
-  reports the correct CRS + layer geometry types.
+- **C-7 · GeoPackage serialization.** Hand-roll a GeoPackage writer over `better-sqlite3`
+  (already a dep): `MIG_DEF_BOD_KO` (points) + `MIG_HRAN_KO` (lines) as spatial layers, the
+  descriptive `MIG_*` as non-spatial attribute tables, all in **WGS-84 (EPSG:4326)** — ČÚZK
+  reprojects to 5514 via GDAL. Emit a CSV mirror too. **Done when:** GDAL/`ogr2ogr` opens the
+  `.gpkg`, lists every table, and reports the layer geometry types + CRS.
 - **C-8 · Dry run on one complex obec.** End-to-end on a real multi-school obec → F1
   self-check → hand the GPKG to ČÚZK to validate MI10 reassembly + endpoint snapping.
   **Done when:** MI10 passes on the sample without manual fixes.
