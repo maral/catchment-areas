@@ -35,7 +35,10 @@ export default function OverviewBoxButtons({
 
   const getSetStatus = (status: CityStatus) => async () => {
     setLoading(true);
-    await remult.repo(City).save({ ...city, [statusParam]: status });
+    // Only update the status column. Spreading the whole city would re-send the
+    // `region` reference, which remult drops from the SSR payload (null) and
+    // would then clobber region_code to NULL.
+    await remult.repo(City).update(city.code, { [statusParam]: status });
     await fetchCity();
     setLoading(false);
   };

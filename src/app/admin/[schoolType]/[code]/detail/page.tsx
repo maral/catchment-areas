@@ -14,6 +14,7 @@ import { getSchoolTypeCode } from "@/entities/School";
 import { notFound } from "next/navigation";
 import { remult } from "remult";
 import { sortFounders } from "@/utils/shared/founders";
+import { toJsonWithRelations } from "@/utils/server/serializeEntity";
 
 export default async function CityDetailPage(props: {
   params: Promise<{ schoolType: string; code: string }>;
@@ -43,7 +44,7 @@ export default async function CityDetailPage(props: {
       .repo(Founder)
       .find({ where: { city }, orderBy: { name: "asc" } });
     founders.sort((a, b) => sortFounders(a.name, b.name));
-    const cityJson = remult.repo(City).toJson(city);
+    const cityJson = toJsonWithRelations(remult.repo(City), city, ["region"]);
     const ordinances = await loadOrdinancesByCityCode(cityCode, schoolTypeCode);
     return {
       serializedOrdinances: serializeOrdinances(ordinances),

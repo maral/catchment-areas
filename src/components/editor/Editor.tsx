@@ -125,8 +125,13 @@ export default function Editor({
           streetMarkdown.sourceText = text;
           streetMarkdown.createdAt = new Date();
           streetMarkdown.comment = StreetMarkdown.getAutosaveComment();
+          // Only send the fields autosave actually changes. Spreading the whole
+          // entity re-sends the user/ordinance/founder references, which would be
+          // clobbered to NULL whenever remult drops them from the SSR payload.
           await streetMarkdownRepo.update(streetMarkdown.id, {
-            ...streetMarkdown,
+            sourceText: streetMarkdown.sourceText,
+            createdAt: streetMarkdown.createdAt,
+            comment: streetMarkdown.comment,
           });
           await MapDataController.deleteMapData(ordinance, founder.id);
           setIsSaving(false);

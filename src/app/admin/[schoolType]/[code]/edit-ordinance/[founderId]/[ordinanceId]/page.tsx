@@ -62,7 +62,11 @@ export default async function EditorPage(props: {
       if (smd === null) {
         notFound();
       }
-      streetMarkdownJson = streetMarkdownRepo.toJson(smd);
+      streetMarkdownJson = toJsonWithRelations(streetMarkdownRepo, smd, [
+        "user",
+        "ordinance",
+        "founder",
+      ]);
     }
 
     return {
