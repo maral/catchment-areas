@@ -2,7 +2,7 @@ import { getAdminRemultAPI } from "@/app/api/[...remult]/config";
 import { OrdinanceMetadata } from "@/entities/OrdinanceMetadata";
 import { SchoolType } from "@/types/basicTypes";
 import { load } from "cheerio";
-import { Cell, Workbook } from "exceljs";
+import { Cell, CellValue, Workbook } from "exceljs";
 import chunk from "lodash/chunk";
 import fetch from "node-fetch";
 import { dbNamesOf, remult } from "remult";
@@ -29,7 +29,7 @@ export function getOrdinanceDocumentDownloadLink(ordinanceMetadataId: string) {
 async function findLink(
   url: string,
   attempts: number,
-  delay: number
+  delay: number,
 ): Promise<string | null> {
   const fullUrl = "https://sbirkapp.gov.cz";
   for (let i = 0; i < attempts; i++) {
@@ -39,7 +39,7 @@ async function findLink(
       const html = await response.text();
       const $ = load(html);
       const linkElement = $("div.gov-content-block > a").filter(
-        (_, el) => $(el).text().trim() === "Výsledek"
+        (_, el) => $(el).text().trim() === "Výsledek",
       );
       const link = linkElement.attr("href");
       if (link) {
@@ -52,13 +52,8 @@ async function findLink(
   return null;
 }
 
-type ExcelLink = {
-  text: string;
-  hyperlink: string;
-};
-
 async function downloadAndReadXLSX(
-  url: string
+  url: string,
 ): Promise<ParsedOrdinanceMetadata[] | null> {
   const response = await fetch(url);
 
@@ -74,7 +69,7 @@ async function downloadAndReadXLSX(
     return (
       rows?.map((row) => {
         return {
-          id: getCodeFromUrl(row.getCell(21).value as ExcelLink),
+          id: getCodeFromUrl(row.getCell(21).value),
           name: row.getCell(7).value as string,
           number: row.getCell(5).value as string,
           city: row.getCell(1).value as string,
@@ -96,12 +91,27 @@ function stringOrUndefined(cell: Cell): string | undefined {
   return cell.value ? (cell.value as string) : undefined;
 }
 
-function getCodeFromUrl(url: ExcelLink): string {
-  const regex = /\/detail\/([A-Z0-9]+)$/;
-  const match = url.hyperlink.match(regex);
+function extractUrl(value: CellValue): string | undefined {
+  if (typeof value === "string") {
+    return value;
+  }
+  if (typeof value !== "object" || value === null || value instanceof Date) {
+    return undefined;
+  }
+  if ("hyperlink" in value) {
+    return value.hyperlink;
+  }
+  if ("formula" in value || "sharedFormula" in value) {
+    return value.formula;
+  }
+  return undefined;
+}
+
+function getCodeFromUrl(cellValue: CellValue): string {
+  const match = extractUrl(cellValue)?.match(/\/detail\/([A-Z0-9]+)/);
 
   if (!match) {
-    throw new Error("Invalid URL format.");
+    throw new Error(`Invalid URL format: ${JSON.stringify(cellValue)}`);
   }
 
   return match[1];
@@ -165,7 +175,7 @@ export async function syncOrdinancesToDbBySchoolType(schoolType: SchoolType) {
     .from(ordinanceMetadata.toString());
 
   const newOrdinances = downloadedOrdinances.filter(
-    (o) => !existingIds.includes(o.id)
+    (o) => !existingIds.includes(o.id),
   );
 
   console.log(`Found ${newOrdinances.length} new ordinances.`);
@@ -189,7 +199,7 @@ export async function syncOrdinancesToDbBySchoolType(schoolType: SchoolType) {
           version: o.version,
           isValid: o.isValid,
           isRejected: false,
-        }))
+        })),
       );
     }
   });
@@ -227,7 +237,7 @@ export const syncNewOrdinances = async (schoolType: SchoolType) => {
         .join("ordinance as o", "c.code", "o.city_code")
         .where("o.is_active", 1)
         .where("o.school_type", schoolType)
-    ).map((row: any) => [row.name.toLocaleLowerCase("cs"), row])
+    ).map((row: any) => [row.name.toLocaleLowerCase("cs"), row]),
   );
 
   // iterate over all ordinances and check if there is a new one for the city
@@ -281,7 +291,7 @@ const cityPatterns = [
 const extractCityName = (cityName: string): string => {
   const lowerCaseCityName = cityName.toLocaleLowerCase("cs");
   const correctPattern = cityPatterns.filter((pattern) =>
-    pattern.test(lowerCaseCityName)
+    pattern.test(lowerCaseCityName),
   );
   if (correctPattern.length > 0) {
     const result = correctPattern[0].exec(lowerCaseCityName);
