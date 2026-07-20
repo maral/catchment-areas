@@ -80,7 +80,10 @@ export const editOrdinanceBreadcrumb = async (
     href: `${getRootPathBySchoolType(schoolType)}/${cityCode}${
       routes.editOrdinance
     }/${founderId}/${ordinanceId}`,
-    title: `${texts.editOrdinance} - ${founder.shortName} (${ordinance.number})`,
+    title:
+      founder && ordinance
+        ? `${texts.editOrdinance} - ${founder.shortName} (${ordinance.number})`
+        : texts.editOrdinance,
   };
 };
 

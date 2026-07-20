@@ -6,6 +6,7 @@ import { Founder } from "@/entities/Founder";
 import { Ordinance } from "@/entities/Ordinance";
 import { StreetMarkdown } from "@/entities/StreetMarkdown";
 import { isPrefetch } from "@/utils/server/headers";
+import { toJsonWithRelations } from "@/utils/server/serializeEntity";
 import { notFound } from "next/navigation";
 import { remult } from "remult";
 import { City } from "@/entities/City";
@@ -65,7 +66,7 @@ export default async function EditorPage(props: {
     }
 
     return {
-      ordinanceJson: ordinanceRepo.toJson(ordinance),
+      ordinanceJson: toJsonWithRelations(ordinanceRepo, ordinance, ["city"]),
       founderJson: remult.repo(Founder).toJson(founder),
       streetMarkdownJson,
       suggestions: await StreetController.getAutocompleteSuggestions(

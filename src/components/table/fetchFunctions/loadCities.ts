@@ -1,6 +1,7 @@
 import { City, getCountPropertyBySchoolType } from "@/entities/City";
 import { Region } from "@/entities/Region";
 import { SchoolType } from "@/types/basicTypes";
+import { toJsonArrayWithRelations } from "@/utils/server/serializeEntity";
 import { remult } from "remult";
 const citiesRepo = remult.repo(City);
 
@@ -22,7 +23,7 @@ export async function loadCities(
 
 // TRANSFORM DATA
 export function serializeCities(cities: City[]): any[] {
-  return citiesRepo.toJson(cities);
+  return toJsonArrayWithRelations(citiesRepo, cities, ["region"]);
 }
 
 export function deserializeCities(cities: any[]): City[] {
