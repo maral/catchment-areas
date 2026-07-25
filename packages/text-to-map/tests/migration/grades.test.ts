@@ -1,5 +1,4 @@
 import { afterAll, beforeAll, describe, expect, test } from "@jest/globals";
-import iconv from "iconv-lite";
 import { mkdtempSync, rmSync, writeFileSync } from "fs";
 import { tmpdir } from "os";
 import { join } from "path";
@@ -37,8 +36,7 @@ beforeAll(() => {
     row("444444444", "Škola A", "XXXXX____"),
     row("444444444", "Škola A (2)", "____XXXX_"),
   ].join("\n");
-  // written in Windows-1250 to exercise the decode path (Czech chars above)
-  writeFileSync(csv, iconv.encode(lines + "\n", "win1250"));
+  writeFileSync(csv, lines + "\n", "utf8");
 });
 
 afterAll(() => rmSync(dir, { recursive: true, force: true }));

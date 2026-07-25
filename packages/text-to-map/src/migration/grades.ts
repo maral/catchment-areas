@@ -1,6 +1,5 @@
 import { parse } from "csv-parse/sync";
 import { readFileSync } from "fs";
-import iconv from "iconv-lite";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import { SchoolGrades } from "./types";
@@ -9,9 +8,9 @@ import { SchoolGrades } from "./types";
  * A2 — load the ČÚZK školský-rejstřík grade table into a `gradesByIzo` lookup
  * for the export (`ObecBuildContext.gradesByIzo`).
  *
- * The file (`data/skolsky_rejstrik.csv`) is **Windows-1250**, `;`-delimited, and
- * its grade columns `t1..t9` hold **`X`** (grade taught) / blank — *not* the
- * `A`/`N` we emit. Keyed on `SkolaIzo` (the school IZO catchment areas use).
+ * The file (`data/skolsky_rejstrik.csv`) is UTF-8, `;`-delimited, and its grade
+ * columns `t1..t9` hold **`X`** (grade taught) / blank — *not* the `A`/`N` we
+ * emit. Keyed on `SkolaIzo` (the school IZO catchment areas use).
  */
 const GRADE_KEYS = [
   "t1", "t2", "t3", "t4", "t5", "t6", "t7", "t8", "t9",
@@ -37,7 +36,7 @@ export type GradesByIzo = (izo: string) => SchoolGrades | undefined;
 export const loadGradesByIzo = (
   csvPath: string = DEFAULT_CSV_PATH
 ): GradesByIzo => {
-  const text = iconv.decode(readFileSync(csvPath), "win1250");
+  const text = readFileSync(csvPath, "utf8");
   const rows = parse(text, {
     delimiter: ";",
     columns: true,
