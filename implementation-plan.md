@@ -31,7 +31,7 @@ Dependency chain: C-1 → C-2 → C-3 → {C-4, C-5} → C-6 → C-7 → C-8.
 - [x] **C-5** Interior def-point per okrsek → `MIG_DEF_BOD_KO` — `83e203a`
 - [x] **C-6** Deterministic okrsek numbering (`CISLO`) — `24c458f`
 - [x] **C-7** GeoPackage writer over `better-sqlite3`: `MIG_DEF_BOD_KO` (points) + `MIG_HRAN_KO`
-  (lines) as spatial layers, descriptive `MIG_*` as attribute tables, WGS-84; CSV mirror — `353d92e`.
+  (lines) as spatial layers, descriptive `MIG_*` as attribute tables, WGS-84; CSV mirror — `859d946`.
   *Validated structurally by re-opening with better-sqlite3 (GPKG spec tables + WKB round-trip);
   no `ogr2ogr` in this env, so the GDAL open-check is deferred to C-8.*
 - [ ] **C-8** Dry run on one real complex obec → F1 self-check → hand GPKG to ČÚZK.
