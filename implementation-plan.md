@@ -78,6 +78,9 @@ Dependency chain: C-1 → C-2 → C-3 → {C-4, C-5} → C-6 → C-7 → C-8.
   *Still to do:* the geometry checks and full MI01–MI14 coverage.
 - [ ] **F2** Delivery: single GeoPackage (all `MIG_*`), WGS-84, CSV mirror fallback.
   One-shot final handover ~start of 2027, then frozen.
+- [x] **QA tool** `packages/text-to-map/demo/` — `npm run -w text-to-map demo` renders a
+  standalone HTML map (catchments + generated seams + def points + schools) for eyeballing an
+  export. Repo-only (not shipped in `dist`). See `demo/README.md`.
 
 ## Phase 7 — App trigger (catchment-areas)
 

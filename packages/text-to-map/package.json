@@ -72,7 +72,8 @@
     "build:types": "tsc --declaration --emitDeclarationOnly --outDir dist -p tsconfig.declarations.json",
     "build:js": "tsc --outDir dist",
     "prepare": "npm run build",
-    "export-obec": "tsx src/bin/export-obec.ts"
+    "export-obec": "tsx src/bin/export-obec.ts",
+    "demo": "tsx demo/generate.ts"
   },
   "name": "text-to-map",
   "description": "Text To Map usiluje o lepší, strojově zpracovatelné využití částí vyhlášek s výčtem ulic a dalších lokací. Jde o rozšiřitelnou sadu konceptů a nástrojů, které zajistí hladký převod výčtu ulic a jejich rozsahů v lidsky srozumitelném jazyce do strojově zpracovatelného, uchopitelného formátu.",
