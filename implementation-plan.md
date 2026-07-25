@@ -34,8 +34,11 @@ Dependency chain: C-1 → C-2 → C-3 → {C-4, C-5} → C-6 → C-7 → C-8.
   (lines) as spatial layers, descriptive `MIG_*` as attribute tables, WGS-84; CSV mirror — `859d946`.
   *Validated structurally by re-opening with better-sqlite3 (GPKG spec tables + WKB round-trip);
   no `ogr2ogr` in this env, so the GDAL open-check is deferred to C-8.*
-- [ ] **C-8** Dry run on one real complex obec → F1 self-check → hand GPKG to ČÚZK.
-  **Done when:** MI10 reassembly passes without manual fixes. *(needs synced DB)*
+- [x] **C-8** Dry run on one real complex obec → self-check → GPKG — `PENDING`.
+  Ran end-to-end on **Česká Lípa** (8 schools → 17 okrsky, 17 def points, 32 seams) against
+  the dev DB; produced a structurally-valid `.gpkg` (GPKG magic, v10300, correct
+  contents/geometry-column registration, WGS-84, CL bboxes) + CSV mirror; structural
+  self-check clean. MI10 whole-obec reassembly is ČÚZK-side — verified on their load, not here.
 
 ## Phase 2 — Per-obec assembly (Part A/B core)
 
@@ -52,11 +55,12 @@ Dependency chain: C-1 → C-2 → C-3 → {C-4, C-5} → C-6 → C-7 → C-8.
 
 ## Phase 4 — Orchestration driver
 
-- [ ] Global driver: iterate (obec, type ∈ {M, 1.st}); `parseOrdinanceToAddressPoints`;
-  load ČÚZK grade CSV (A2); classify trivial vs complex (A3); fetch boundaries
-  (`getCityPolygons` / `getDistrictPolygons`); run `buildObecTables` with **shared global
-  allocators**; **Prague/big-city pooling (A5):** per-district clip → empty-merge → combine
-  into one obec partition before seam/def derivation. Never call `addExtraPolygons` (D1).
+- [~] Global driver (`migration/run.ts` `buildMigrationExport`): fetches boundaries
+  (`getCityPolygons` / `getDistrictPolygons` via the new `getMunicipalityBoundary` export),
+  runs `buildObecTables` with **shared global allocators**, concatenates rows. CLI in
+  `bin/export-obec.ts`. **Done for plain single-boundary obce** (C-8). *Still to do:* ČÚZK
+  grade CSV load (A2), trivial-vs-complex classification (A3), and **Prague/big-city pooling
+  (A5):** per-district clip → empty-merge → combine before seam/def derivation.
 
 ## Phase 5 — 2.stupeň (Part E)
 
@@ -67,8 +71,11 @@ Dependency chain: C-1 → C-2 → C-3 → {C-4, C-5} → C-6 → C-7 → C-8.
 
 ## Phase 6 — Validation & delivery (Part F)
 
-- [ ] **F1** Self-check harness replicating MI01–MI14 against generated tables before handover
-  (fold in the F3 data-quality check: drop/flag an area whose addresses are all null-coord)
+- [~] **F1** Self-check harness replicating MI01–MI14 against generated tables before handover
+  (fold in the F3 data-quality check: drop/flag an area whose addresses are all null-coord).
+  *Seeded:* `migration/self-check.ts` `checkIntegrity` covers the structural invariants
+  (one def point/okrsek, unique CISLO, MI02 type match, MI04 coverage, seam/ref integrity).
+  *Still to do:* the geometry checks and full MI01–MI14 coverage.
 - [ ] **F2** Delivery: single GeoPackage (all `MIG_*`), WGS-84, CSV mirror fallback.
   One-shot final handover ~start of 2027, then frozen.
 

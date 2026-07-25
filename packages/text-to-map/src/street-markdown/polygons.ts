@@ -831,6 +831,26 @@ const createMunicipalitiesMultipolygon = (
   );
 };
 
+/**
+ * The single clip boundary for one municipality — the same polygon the renderer
+ * clips its Voronoi cells against (city polygon, with sibling districts subtracted
+ * for the district-first cities). Exposed for the migration export driver so it
+ * feeds `buildObecTables` the exact boundary `createPolygons` uses.
+ */
+export const getMunicipalityBoundary = (
+  municipality: Municipality,
+  cityPolygons: PolygonsByCodes,
+  districtPolygons: PolygonsByCodes
+): Feature<Polygon | MultiPolygon> =>
+  createMunicipalitiesMultipolygon(
+    Object.values(
+      getMunicipalityPolygons(municipality, cityPolygons, districtPolygons)
+    )
+  );
+
+export const getMunicipalityCodes = (municipalities: Municipality[]) =>
+  extractMunicipalityCodes(municipalities);
+
 const extractMunicipalityCodes = (municipalities: Municipality[]) => {
   return municipalities.reduce(
     (acc, municipality) => {
