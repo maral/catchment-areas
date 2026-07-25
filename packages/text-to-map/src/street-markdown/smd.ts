@@ -132,6 +132,7 @@ export const convertMunicipality = (
       addresses: Array.from(area.addressMap.values()).filter(
         (point) => point.lat !== 0 && point.lng !== 0
       ),
+      absorbedWholeObce: area.absorbedWholeObce ?? [],
     })),
     code: municipality.founder.municipalityCode,
     municipalityType:
@@ -346,6 +347,11 @@ const processWholeMunicipalityLine = async ({
   } else {
     if (municipality.type === MunicipalityType.City) {
       state.currentMunicipality.cityCodes.push(municipality.code);
+      // A whole *separate obec* (village) absorbed into this school's ŠO →
+      // one MIG_VYMEZENI_ZBYLYCH_KO row (§8 mechanism B). District-type
+      // inclusions are městské části of the *same* obec (Q3) and are handled
+      // by the geometry as extra okrsky, so they are deliberately excluded.
+      (state.currentArea.absorbedWholeObce ??= []).push(municipality.code);
     } else {
       state.currentMunicipality.districtCodes.push(municipality.code);
     }

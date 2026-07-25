@@ -62,6 +62,8 @@ export const buildObecTables = (
   const obvody: MigSkolskyObvod[] = [];
   const skolaSko: MigSkolaSko[] = [];
   const obvodKodByAreaIndex = new Map<number, number>();
+  // whole-village inclusions (§8): each absorbed obec -> this area's ŠO
+  const vymezeni: MigVymezeniZbylychKo[] = [];
 
   const orderedAreas = [...areas].sort((a, b) =>
     obvodKey(a).localeCompare(obvodKey(b))
@@ -81,12 +83,15 @@ export const buildObecTables = (
         buildSkolaSko(kod, school.izo, ctx.gradesByIzo(school.izo), ctx.typeCode)
       );
     }
+    for (const obecKod of area.absorbedWholeObce ?? []) {
+      vymezeni.push({ OBEC_KOD: obecKod, SKO_KOD: kod });
+    }
   }
 
   // --- trivial obec (B3): one area = whole obec. No tessellation — the whole
   // obec belongs to this single ŠO, expressed as one MIG_VYMEZENI_ZBYLYCH_KO
   // row; ČÚZK generates the whole-obec okrsek and links it. (E4 is the same
-  // shape for type 2.)
+  // shape for type 2.) Any absorbed villages carry through too.
   if (areas.length === 1) {
     return {
       obvody,
@@ -95,7 +100,10 @@ export const buildObecTables = (
       defBody: [],
       hrany: [],
       skolaSko,
-      vymezeni: [{ OBEC_KOD: ctx.obecKod, SKO_KOD: obvody[0].KOD }],
+      vymezeni: [
+        ...vymezeni,
+        { OBEC_KOD: ctx.obecKod, SKO_KOD: obvody[0].KOD },
+      ],
     };
   }
 
@@ -158,7 +166,7 @@ export const buildObecTables = (
     defBody,
     hrany,
     skolaSko,
-    vymezeni: [],
+    vymezeni,
   };
 };
 

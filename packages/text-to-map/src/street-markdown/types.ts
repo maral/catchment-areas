@@ -110,6 +110,12 @@ export interface Area {
   index: number;
   schools: School[];
   addresses: ExportAddressPoint[];
+  /**
+   * Codes of whole municipalities (villages) fully absorbed into this area's ŠO
+   * — recorded at parse time by `processWholeMunicipalityLine`. Each becomes a
+   * `MIG_VYMEZENI_ZBYLYCH_KO(village_obec, this area's ŠO)` row in the export.
+   */
+  absorbedWholeObce?: number[];
 }
 
 export interface IntermediateArea extends Area {

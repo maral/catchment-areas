@@ -148,4 +148,43 @@ describe("buildObecTables", () => {
       { OBEC_KOD: 500001, SKO_KOD: tables.obvody[0].KOD },
     ]);
   });
+
+  test("absorbed whole village -> MIG_VYMEZENI_ZBYLYCH_KO for that area's ŠO (§8)", () => {
+    const withVillage: Municipality = {
+      ...municipality,
+      areas: [
+        { ...municipality.areas[0], absorbedWholeObce: [555000] },
+        municipality.areas[1],
+      ],
+    };
+    const tables = buildObecTables(withVillage, boundary, makeContext());
+
+    // still a complex obec: geometry is produced
+    expect(tables.okrsky.length).toBeGreaterThan(0);
+    // one whole-village row, pointing at an existing obvod
+    expect(tables.vymezeni).toHaveLength(1);
+    expect(tables.vymezeni[0].OBEC_KOD).toBe(555000);
+    const obvodKods = new Set(tables.obvody.map((o) => o.KOD));
+    expect(obvodKods.has(tables.vymezeni[0].SKO_KOD!)).toBe(true);
+  });
+
+  test("trivial obec that also absorbs a village emits both rows", () => {
+    const trivialWithVillage: Municipality = {
+      ...municipality,
+      areas: [
+        {
+          index: 0,
+          schools: [{ name: "Only", izo: "600009999" }],
+          addresses: [addr("O-1", 5, 5)],
+          absorbedWholeObce: [555000],
+        },
+      ],
+    };
+    const tables = buildObecTables(trivialWithVillage, boundary, makeContext());
+    const sko = tables.obvody[0].KOD;
+    expect(tables.vymezeni).toEqual([
+      { OBEC_KOD: 555000, SKO_KOD: sko },
+      { OBEC_KOD: 500001, SKO_KOD: sko },
+    ]);
+  });
 });

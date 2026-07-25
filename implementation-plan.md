@@ -53,8 +53,12 @@ Dependency chain: C-1 → C-2 → C-3 → {C-4, C-5} → C-6 → C-7 → C-8.
 
 ## Phase 3 — Parser hook for whole-obec inclusion (Part D2, §8)
 
-- [ ] Add `absorbedWholeObce` to `Area` — capture village→school pairing **at parse time**,
-  emit `MIG_VYMEZENI_ZBYLYCH_KO(village_obec, absorbing ŠO)`. Cross-obec = whole-obec only.
+- [x] `absorbedWholeObce?: number[]` on `Area` — `processWholeMunicipalityLine` (`smd.ts`)
+  records **City-type** absorbed obce (separate villages) on the current area; `build-obec.ts`
+  emits `MIG_VYMEZENI_ZBYLYCH_KO(village_obec, area's ŠO)` for each, in both the trivial and
+  complex paths — `PENDING`. District-type inclusions (Prague/Ostrava městské části) are
+  **excluded** — they're within the single obec (Q3) and handled by geometry, not vymezeni
+  (verified: Praha 23's 37 whole-muni lines are all district-type → 0 vymezeni rows).
 
 ## Phase 4 — Orchestration driver
 
