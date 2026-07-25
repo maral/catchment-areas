@@ -84,6 +84,8 @@ export interface ObecTables {
   defBody: MigDefBodKo[];
   hrany: MigHranKo[];
   skolaSko: MigSkolaSko[];
+  /** whole-obec coverage rows for trivial obce (one area = whole obec) */
+  vymezeni: MigVymezeniZbylychKo[];
 }
 
 /**

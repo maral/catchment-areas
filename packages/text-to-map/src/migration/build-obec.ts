@@ -13,6 +13,7 @@ import {
   MigSkolskyObvod,
   MigSkolskyOkrsek,
   MigSkoKo,
+  MigVymezeniZbylychKo,
   ObecTables,
   SchoolGrades,
   SchoolTypeCode,
@@ -82,6 +83,22 @@ export const buildObecTables = (
     }
   }
 
+  // --- trivial obec (B3): one area = whole obec. No tessellation — the whole
+  // obec belongs to this single ŠO, expressed as one MIG_VYMEZENI_ZBYLYCH_KO
+  // row; ČÚZK generates the whole-obec okrsek and links it. (E4 is the same
+  // shape for type 2.)
+  if (areas.length === 1) {
+    return {
+      obvody,
+      okrsky: [],
+      skoKo: [],
+      defBody: [],
+      hrany: [],
+      skolaSko,
+      vymezeni: [{ OBEC_KOD: ctx.obecKod, SKO_KOD: obvody[0].KOD }],
+    };
+  }
+
   // --- geometry pipeline -> okrsky (C-1..C-3)
   const cells = buildLabeledCells(areas);
   const okrsky = mergeEmptyFragments(
@@ -134,7 +151,15 @@ export const buildObecTables = (
     geometry: seam.line.geometry,
   }));
 
-  return { obvody, okrsky: okrskyRows, skoKo, defBody, hrany, skolaSko };
+  return {
+    obvody,
+    okrsky: okrskyRows,
+    skoKo,
+    defBody,
+    hrany,
+    skolaSko,
+    vymezeni: [],
+  };
 };
 
 /** Stable, content-derived key for ordering obvody (sorted school IZOs). */

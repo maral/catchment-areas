@@ -123,4 +123,29 @@ describe("buildObecTables", () => {
     const b = buildObecTables(municipality, boundary, makeContext());
     expect(b).toEqual(a);
   });
+
+  test("trivial obec (one area = whole obec) -> one vymezeni row, no geometry (B3)", () => {
+    const trivial: Municipality = {
+      ...municipality,
+      areas: [
+        {
+          index: 0,
+          schools: [{ name: "Only", izo: "600009999" }],
+          addresses: [addr("O-1", 5, 5)],
+        },
+      ],
+    };
+    const tables = buildObecTables(trivial, boundary, makeContext());
+
+    expect(tables.obvody).toHaveLength(1);
+    expect(tables.skolaSko).toHaveLength(1);
+    expect(tables.okrsky).toHaveLength(0);
+    expect(tables.skoKo).toHaveLength(0);
+    expect(tables.defBody).toHaveLength(0);
+    expect(tables.hrany).toHaveLength(0);
+
+    expect(tables.vymezeni).toEqual([
+      { OBEC_KOD: 500001, SKO_KOD: tables.obvody[0].KOD },
+    ]);
+  });
 });

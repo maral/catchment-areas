@@ -5,6 +5,7 @@ import {
 } from "../street-markdown/polygons";
 import { Municipality } from "../street-markdown/types";
 import { buildObecTables, counter } from "./build-obec";
+import { dedupeExport } from "./dedupe";
 import {
   MigrationExport,
   ObecTables,
@@ -82,7 +83,8 @@ export const buildMigrationExport = async (
     appendTables(merged, tables);
   }
 
-  return merged;
+  // B5 — collapse duplicate join/attribute rows before serialization.
+  return dedupeExport(merged);
 };
 
 const appendTables = (into: MigrationExport, from: ObecTables): void => {
@@ -92,4 +94,5 @@ const appendTables = (into: MigrationExport, from: ObecTables): void => {
   into.defBody.push(...from.defBody);
   into.hrany.push(...from.hrany);
   into.skolaSko.push(...from.skolaSko);
+  into.vymezeni.push(...from.vymezeni);
 };
