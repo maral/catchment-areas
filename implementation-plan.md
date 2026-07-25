@@ -75,13 +75,15 @@ single-boundary obce (C-8/Bechyně). A3 (trivial vs complex) is already handled 
   Unit-tested; verified end-to-end on Česká Lípa — `bb05c14`. The CSV `data/skolsky_rejstrik.csv`
   is committed, converted to UTF-8/LF for normal tracking (ČÚZK source is Win-1250).
 
-- [ ] **P4-2 · Multi-founder / multi-type export entrypoint.** A text-to-map function taking a
-  list of ordinances `{ founderId, sourceText, schoolType }`: for each, `getNewMunicipalityByFounderId`
-  → seed `initialState.currentMunicipality` → `parseOrdinanceToAddressPoints` (the DB-`source_text`
-  path — no header, needs founder context, per the Bechyně check) → collect municipalities; then
-  run `buildMigrationExport` with **run-wide allocators** + the P4-1 `gradesByIzo`; dedupe;
-  `checkIntegrity`. **Done when:** two founders in one call share a code space and produce one
-  valid `MigrationExport`.
+- [x] **P4-2 · Multi-founder / multi-type export entrypoint.** `migration/run.ts` refactored into
+  a pure `assembleExport(groups, cityPolygons, districtPolygons, gradesByIzo?)` (shared allocators,
+  unit-testable) + `buildMigrationExportForGroups` (boundary fetch) + `exportOrdinances(inputs,
+  gradesByIzo?)`: per ordinance resolves founder context (`getNewMunicipalityByFounderId`), seeds
+  `initialState.currentMunicipality`, parses the DB `source_text`, then assembles all under
+  **run-wide allocators** and `checkIntegrity`; returns `{ data, skipped, integrityProblems }`.
+  `buildMigrationExport` kept as a thin single-type wrapper — `PENDING`. Verified end-to-end:
+  Bechyně + Česká Lípa in one call → 10 obvody, globally-unique KOD 10001–10010, 0 integrity
+  problems, `skipped: []`.
 
 - [ ] **P4-3 · Big-city per-district pooling (A5).** Praha/Ostrava/Plzeň/Liberec: **group all a
   city's district-founders into one obec** (`OBEC_KOD` = city code, ignore městské části per Q3),
