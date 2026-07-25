@@ -68,14 +68,12 @@ fetches boundaries (`getCityPolygons`/`getDistrictPolygons` via `getMunicipality
 single-boundary obce (C-8/Bechyně). A3 (trivial vs complex) is already handled by B3's
 `areas.length === 1` short-circuit. Remaining work, in order:
 
-- [ ] **P4-1 · Grade CSV loader (A2).** Parse `packages/text-to-map/data/skolsky_rejstrik.csv`
-  → `gradesByIzo(izo): SchoolGrades | undefined`. **Gotchas:** encoding is **Windows-1250**
-  (decode with `iconv-lite`, already a dep); `;`-delimited; grade flags `t1..t9` are **`X`**
-  (present) / **blank** (absent) — *not* `A`/`N`. Key on `SkolaIzo` (col 8), map `X → true`.
-  Columns: `RedIzo;Nazev;Ico;AdresaRUIAN;TypZrizovatele;ZrizovatelIco;ZrizovatelNazev;SkolaIzo;
-  SkolaNazev;DruhSkoly;SkolaAdresa;EditorIco;EditorNazev;t1..t9;Stupen`. Unit-test on a small
-  fixture. **Done when:** loader returns the right band for a known IZO; wired into the driver
-  in place of the full-band default.
+- [x] **P4-1 · Grade CSV loader (A2).** `migration/grades.ts` `loadGradesByIzo(csvPath?)` →
+  `gradesByIzo(izo): SchoolGrades | undefined`. Decodes **Windows-1250** (`iconv-lite`),
+  `;`-delimited (`csv-parse/sync`), maps `t1..t9` **`X` → true** / blank → false keyed on
+  `SkolaIzo`; duplicate IZO rows union (never lose an `X`). Wired into `bin/export-obec.ts`
+  (replaces the full-band default). Unit-tested; verified end-to-end on Česká Lípa — `PENDING`.
+  *(The CSV `data/skolsky_rejstrik.csv` itself is untracked — commit-vs-ignore is a separate call.)*
 
 - [ ] **P4-2 · Multi-founder / multi-type export entrypoint.** A text-to-map function taking a
   list of ordinances `{ founderId, sourceText, schoolType }`: for each, `getNewMunicipalityByFounderId`

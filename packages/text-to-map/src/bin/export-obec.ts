@@ -6,6 +6,7 @@ import {
   writeCsvMirror,
   writeGeoPackage,
 } from "../migration/geopackage";
+import { loadGradesByIzo } from "../migration/grades";
 import { buildMigrationExport } from "../migration/run";
 import { checkIntegrity } from "../migration/self-check";
 import { SchoolTypeCode } from "../migration/types";
@@ -57,7 +58,11 @@ async function main() {
     `Parsed ${municipalities.length} municipalit(ies), ${errorCount} parse error(s).`
   );
 
-  const data = await buildMigrationExport(municipalities, { typeCode });
+  const gradesByIzo = loadGradesByIzo();
+  const data = await buildMigrationExport(municipalities, {
+    typeCode,
+    gradesByIzo,
+  });
 
   console.log(
     `Assembled: ${data.obvody.length} obvody, ${data.okrsky.length} okrsky, ` +
