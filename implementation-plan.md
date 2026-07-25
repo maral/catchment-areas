@@ -62,12 +62,41 @@ Dependency chain: C-1 → C-2 → C-3 → {C-4, C-5} → C-6 → C-7 → C-8.
 
 ## Phase 4 — Orchestration driver
 
-- [~] Global driver (`migration/run.ts` `buildMigrationExport`): fetches boundaries
-  (`getCityPolygons` / `getDistrictPolygons` via the new `getMunicipalityBoundary` export),
-  runs `buildObecTables` with **shared global allocators**, concatenates rows. CLI in
-  `bin/export-obec.ts`. **Done for plain single-boundary obce** (C-8). *Still to do:* ČÚZK
-  grade CSV load (A2), trivial-vs-complex classification (A3), and **Prague/big-city pooling
-  (A5):** per-district clip → empty-merge → combine before seam/def derivation.
+Foundation exists: `migration/run.ts` `buildMigrationExport(municipalities, {typeCode, gradesByIzo})`
+fetches boundaries (`getCityPolygons`/`getDistrictPolygons` via `getMunicipalityBoundary`), runs
+`buildObecTables` with **shared global allocators**, concatenates + dedupes. Works for plain
+single-boundary obce (C-8/Bechyně). A3 (trivial vs complex) is already handled by B3's
+`areas.length === 1` short-circuit. Remaining work, in order:
+
+- [ ] **P4-1 · Grade CSV loader (A2).** Parse `packages/text-to-map/data/skolsky_rejstrik.csv`
+  → `gradesByIzo(izo): SchoolGrades | undefined`. **Gotchas:** encoding is **Windows-1250**
+  (decode with `iconv-lite`, already a dep); `;`-delimited; grade flags `t1..t9` are **`X`**
+  (present) / **blank** (absent) — *not* `A`/`N`. Key on `SkolaIzo` (col 8), map `X → true`.
+  Columns: `RedIzo;Nazev;Ico;AdresaRUIAN;TypZrizovatele;ZrizovatelIco;ZrizovatelNazev;SkolaIzo;
+  SkolaNazev;DruhSkoly;SkolaAdresa;EditorIco;EditorNazev;t1..t9;Stupen`. Unit-test on a small
+  fixture. **Done when:** loader returns the right band for a known IZO; wired into the driver
+  in place of the full-band default.
+
+- [ ] **P4-2 · Multi-founder / multi-type export entrypoint.** A text-to-map function taking a
+  list of ordinances `{ founderId, sourceText, schoolType }`: for each, `getNewMunicipalityByFounderId`
+  → seed `initialState.currentMunicipality` → `parseOrdinanceToAddressPoints` (the DB-`source_text`
+  path — no header, needs founder context, per the Bechyně check) → collect municipalities; then
+  run `buildMigrationExport` with **run-wide allocators** + the P4-1 `gradesByIzo`; dedupe;
+  `checkIntegrity`. **Done when:** two founders in one call share a code space and produce one
+  valid `MigrationExport`.
+
+- [ ] **P4-3 · Big-city per-district pooling (A5).** Praha/Ostrava/Plzeň/Liberec: **group all a
+  city's district-founders into one obec** (`OBEC_KOD` = city code, ignore městské části per Q3),
+  clip each area to its **district** boundary, empty-merge **per district**, **then** combine and
+  derive seams/def/numbering across the pooled obec (§7). Restructures how the C-2..C-6 pipeline
+  consumes boundaries (a `buildBigCityTables`-style path or a per-district pre-pass feeding the
+  combine). Never call `addExtraPolygons`. **Done when:** a big city exports as one obec with
+  correct interior + district-line seams and no cross-district artefacts.
+
+- [ ] **P4-4 · Batch runner (CLI).** A bin that enumerates the ordinances to export — **Active**
+  `street_markdown` per founder + type from the app DB (state stored JSON-quoted, e.g.
+  `"active"`) — feeds P4-2, and writes the batch GPKG + CSV. This is the CLI counterpart of the
+  Phase 7 app trigger. **Done when:** one command produces the full-batch GeoPackage from the DB.
 
 ## Phase 5 — 2.stupeň (Part E)
 
