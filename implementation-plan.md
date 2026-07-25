@@ -46,10 +46,10 @@ Dependency chain: C-1 → C-2 → C-3 → {C-4, C-5} → C-6 → C-7 → C-8.
   okrsky/`MIG_SKO_KO` (C2/C3), `MIG_HRAN_KO` (C4), `MIG_DEF_BOD_KO` (C5) per obec — `913507b`
 - [x] Deterministic code-minting via injected allocators (B4, per-obec) — `913507b`
 - [x] **B3** `MIG_VYMEZENI_ZBYLYCH_KO` — trivial obec (one area = whole obec) → one
-  `{OBEC_KOD, SKO_KOD}` row, no geometry (`build-obec.ts`) — `PENDING`.
+  `{OBEC_KOD, SKO_KOD}` row, no geometry (`build-obec.ts`) — `751f204`.
 - [x] **B5** Pre-export dedup so MI12 / MI14 can't fire — `migration/dedupe.ts` `dedupeExport`
   collapses duplicate `MIG_SKO_KO` / `MIG_SKOLA_SKO` / `MIG_VYMEZENI_ZBYLYCH_KO` rows in
-  `buildMigrationExport` — `PENDING`.
+  `buildMigrationExport` — `751f204`.
 
 ## Phase 3 — Parser hook for whole-obec inclusion (Part D2, §8)
 
