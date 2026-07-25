@@ -81,7 +81,7 @@ single-boundary obce (C-8/Bechyně). A3 (trivial vs complex) is already handled 
   gradesByIzo?)`: per ordinance resolves founder context (`getNewMunicipalityByFounderId`), seeds
   `initialState.currentMunicipality`, parses the DB `source_text`, then assembles all under
   **run-wide allocators** and `checkIntegrity`; returns `{ data, skipped, integrityProblems }`.
-  `buildMigrationExport` kept as a thin single-type wrapper — `PENDING`. Verified end-to-end:
+  `buildMigrationExport` kept as a thin single-type wrapper — `f59d028`. Verified end-to-end:
   Bechyně + Česká Lípa in one call → 10 obvody, globally-unique KOD 10001–10010, 0 integrity
   problems, `skipped: []`.
 
