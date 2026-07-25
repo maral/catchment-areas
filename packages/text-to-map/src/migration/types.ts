@@ -85,3 +85,17 @@ export interface ObecTables {
   hrany: MigHranKo[];
   skolaSko: MigSkolaSko[];
 }
+
+/**
+ * All MIG_* rows for a whole migration run (every obec + type concatenated),
+ * plus the whole-obec inclusions. This is what the C-7 serializers consume.
+ */
+export interface MigrationExport {
+  obvody: MigSkolskyObvod[];
+  okrsky: MigSkolskyOkrsek[];
+  skoKo: MigSkoKo[];
+  defBody: MigDefBodKo[];
+  hrany: MigHranKo[];
+  skolaSko: MigSkolaSko[];
+  vymezeni: MigVymezeniZbylychKo[];
+}

@@ -30,9 +30,10 @@ Dependency chain: C-1 → C-2 → C-3 → {C-4, C-5} → C-6 → C-7 → C-8.
 - [x] **C-4** Interior seams via segment-level dedup → `MIG_HRAN_KO` — `e0ef8b8`
 - [x] **C-5** Interior def-point per okrsek → `MIG_DEF_BOD_KO` — `83e203a`
 - [x] **C-6** Deterministic okrsek numbering (`CISLO`) — `24c458f`
-- [ ] **C-7** GeoPackage writer over `better-sqlite3`: `MIG_DEF_BOD_KO` (points) + `MIG_HRAN_KO`
-  (lines) as spatial layers, descriptive `MIG_*` as attribute tables, WGS-84; CSV mirror.
-  **Done when:** `ogr2ogr` opens the `.gpkg`, lists every table, reports layer geom types + CRS.
+- [x] **C-7** GeoPackage writer over `better-sqlite3`: `MIG_DEF_BOD_KO` (points) + `MIG_HRAN_KO`
+  (lines) as spatial layers, descriptive `MIG_*` as attribute tables, WGS-84; CSV mirror — `353d92e`.
+  *Validated structurally by re-opening with better-sqlite3 (GPKG spec tables + WKB round-trip);
+  no `ogr2ogr` in this env, so the GDAL open-check is deferred to C-8.*
 - [ ] **C-8** Dry run on one real complex obec → F1 self-check → hand GPKG to ČÚZK.
   **Done when:** MI10 reassembly passes without manual fixes. *(needs synced DB)*
 
