@@ -72,7 +72,7 @@ single-boundary obce (C-8/Bechyně). A3 (trivial vs complex) is already handled 
   `gradesByIzo(izo): SchoolGrades | undefined`. Decodes **Windows-1250** (`iconv-lite`),
   `;`-delimited (`csv-parse/sync`), maps `t1..t9` **`X` → true** / blank → false keyed on
   `SkolaIzo`; duplicate IZO rows union (never lose an `X`). Wired into `bin/export-obec.ts`
-  (replaces the full-band default). Unit-tested; verified end-to-end on Česká Lípa — `PENDING`.
+  (replaces the full-band default). Unit-tested; verified end-to-end on Česká Lípa — `bb05c14`.
   *(The CSV `data/skolsky_rejstrik.csv` itself is untracked — commit-vs-ignore is a separate call.)*
 
 - [ ] **P4-2 · Multi-founder / multi-type export entrypoint.** A text-to-map function taking a
