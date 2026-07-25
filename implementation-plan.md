@@ -34,7 +34,7 @@ Dependency chain: C-1 → C-2 → C-3 → {C-4, C-5} → C-6 → C-7 → C-8.
   (lines) as spatial layers, descriptive `MIG_*` as attribute tables, WGS-84; CSV mirror — `859d946`.
   *Validated structurally by re-opening with better-sqlite3 (GPKG spec tables + WKB round-trip);
   no `ogr2ogr` in this env, so the GDAL open-check is deferred to C-8.*
-- [x] **C-8** Dry run on one real complex obec → self-check → GPKG — `PENDING`.
+- [x] **C-8** Dry run on one real complex obec → self-check → GPKG — `c9e34df`.
   Ran end-to-end on **Česká Lípa** (8 schools → 17 okrsky, 17 def points, 32 seams) against
   the dev DB; produced a structurally-valid `.gpkg` (GPKG magic, v10300, correct
   contents/geometry-column registration, WGS-84, CL bboxes) + CSV mirror; structural
