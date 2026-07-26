@@ -31,12 +31,14 @@ export const checkIntegrity = (data: MigrationExport): string[] => {
     }
   }
 
-  // CISLO unique within an obec.
+  // CISLO unique within an obec + type (M / 1 / 2 are independent okrsek sets).
   const cisloSeen = new Set<string>();
   for (const o of data.okrsky) {
-    const key = `${o.OBEC_KOD}/${o.CISLO}`;
+    const key = `${o.OBEC_KOD}/${o.TYP_OBVODU_KOD}/${o.CISLO}`;
     if (cisloSeen.has(key)) {
-      problems.push(`duplicate CISLO ${o.CISLO} in obec ${o.OBEC_KOD}`);
+      problems.push(
+        `duplicate CISLO ${o.CISLO} in obec ${o.OBEC_KOD} type ${o.TYP_OBVODU_KOD}`
+      );
     }
     cisloSeen.add(key);
   }

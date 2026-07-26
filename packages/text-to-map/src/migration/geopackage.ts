@@ -1,5 +1,5 @@
 import Database from "better-sqlite3";
-import { writeFileSync } from "fs";
+import { rmSync, writeFileSync } from "fs";
 import { join } from "path";
 import { LineString, Point, Position } from "@turf/helpers";
 import {
@@ -44,6 +44,9 @@ export const writeGeoPackage = (
   options: WriteOptions = {}
 ): void => {
   const lastChange = options.lastChange ?? DEFAULT_LAST_CHANGE;
+  // start from a clean file — re-opening an existing .gpkg would fail on the
+  // CREATE TABLE of the spec tables (and mixing old rows in is never intended)
+  rmSync(path, { force: true });
   const db = new Database(path);
   try {
     db.pragma(`application_id = ${GPKG_APPLICATION_ID}`);

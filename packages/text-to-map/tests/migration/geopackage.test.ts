@@ -197,6 +197,17 @@ describe("writeGeoPackage", () => {
     db.close();
   });
 
+  test("overwrites an existing .gpkg instead of failing", () => {
+    const p = join(dir, "overwrite.gpkg");
+    writeGeoPackage(data, p);
+    expect(() => writeGeoPackage(data, p)).not.toThrow();
+    const db = new Database(p, { readonly: true });
+    expect(
+      (db.prepare("SELECT COUNT(*) c FROM MIG_SKOLSKY_OBVOD").get() as { c: number }).c
+    ).toBe(data.obvody.length);
+    db.close();
+  });
+
   test("is byte-identical for unchanged input (deterministic)", () => {
     const a = join(dir, "a.gpkg");
     const b = join(dir, "b.gpkg");

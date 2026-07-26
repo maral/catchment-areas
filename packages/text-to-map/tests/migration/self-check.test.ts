@@ -64,10 +64,17 @@ describe("checkIntegrity", () => {
     expect(checkIntegrity(d).some((p) => p.includes("expected 1 def point"))).toBe(true);
   });
 
-  test("flags a duplicate CISLO within an obec", () => {
+  test("flags a duplicate CISLO within an obec + type", () => {
     const d = base();
     d.okrsky[1].CISLO = 1;
     expect(checkIntegrity(d).some((p) => p.includes("duplicate CISLO"))).toBe(true);
+  });
+
+  test("allows the same CISLO across different types (independent okrsek sets)", () => {
+    const d = base();
+    d.okrsky[1].CISLO = 1;
+    d.okrsky[1].TYP_OBVODU_KOD = "M"; // same obec, different type -> not a dup
+    expect(checkIntegrity(d).some((p) => p.includes("duplicate CISLO"))).toBe(false);
   });
 
   test("flags a dangling MIG_SKO_KO reference", () => {

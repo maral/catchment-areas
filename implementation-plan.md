@@ -96,10 +96,15 @@ single-boundary obce (C-8/Bechyně). A3 (trivial vs complex) is already handled 
   **Verified end-to-end:** Ostrava (18 MČ → 1 obec 554821, 37 district-line seams) and Praha
   (52 MČ → 1 obec 554782, 123 seams), both globally-unique KODs, 0 integrity problems.
 
-- [ ] **P4-4 · Batch runner (CLI).** A bin that enumerates the ordinances to export — **Active**
-  `street_markdown` per founder + type from the app DB (state stored JSON-quoted, e.g.
-  `"active"`) — feeds P4-2, and writes the batch GPKG + CSV. This is the CLI counterpart of the
-  Phase 7 app trigger. **Done when:** one command produces the full-batch GeoPackage from the DB.
+- [x] **P4-4 · Batch runner (CLI).** `bin/export-batch.ts` (`npm run -w text-to-map export-batch --
+  <outDir> [--state active] [--limit N]`) enumerates the latest `street_markdown` per
+  (founder, ordinance) in a lifecycle state (default `active`, stored JSON-quoted), joined to
+  `ordinance.school_type`, feeds `exportOrdinances`, and writes the batch GPKG + CSV with a
+  self-check — `PENDING`. Both DB bins now load the repo-root `.env.local` by absolute path
+  (so `npm run` works from any cwd). **Verified** on the dev DB (no Active rows there, so run
+  against `--state auto-save`): 8 ordinances → 5 obce, valid `.gpkg` (all 7 MIG_* tables) +
+  CSV, self-check OK. Two bugs it surfaced, now fixed: self-check CISLO is unique per
+  **(obec, type)** not per obec; `writeGeoPackage` overwrites an existing file.
 
 ## Phase 5 — 2.stupeň (Part E)
 

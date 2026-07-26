@@ -1,5 +1,13 @@
+import { configDotenv } from "dotenv";
 import { mkdirSync } from "fs";
-import { join } from "path";
+import { dirname, join } from "path";
+import { fileURLToPath } from "url";
+
+// Load the repo-root DB config before anything reads it (works from any cwd).
+configDotenv({
+  path: join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..", "..", ".env.local"),
+});
+
 import { disconnectKnex } from "../db/db";
 import { SchoolType } from "../db/types";
 import {
