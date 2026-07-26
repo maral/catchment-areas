@@ -188,3 +188,68 @@ describe("buildObecTables", () => {
     ]);
   });
 });
+
+const grades1to9: SchoolGrades = {
+  t1: true, t2: true, t3: true, t4: true, t5: true,
+  t6: true, t7: true, t8: true, t9: true,
+};
+
+const ctxWith = (
+  typeCode: "M" | "1" | "2",
+  gradesByIzo: (izo: string) => SchoolGrades | undefined
+): ObecBuildContext => ({
+  obecKod: 500001,
+  typeCode,
+  allocObvodKod: counter(10000),
+  allocOkrsekKod: counter(100000),
+  allocId: counter(1),
+  gradesByIzo,
+});
+
+describe("buildObecTables — 2.stupeň (Part E)", () => {
+  test("no school teaches 6–9 -> full okrsek partition, all orphan (E3)", () => {
+    const t = buildObecTables(municipality, boundary, ctxWith("2", () => grades1to5));
+    expect(t.obvody).toHaveLength(0); // no type-2 ŠO
+    expect(t.okrsky).toHaveLength(2); // same partition as 1.stupeň
+    for (const o of t.okrsky) expect(o.TYP_OBVODU_KOD).toBe("2");
+    expect(t.skoKo).toHaveLength(0); // every okrsek orphan
+    expect(t.skolaSko).toHaveLength(0);
+    expect(t.defBody).toHaveLength(2);
+    expect(t.hrany).toHaveLength(1);
+  });
+
+  test("only the 6–9 school gets a type-2 ŠO with TRIDA_6..9 (E2)", () => {
+    const gradesByIzo = (izo: string) =>
+      izo === "600001111" ? grades1to9 : grades1to5;
+    const t = buildObecTables(municipality, boundary, ctxWith("2", gradesByIzo));
+
+    expect(t.obvody).toHaveLength(1);
+    expect(t.okrsky).toHaveLength(2); // full partition, one linked one orphan
+    const obvod = t.obvody[0];
+    expect(obvod.TYP_OBVODU_KOD).toBe("2");
+    const ss = t.skolaSko.find((s) => s.SKO_KOD === obvod.KOD)!;
+    expect(ss.SKOLA_IZO).toBe(600001111);
+    expect([ss.TRIDA_6, ss.TRIDA_7, ss.TRIDA_8, ss.TRIDA_9]).toEqual(["A", "A", "A", "A"]);
+    expect([ss.TRIDA_1, ss.TRIDA_5]).toEqual(["N", "N"]);
+    // exactly the linked school's okrsek(s) reference the ŠO; the other is orphan
+    expect(t.skoKo.every((l) => l.SKO_KOD === obvod.KOD)).toBe(true);
+    expect(t.skoKo.length).toBeGreaterThanOrEqual(1);
+  });
+
+  test("trivial obec type-2: ŠO when 6–9 present, else null whole-obec coverage (E4)", () => {
+    const trivial = (izo: string): Municipality => ({
+      ...municipality,
+      areas: [{ index: 0, schools: [{ name: "Only", izo }], addresses: [addr("O", 5, 5)] }],
+    });
+
+    const withStage = buildObecTables(trivial("600001111"), boundary, ctxWith("2", () => grades1to9));
+    expect(withStage.obvody).toHaveLength(1);
+    expect(withStage.vymezeni).toEqual([
+      { OBEC_KOD: 500001, SKO_KOD: withStage.obvody[0].KOD },
+    ]);
+
+    const noStage = buildObecTables(trivial("600001111"), boundary, ctxWith("2", () => grades1to5));
+    expect(noStage.obvody).toHaveLength(0);
+    expect(noStage.vymezeni).toEqual([{ OBEC_KOD: 500001, SKO_KOD: null }]);
+  });
+});

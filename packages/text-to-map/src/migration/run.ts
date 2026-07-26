@@ -265,10 +265,13 @@ export const exportOrdinances = async (
       includeUnmappedAddressPoints: false,
     });
 
-    groups.push({
-      municipalities,
-      typeCode: schoolTypeToCode(input.schoolType),
-    });
+    // A zš ordinance drives both 1.stupeň and (derived, same partition)
+    // 2.stupeň (Part E); a mš ordinance is only type M.
+    const baseType = schoolTypeToCode(input.schoolType);
+    groups.push({ municipalities, typeCode: baseType });
+    if (baseType === "1") {
+      groups.push({ municipalities, typeCode: "2" });
+    }
   }
 
   const data = await buildMigrationExportForGroups(groups, gradesByIzo);

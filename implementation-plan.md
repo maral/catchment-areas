@@ -108,10 +108,17 @@ single-boundary obce (C-8/Bechyně). A3 (trivial vs complex) is already handled 
 
 ## Phase 5 — 2.stupeň (Part E)
 
-- [ ] **E1** Copy 1.st okrsek partition as type-`2` okrsky (same geometry, own `KOD`)
-- [ ] **E2** Per 1.st school with grades 6–9: type-`2` ŠO, link okrsek, fill `TRIDA_6..9`
-- [ ] **E3** Schools without grades 6–9 → okrsky left **orphan** (no type-`2` ŠO)
-- [ ] **E4** Single-full-school obce: whole-obec type-`2` via `MIG_VYMEZENI_ZBYLYCH_KO`
+- [x] **E1–E4** — `exportOrdinances` expands every zš ordinance into a type-`1` **and** a type-`2`
+  group (same municipalities); `buildPooledObecTables` re-derives the identical okrsek partition
+  for type `2` (deterministic, own KODs, `TYP_OBVODU_KOD='2'`) — `PENDING`.
+  - **E1/E2:** okrsky are the full partition; a type-`2` ŠO is created only for areas with a
+    school teaching 6–9 (`hasSecondStage` from the CSV band), `MIG_SKOLA_SKO` filled `TRIDA_6..9`.
+  - **E3:** okrsky of schools without 6–9 stay **orphan** (no `MIG_SKO_KO` link) — MI02 allows it,
+    whole-obec coverage still holds.
+  - **E4:** trivial obec type-`2` → `MIG_VYMEZENI_ZBYLYCH_KO`; `SKO_KOD` = the type-`2` ŠO, or
+    **null** (orphan whole-obec coverage) when the single school has no 2.stupeň.
+  - Unit-tested (E2/E3/E4); verified end-to-end on Bechyně + Česká Lípa (obvody/okrsky mirrored
+    across types, TRIDA_6..9 correct, 0 integrity problems).
 
 ## Phase 6 — Validation & delivery (Part F)
 
