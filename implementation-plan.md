@@ -92,7 +92,7 @@ single-boundary obce (C-8/Bechyně). A3 (trivial vs complex) is already handled 
   globalises area indexes, redistributes cross-district points via `getExtraAreas` (§8 D1; extra
   pieces keep their home index → one ŠO across districts), and pools all a city's MČ founders into
   one obec. `assembleExport` groups district-type municipalities by parent city
-  (`getCityCodesByDistrictCodes`) and processes obce in a deterministic order — `PENDING`.
+  (`getCityCodesByDistrictCodes`) and processes obce in a deterministic order — `5e1ccca`.
   **Verified end-to-end:** Ostrava (18 MČ → 1 obec 554821, 37 district-line seams) and Praha
   (52 MČ → 1 obec 554782, 123 seams), both globally-unique KODs, 0 integrity problems.
 
