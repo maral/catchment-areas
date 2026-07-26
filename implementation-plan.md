@@ -85,13 +85,16 @@ single-boundary obce (C-8/Bechyně). A3 (trivial vs complex) is already handled 
   Bechyně + Česká Lípa in one call → 10 obvody, globally-unique KOD 10001–10010, 0 integrity
   problems, `skipped: []`.
 
-- [ ] **P4-3 · Big-city per-district pooling (A5).** Praha/Ostrava/Plzeň/Liberec: **group all a
-  city's district-founders into one obec** (`OBEC_KOD` = city code, ignore městské části per Q3),
-  clip each area to its **district** boundary, empty-merge **per district**, **then** combine and
-  derive seams/def/numbering across the pooled obec (§7). Restructures how the C-2..C-6 pipeline
-  consumes boundaries (a `buildBigCityTables`-style path or a per-district pre-pass feeding the
-  combine). Never call `addExtraPolygons`. **Done when:** a big city exports as one obec with
-  correct interior + district-line seams and no cross-district artefacts.
+- [x] **P4-3 · Big-city per-district pooling (A5).** `buildObecTables` refactored into a general
+  `buildPooledObecTables(obecKod, typeCode, allAreas, districtInputs[], ctx)` — each district
+  input is a Voronoi clipped to its boundary; okrsky are concatenated so seam/def/numbering derive
+  district-line seams and one CISLO range for free. `build-big-city.ts` `buildBigCityTables`
+  globalises area indexes, redistributes cross-district points via `getExtraAreas` (§8 D1; extra
+  pieces keep their home index → one ŠO across districts), and pools all a city's MČ founders into
+  one obec. `assembleExport` groups district-type municipalities by parent city
+  (`getCityCodesByDistrictCodes`) and processes obce in a deterministic order — `PENDING`.
+  **Verified end-to-end:** Ostrava (18 MČ → 1 obec 554821, 37 district-line seams) and Praha
+  (52 MČ → 1 obec 554782, 123 seams), both globally-unique KODs, 0 integrity problems.
 
 - [ ] **P4-4 · Batch runner (CLI).** A bin that enumerates the ordinances to export — **Active**
   `street_markdown` per founder + type from the app DB (state stored JSON-quoted, e.g.

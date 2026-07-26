@@ -53,7 +53,7 @@ const groups: ExportGroup[] = [
 
 describe("assembleExport (multi-group, shared code space)", () => {
   test("produces one export spanning both types with globally-unique codes", () => {
-    const data = assembleExport(groups, boundaries, {});
+    const data = assembleExport(groups, boundaries, {}, new Map());
 
     // 3 obvody total: 2 from A (type 1), 1 from B (type M)
     expect(data.obvody).toHaveLength(3);
@@ -79,8 +79,8 @@ describe("assembleExport (multi-group, shared code space)", () => {
   });
 
   test("is deterministic across runs", () => {
-    expect(assembleExport(groups, boundaries, {})).toEqual(
-      assembleExport(groups, boundaries, {})
+    expect(assembleExport(groups, boundaries, {}, new Map())).toEqual(
+      assembleExport(groups, boundaries, {}, new Map())
     );
   });
 });

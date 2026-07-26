@@ -144,7 +144,9 @@ const findColoring = (collectionMap: Map<number, FeatureCollection>) => {
   });
 };
 
-const getExtraAreas = (municipalities: Municipality[]): Map<number, Area[]> => {
+export const getExtraAreas = (
+  municipalities: Municipality[]
+): Map<number, Area[]> => {
   // municipalityCode -> areas
   const extraAreas = new Map<number, Area[]>();
 

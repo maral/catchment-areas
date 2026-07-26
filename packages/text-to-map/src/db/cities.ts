@@ -95,6 +95,27 @@ export const getCityPolygons = async (
   }, {});
 };
 
+/**
+ * Map each městská-část district code to its parent city code — the obec every
+ * district-first city (Praha/Ostrava/Plzeň/Liberec) pools into under Q3 (P4-3).
+ */
+export const getCityCodesByDistrictCodes = async (
+  districtCodes: Set<number>
+): Promise<Map<number, number>> => {
+  const result = new Map<number, number>();
+  if (districtCodes.size === 0) {
+    return result;
+  }
+  const rows = await getKnexDb()
+    .from("city_district")
+    .select("code", "city_code")
+    .whereIn("code", Array.from(districtCodes));
+  for (const row of rows) {
+    result.set(Number(row.code), Number(row.city_code));
+  }
+  return result;
+};
+
 export const getDistrictPolygons = async (
   districtCodes: Set<number>
 ): Promise<PolygonsByCodes> => {

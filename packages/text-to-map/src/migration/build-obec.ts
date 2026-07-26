@@ -1,5 +1,6 @@
 import { Feature, MultiPolygon, Polygon } from "@turf/helpers";
 import {
+  AreaSetComponent,
   assignOkrsekNumbers,
   buildLabeledCells,
   deriveSeams,
@@ -40,24 +41,54 @@ const GRADE_BANDS: Record<SchoolTypeCode, number[]> = {
   "2": [6, 7, 8, 9],
 };
 
+/** One Voronoi input: a set of areas clipped to a single boundary. */
+export interface DistrictInput {
+  areas: Area[];
+  boundary: Feature<Polygon | MultiPolygon>;
+}
+
 /**
  * Assemble every MIG_* row for one obec + type from the parsed catchment areas.
  * Runs the C-1..C-6 geometry pipeline (labeled cells -> area-set atoms ->
  * empty-fragment merge -> okrsky, seams, def points, numbering) and joins it to
- * the obvod/škola relational rows. Obvody and okrsky are ordered by stable,
- * content-derived keys so the KOD/CISLO the allocators hand out are deterministic
- * for unchanged input.
+ * the obvod/škola relational rows.
  *
- * `boundary` is the clip boundary for this unit — the *district* boundary for the
- * big cities (§7), the obec boundary otherwise.
+ * `boundary` is the clip boundary — the obec boundary for a normal obec. The
+ * district-first big cities go through {@link buildPooledObecTables} directly
+ * with one district input per městská část (P4-3).
  */
 export const buildObecTables = (
   municipality: Municipality,
   boundary: Feature<Polygon | MultiPolygon>,
   ctx: ObecBuildContext
-): ObecTables => {
-  const areas = municipality.areas;
+): ObecTables =>
+  buildPooledObecTables(
+    ctx.obecKod,
+    ctx.typeCode,
+    municipality.areas,
+    [{ areas: municipality.areas, boundary }],
+    ctx
+  );
 
+/**
+ * The general obec assembler: one set of `allAreas` (the obvody/ŠO/škola rows)
+ * plus one or more `districtInputs` (each a Voronoi over some areas clipped to a
+ * boundary). A normal obec passes a single district input; a big city passes one
+ * per městská část, all pooled into this obec. Okrsky from every district input
+ * are concatenated — since seam/def/numbering key off array position, this yields
+ * cross-district seams and one continuous CISLO numbering for free.
+ *
+ * `allAreas` carry global indexes; an area's okrsky in any district link to that
+ * area's single obvod, so a school whose catchment spans districts shares one ŠO.
+ * Obvody/okrsky are ordered by stable content-derived keys for determinism.
+ */
+export const buildPooledObecTables = (
+  obecKod: number,
+  typeCode: SchoolTypeCode,
+  allAreas: Area[],
+  districtInputs: DistrictInput[],
+  ctx: ObecBuildContext
+): ObecTables => {
   // --- obvody (one per area), numbered in a stable order, + škola rows
   const obvody: MigSkolskyObvod[] = [];
   const skolaSko: MigSkolaSko[] = [];
@@ -65,7 +96,7 @@ export const buildObecTables = (
   // whole-village inclusions (§8): each absorbed obec -> this area's ŠO
   const vymezeni: MigVymezeniZbylychKo[] = [];
 
-  const orderedAreas = [...areas].sort((a, b) =>
+  const orderedAreas = [...allAreas].sort((a, b) =>
     obvodKey(a).localeCompare(obvodKey(b))
   );
   for (const area of orderedAreas) {
@@ -75,24 +106,25 @@ export const buildObecTables = (
       KOD: kod,
       NAZEV: null,
       POZNAMKA: null,
-      OBEC_KOD: ctx.obecKod,
-      TYP_OBVODU_KOD: ctx.typeCode,
+      OBEC_KOD: obecKod,
+      TYP_OBVODU_KOD: typeCode,
     });
     for (const school of area.schools) {
       skolaSko.push(
-        buildSkolaSko(kod, school.izo, ctx.gradesByIzo(school.izo), ctx.typeCode)
+        buildSkolaSko(kod, school.izo, ctx.gradesByIzo(school.izo), typeCode)
       );
     }
-    for (const obecKod of area.absorbedWholeObce ?? []) {
-      vymezeni.push({ OBEC_KOD: obecKod, SKO_KOD: kod });
+    for (const absorbedObecKod of area.absorbedWholeObce ?? []) {
+      vymezeni.push({ OBEC_KOD: absorbedObecKod, SKO_KOD: kod });
     }
   }
 
   // --- trivial obec (B3): one area = whole obec. No tessellation — the whole
   // obec belongs to this single ŠO, expressed as one MIG_VYMEZENI_ZBYLYCH_KO
   // row; ČÚZK generates the whole-obec okrsek and links it. (E4 is the same
-  // shape for type 2.) Any absorbed villages carry through too.
-  if (areas.length === 1) {
+  // shape for type 2.) Any absorbed villages carry through too. A big city
+  // never hits this (many areas).
+  if (allAreas.length === 1) {
     return {
       obvody,
       okrsky: [],
@@ -100,18 +132,18 @@ export const buildObecTables = (
       defBody: [],
       hrany: [],
       skolaSko,
-      vymezeni: [
-        ...vymezeni,
-        { OBEC_KOD: ctx.obecKod, SKO_KOD: obvody[0].KOD },
-      ],
+      vymezeni: [...vymezeni, { OBEC_KOD: obecKod, SKO_KOD: obvody[0].KOD }],
     };
   }
 
-  // --- geometry pipeline -> okrsky (C-1..C-3)
-  const cells = buildLabeledCells(areas);
-  const okrsky = mergeEmptyFragments(
-    dissolveAreaSetComponents(cells, boundary)
-  );
+  // --- geometry pipeline -> okrsky per district input, then combined (C-1..C-3)
+  const okrsky: AreaSetComponent[] = [];
+  for (const input of districtInputs) {
+    const cells = buildLabeledCells(input.areas);
+    okrsky.push(
+      ...mergeEmptyFragments(dissolveAreaSetComponents(cells, input.boundary))
+    );
+  }
 
   // --- okrsek KOD + CISLO, allocated in CISLO order (C-6)
   const okrsekKodByKo = new Map<number, number>();
@@ -128,8 +160,8 @@ export const buildObecTables = (
       NAZEV: null,
       CISLO: cislo,
       POZNAMKA: null,
-      OBEC_KOD: ctx.obecKod,
-      TYP_OBVODU_KOD: ctx.typeCode,
+      OBEC_KOD: obecKod,
+      TYP_OBVODU_KOD: typeCode,
     });
   }
 

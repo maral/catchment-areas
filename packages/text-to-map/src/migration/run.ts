@@ -1,4 +1,8 @@
-import { getCityPolygons, getDistrictPolygons } from "../db/cities";
+import {
+  getCityCodesByDistrictCodes,
+  getCityPolygons,
+  getDistrictPolygons,
+} from "../db/cities";
 import { PolygonsByCodes, SchoolType } from "../db/types";
 import {
   getMunicipalityBoundary,
@@ -9,7 +13,8 @@ import {
   parseOrdinanceToAddressPoints,
 } from "../street-markdown/smd";
 import { Municipality } from "../street-markdown/types";
-import { buildObecTables, counter } from "./build-obec";
+import { buildBigCityTables } from "./build-big-city";
+import { buildObecTables, counter, ObecBuildContext } from "./build-obec";
 import { dedupeExport } from "./dedupe";
 import { checkIntegrity } from "./self-check";
 import {
@@ -69,20 +74,51 @@ export const buildMigrationExportForGroups = async (
   const allMunicipalities = groups.flatMap((g) => g.municipalities);
   const { cityCodes, districtCodes } =
     getMunicipalityCodes(allMunicipalities);
-  const cityPolygons = await getCityPolygons(cityCodes);
-  const districtPolygons = await getDistrictPolygons(districtCodes);
-  return assembleExport(groups, cityPolygons, districtPolygons, gradesByIzo);
+  const [cityPolygons, districtPolygons, parentCityByDistrict] =
+    await Promise.all([
+      getCityPolygons(cityCodes),
+      getDistrictPolygons(districtCodes),
+      getCityCodesByDistrictCodes(districtCodes),
+    ]);
+  return assembleExport(
+    groups,
+    cityPolygons,
+    districtPolygons,
+    parentCityByDistrict,
+    gradesByIzo
+  );
 };
 
+/** One obec's worth of work: a standalone obec or a pooled big city. */
+type ObecWorkItem =
+  | {
+      kind: "obec";
+      obecKod: number;
+      typeCode: SchoolTypeCode;
+      municipality: Municipality;
+    }
+  | {
+      kind: "city";
+      obecKod: number;
+      typeCode: SchoolTypeCode;
+      municipalities: Municipality[];
+    };
+
 /**
- * Pure assembly step: given the groups and pre-fetched boundaries, run
- * `buildObecTables` for every obec with shared allocators and dedupe. No DB
- * access — unit-testable with synthetic municipalities + boundaries.
+ * Pure assembly step: given the groups and pre-fetched boundaries, assemble every
+ * obec with shared allocators and dedupe. No DB access — unit-testable with
+ * synthetic municipalities + boundaries.
+ *
+ * District-first cities are pooled: all městská-část municipalities sharing a
+ * parent city (per `parentCityByDistrict`) are exported as one obec (P4-3);
+ * everything else is a standalone obec. Obce are processed in a deterministic
+ * order (by obec code, then type) so shared allocators are reproducible.
  */
 export const assembleExport = (
   groups: ExportGroup[],
   cityPolygons: PolygonsByCodes,
   districtPolygons: PolygonsByCodes,
+  parentCityByDistrict: Map<number, number>,
   gradesByIzo?: GradesByIzo
 ): MigrationExport => {
   const allocObvodKod = counter(OBVOD_KOD_START);
@@ -90,34 +126,87 @@ export const assembleExport = (
   const allocId = counter(ID_START);
   const grades = gradesByIzo ?? (() => undefined);
 
-  const merged = emptyExport();
+  const cityBuckets = new Map<string, ObecWorkItem & { kind: "city" }>();
+  const items: ObecWorkItem[] = [];
 
   for (const group of groups) {
     for (const municipality of group.municipalities) {
       if (municipality.areas.length === 0) continue;
 
+      if (municipality.municipalityType === "district") {
+        const cityCode = parentCityByDistrict.get(municipality.code);
+        if (cityCode === undefined) {
+          throw new Error(
+            `No parent city for district ${municipality.code} (${municipality.municipalityName}).`
+          );
+        }
+        const key = `${group.typeCode}:${cityCode}`;
+        let bucket = cityBuckets.get(key);
+        if (!bucket) {
+          bucket = {
+            kind: "city",
+            obecKod: cityCode,
+            typeCode: group.typeCode,
+            municipalities: [],
+          };
+          cityBuckets.set(key, bucket);
+          items.push(bucket);
+        }
+        bucket.municipalities.push(municipality);
+      } else {
+        items.push({
+          kind: "obec",
+          obecKod: municipality.code,
+          typeCode: group.typeCode,
+          municipality,
+        });
+      }
+    }
+  }
+
+  // deterministic processing order regardless of input order
+  items.sort(
+    (a, b) => a.obecKod - b.obecKod || a.typeCode.localeCompare(b.typeCode)
+  );
+
+  const merged = emptyExport();
+  for (const item of items) {
+    const ctx: ObecBuildContext = {
+      obecKod: item.obecKod,
+      typeCode: item.typeCode,
+      allocObvodKod,
+      allocOkrsekKod,
+      allocId,
+      gradesByIzo: grades,
+    };
+
+    if (item.kind === "city") {
+      const districts = [...item.municipalities].sort(
+        (a, b) => a.code - b.code
+      );
+      appendTables(
+        merged,
+        buildBigCityTables(
+          item.obecKod,
+          item.typeCode,
+          districts,
+          cityPolygons,
+          districtPolygons,
+          ctx
+        )
+      );
+    } else {
       const boundary = getMunicipalityBoundary(
-        municipality,
+        item.municipality,
         cityPolygons,
         districtPolygons
       );
       if (!boundary) {
         throw new Error(
-          `No boundary polygon found for municipality ${municipality.municipalityName} (${municipality.code}). Is the DB synced?`
+          `No boundary polygon found for municipality ${item.municipality.municipalityName} (${item.obecKod}). Is the DB synced?`
         );
       }
-
-      appendTables(
-        merged,
-        buildObecTables(municipality, boundary, {
-          obecKod: municipality.code,
-          typeCode: group.typeCode,
-          allocObvodKod,
-          allocOkrsekKod,
-          allocId,
-          gradesByIzo: grades,
-        })
-      );
+      appendTables(merged, buildObecTables(item.municipality, boundary, ctx));
     }
   }
 
