@@ -110,7 +110,7 @@ single-boundary obce (C-8/Bechyně). A3 (trivial vs complex) is already handled 
 
 - [x] **E1–E4** — `exportOrdinances` expands every zš ordinance into a type-`1` **and** a type-`2`
   group (same municipalities); `buildPooledObecTables` re-derives the identical okrsek partition
-  for type `2` (deterministic, own KODs, `TYP_OBVODU_KOD='2'`) — `PENDING`.
+  for type `2` (deterministic, own KODs, `TYP_OBVODU_KOD='2'`) — `7ad5be1`.
   - **E1/E2:** okrsky are the full partition; a type-`2` ŠO is created only for areas with a
     school teaching 6–9 (`hasSecondStage` from the CSV band), `MIG_SKOLA_SKO` filled `TRIDA_6..9`.
   - **E3:** okrsky of schools without 6–9 stay **orphan** (no `MIG_SKO_KO` link) — MI02 allows it,
