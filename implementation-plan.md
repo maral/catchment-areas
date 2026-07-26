@@ -100,7 +100,7 @@ single-boundary obce (C-8/Bechyně). A3 (trivial vs complex) is already handled 
   <outDir> [--state active] [--limit N]`) enumerates the latest `street_markdown` per
   (founder, ordinance) in a lifecycle state (default `active`, stored JSON-quoted), joined to
   `ordinance.school_type`, feeds `exportOrdinances`, and writes the batch GPKG + CSV with a
-  self-check — `PENDING`. Both DB bins now load the repo-root `.env.local` by absolute path
+  self-check — `a0687a9`. Both DB bins now load the repo-root `.env.local` by absolute path
   (so `npm run` works from any cwd). **Verified** on the dev DB (no Active rows there, so run
   against `--state auto-save`): 8 ordinances → 5 obce, valid `.gpkg` (all 7 MIG_* tables) +
   CSV, self-check OK. Two bugs it surfaced, now fixed: self-check CISLO is unique per
