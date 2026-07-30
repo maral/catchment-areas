@@ -107,4 +107,71 @@ describe("checkIntegrity", () => {
     d.hrany[0].KO_KOD2 = d.hrany[0].KO_KOD1;
     expect(checkIntegrity(d).some((p) => p.includes("self-seam"))).toBe(true);
   });
+
+  test("flags a duplicate obvod KOD (allocator regression)", () => {
+    const d = base();
+    d.obvody.push({ ...d.obvody[0] });
+    expect(checkIntegrity(d).some((p) => p.includes("duplicate obvod KOD"))).toBe(true);
+  });
+
+  test("flags a duplicate MIG_SKO_KO link row (MI14)", () => {
+    const d = base();
+    d.skoKo.push({ ...d.skoKo[0] });
+    expect(checkIntegrity(d).some((p) => p.includes("duplicate MIG_SKO_KO"))).toBe(true);
+  });
+
+  test("flags a duplicate MIG_SKOLA_SKO row (MI14)", () => {
+    const d = base();
+    d.skolaSko.push({ ...d.skolaSko[0] });
+    expect(checkIntegrity(d).some((p) => p.includes("duplicate MIG_SKOLA_SKO"))).toBe(true);
+  });
+
+  test("flags a duplicate whole-obec coverage row (MI12)", () => {
+    const d = base();
+    d.skoKo = [];
+    d.vymezeni = [
+      { OBEC_KOD: 500001, SKO_KOD: 10001 },
+      { OBEC_KOD: 500001, SKO_KOD: 10001 },
+    ];
+    expect(checkIntegrity(d).some((p) => p.includes("duplicate MIG_VYMEZENI"))).toBe(true);
+  });
+
+  test("flags a grade flag outside the obvod's type band (MI13)", () => {
+    const d = base();
+    d.skolaSko[0].TRIDA_6 = "A"; // a type-1 obvod must not flag grade 6
+    expect(checkIntegrity(d).some((p) => p.includes("MI13"))).toBe(true);
+  });
+
+  test("accepts 2.stupeň grade flags on a type-2 obvod (MI13)", () => {
+    const d = base();
+    d.obvody[0].TYP_OBVODU_KOD = "2";
+    d.okrsky.forEach((o) => (o.TYP_OBVODU_KOD = "2"));
+    d.skolaSko[0] = {
+      SKO_KOD: 10001,
+      SKOLA_IZO: 600001111,
+      TRIDA_1: "N", TRIDA_2: "N", TRIDA_3: "N", TRIDA_4: "N", TRIDA_5: "N",
+      TRIDA_6: "A", TRIDA_7: "A", TRIDA_8: "A", TRIDA_9: "A",
+    };
+    expect(checkIntegrity(d).some((p) => p.includes("MI13"))).toBe(false);
+  });
+
+  test("flags a vymezeni row pointing at an unknown obvod (MI11)", () => {
+    const d = base();
+    d.vymezeni = [{ OBEC_KOD: 555000, SKO_KOD: 99999 }];
+    expect(
+      checkIntegrity(d).some((p) => p.includes("MIG_VYMEZENI_ZBYLYCH_KO: unknown SKO_KOD"))
+    ).toBe(true);
+  });
+
+  test("flags a non-finite def point coordinate (F3 data-quality)", () => {
+    const d = base();
+    d.defBody[0].geometry.coordinates = [NaN, 50];
+    expect(checkIntegrity(d).some((p) => p.includes("non-finite coordinate"))).toBe(true);
+  });
+
+  test("flags a degenerate seam geometry (F3 data-quality)", () => {
+    const d = base();
+    d.hrany[0].geometry.coordinates = [[14, 50]];
+    expect(checkIntegrity(d).some((p) => p.includes("degenerate geometry"))).toBe(true);
+  });
 });
