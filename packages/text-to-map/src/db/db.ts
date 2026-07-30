@@ -127,7 +127,10 @@ export const disconnectKnex = async (): Promise<void> => {
 };
 
 const getEnvConfig = (): Partial<DbConfig> => {
-  configDotenv({ path: ".env.local" });
+  // `override: true` so .env.local is authoritative — a stale
+  // TEXTTOMAP_MYSQL_CONNECTION_DATA already exported in the shell must not
+  // silently win over the file the user just edited.
+  configDotenv({ path: ".env.local", override: true });
   const envConfig: Partial<DbConfig> = {};
   if (
     process.env.TEXTTOMAP_DB_TYPE &&

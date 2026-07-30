@@ -4,9 +4,11 @@ import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 
 // Load the repo-root DB config before anything reads it (works from any cwd,
-// e.g. `npm run` sets cwd to the package dir).
+// e.g. `npm run` sets cwd to the package dir). `override: true` makes .env.local
+// authoritative over any stale TEXTTOMAP_* vars already exported in the shell.
 configDotenv({
   path: join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..", "..", ".env.local"),
+  override: true,
 });
 
 import { disconnectKnex, getKnexDb } from "../db/db";
