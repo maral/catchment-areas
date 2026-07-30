@@ -103,10 +103,15 @@ export const buildPooledObecTables = (
   districtInputs: DistrictInput[],
   ctx: ObecBuildContext
 ): ObecTables => {
-  // --- obvody (one per area), numbered in a stable order, + škola rows
+  // --- obvody (one per school circle), numbered in a stable order, + škola rows
   const obvody: MigSkolskyObvod[] = [];
   const skolaSko: MigSkolaSko[] = [];
   const obvodKodByAreaIndex = new Map<number, number>();
+  // one ŠO per (obec, type, school circle): areas that share the same set of
+  // included schools are the SAME školský obvod — its okrsky are just its
+  // several catchment components. Minting a ŠO per area instead would emit
+  // duplicate same-school ŠO, which CR0025 MI12 forbids.
+  const obvodKodBySchoolSet = new Map<string, number>();
   // whole-village inclusions (§8): each absorbed obec -> this area's ŠO
   const vymezeni: MigVymezeniZbylychKo[] = [];
 
@@ -122,20 +127,28 @@ export const buildPooledObecTables = (
     const includedSchools = area.schools.filter((s) => includeSchool(s.izo));
     if (includedSchools.length === 0) continue; // type-2: no ŠO -> orphan okrsek
 
-    const kod = ctx.allocObvodKod();
-    obvodKodByAreaIndex.set(area.index, kod);
-    obvody.push({
-      KOD: kod,
-      NAZEV: null,
-      POZNAMKA: null,
-      OBEC_KOD: obecKod,
-      TYP_OBVODU_KOD: typeCode,
-    });
-    for (const school of includedSchools) {
-      skolaSko.push(
-        buildSkolaSko(kod, school.izo, ctx.gradesByIzo(school.izo), typeCode)
-      );
+    const schoolSetKey = includedSchools
+      .map((s) => s.izo)
+      .sort()
+      .join(",");
+    let kod = obvodKodBySchoolSet.get(schoolSetKey);
+    if (kod === undefined) {
+      kod = ctx.allocObvodKod();
+      obvodKodBySchoolSet.set(schoolSetKey, kod);
+      obvody.push({
+        KOD: kod,
+        NAZEV: null,
+        POZNAMKA: null,
+        OBEC_KOD: obecKod,
+        TYP_OBVODU_KOD: typeCode,
+      });
+      for (const school of includedSchools) {
+        skolaSko.push(
+          buildSkolaSko(kod, school.izo, ctx.gradesByIzo(school.izo), typeCode)
+        );
+      }
     }
+    obvodKodByAreaIndex.set(area.index, kod);
     for (const absorbedObecKod of area.absorbedWholeObce ?? []) {
       vymezeni.push({ OBEC_KOD: absorbedObecKod, SKO_KOD: kod });
     }
@@ -189,13 +202,17 @@ export const buildPooledObecTables = (
     });
   }
 
-  // --- MIG_SKO_KO: each okrsek links to every obvod in its area-set
+  // --- MIG_SKO_KO: each okrsek links to every obvod in its area-set. Distinct
+  // area-indexes can now map to the same ŠO (merged school circle), so dedupe
+  // the links per okrsek.
   const skoKo: MigSkoKo[] = [];
   okrsky.forEach((okrsek, ko) => {
     const koKod = okrsekKodByKo.get(ko)!;
+    const linkedSko = new Set<number>();
     for (const areaIndex of okrsek.areaIndexes) {
       const skoKod = obvodKodByAreaIndex.get(areaIndex);
-      if (skoKod !== undefined) {
+      if (skoKod !== undefined && !linkedSko.has(skoKod)) {
+        linkedSko.add(skoKod);
         skoKo.push({ SKO_KOD: skoKod, KO_KOD: koKod });
       }
     }

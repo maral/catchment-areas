@@ -124,6 +124,28 @@ describe("buildObecTables", () => {
     expect(b).toEqual(a);
   });
 
+  test("two areas of the same school collapse to one ŠO (MI12), both catchments its okrsky", () => {
+    const izo = "600001111";
+    const twoAreasSameSchool: Municipality = {
+      ...municipality,
+      areas: [
+        { index: 0, schools: [{ name: "West", izo }], addresses: [addr("W-1", 2, 2), addr("W-2", 2, 8)] },
+        { index: 1, schools: [{ name: "East", izo }], addresses: [addr("E-1", 8, 2), addr("E-2", 8, 8)] },
+      ],
+    };
+    const t = buildObecTables(twoAreasSameSchool, boundary, makeContext());
+
+    // one school circle -> one ŠO, one MIG_SKOLA_SKO row...
+    expect(t.obvody).toHaveLength(1);
+    expect(t.skolaSko).toHaveLength(1);
+    // ...but the geometry still tessellates into >1 okrsek, all linked to it
+    expect(t.okrsky.length).toBeGreaterThan(1);
+    const sko = t.obvody[0].KOD;
+    expect(t.skoKo.every((l) => l.SKO_KOD === sko)).toBe(true);
+    const linkedKo = new Set(t.skoKo.map((l) => l.KO_KOD));
+    expect(linkedKo.size).toBe(t.okrsky.length); // every okrsek covered, no dup links
+  });
+
   test("trivial obec (one area = whole obec) -> one vymezeni row, no geometry (B3)", () => {
     const trivial: Municipality = {
       ...municipality,
