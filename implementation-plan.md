@@ -122,11 +122,17 @@ single-boundary obce (C-8/Bechyně). A3 (trivial vs complex) is already handled 
 
 ## Phase 6 — Validation & delivery (Part F)
 
-- [~] **F1** Self-check harness replicating MI01–MI14 against generated tables before handover
-  (fold in the F3 data-quality check: drop/flag an area whose addresses are all null-coord).
-  *Seeded:* `migration/self-check.ts` `checkIntegrity` covers the structural invariants
-  (one def point/okrsek, unique CISLO, MI02 type match, MI04 coverage, seam/ref integrity).
-  *Still to do:* the geometry checks and full MI01–MI14 coverage.
+- [x] **F1** Self-check harness (`migration/self-check.ts` `checkIntegrity`) covering every
+  MI01–MI14 rule verifiable on **our** output tables, run in `exportOrdinances` and surfaced
+  by `export-batch` — `d837eeb`. Covers: code uniqueness (allocator regression), **MI09**
+  (one def point/okrsek + finite coord), CISLO uniqueness per (obec, type), **MI02** (SKO_KO
+  type match + ref integrity), **MI04** (obvod coverage via okrsek or vymezeni), **MI11**
+  (vymezeni → existing obvod), **MI12/MI14** (duplicate SKO_KO / SKOLA_SKO / VYMEZENI rows),
+  **MI13** (grade flags inside the type band), and the **F3** geometry data-quality checks
+  (non-finite def-point coords, degenerate seams). The all-null-coord area (F3) surfaces as
+  an **MI04** obvod-with-no-okrsek at the output level. **MI10** (geometric whole-obec
+  reassembly) stays ČÚZK-side by design — we assert only its combinatorial preconditions
+  (coverage + seam/def-point integrity). 18 unit tests.
 - [ ] **F2** Delivery: single GeoPackage (all `MIG_*`), WGS-84, CSV mirror fallback.
   One-shot final handover ~start of 2027, then frozen.
 - [x] **QA tool** `packages/text-to-map/demo/` — `npm run -w text-to-map demo` renders a
