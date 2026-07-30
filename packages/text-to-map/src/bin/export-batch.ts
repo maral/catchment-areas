@@ -22,19 +22,25 @@ import { exportOrdinances, OrdinanceInput } from "../migration/run";
  * GeoPackage + CSV mirror. CLI counterpart of the Phase 7 app trigger.
  *
  *   npm run -w text-to-map export-batch -- <outDir> [--state active] [--limit N]
+ *                                                   [--founder <id>] [--city <name>]
  *
  * Run from the repo root so `.env.local` (the DB config) resolves. `--state`
  * accepts the raw lifecycle value (active / draft / auto-save …); `--limit`
  * caps the number of ordinances (for a quick dry run on non-active data).
+ * To export a single city, pass `--founder <founder_id>` or `--city <name>`
+ * (matches the founder name, case-insensitively; a big city's districts all
+ * pool into its one obec automatically).
  */
 async function main() {
   const args = process.argv.slice(2);
   const outDir = args.find((a) => !a.startsWith("--"));
   const state = argValue(args, "--state") ?? "active";
   const limit = Number(argValue(args, "--limit") ?? "0");
+  const founderId = Number(argValue(args, "--founder") ?? "0");
+  const city = argValue(args, "--city");
   if (!outDir) {
     console.error(
-      "Usage: export-batch <outDir> [--state active] [--limit N]"
+      "Usage: export-batch <outDir> [--state active] [--limit N] [--founder <id>] [--city <name>]"
     );
     process.exit(1);
   }
@@ -57,10 +63,18 @@ async function main() {
       "s.source_text as sourceText"
     )
     .orderBy("s.founder_id");
+  if (founderId > 0) query = query.where("s.founder_id", founderId);
+  if (city) {
+    query = query
+      .join("founder as f", "s.founder_id", "f.id")
+      .whereRaw("LOWER(f.name) LIKE ?", [`%${city.toLowerCase()}%`]);
+  }
   if (limit > 0) query = query.limit(limit);
 
   const rows = await query;
-  console.log(`Found ${rows.length} '${state}' ordinance(s) to export.`);
+  const filterNote =
+    founderId > 0 ? ` (founder ${founderId})` : city ? ` (city ~ "${city}")` : "";
+  console.log(`Found ${rows.length} '${state}' ordinance(s) to export${filterNote}.`);
   if (rows.length === 0) {
     await disconnectKnex();
     process.exit(0);
