@@ -84,7 +84,13 @@ const data: MigrationExport = {
       TRIDA_9: "N",
     },
   ],
-  vymezeni: [{ OBEC_KOD: 500002, SKO_KOD: 10001 }],
+  // two whole-obec rows for the SAME obec — a 1.stupeň ŠO and a 2.stupeň row
+  // with no ŠO (Part E / MI11 "record per type"). This would violate an
+  // OBEC_KOD primary key; the writer uses a synthetic fid instead.
+  vymezeni: [
+    { OBEC_KOD: 500002, SKO_KOD: 10001 },
+    { OBEC_KOD: 500002, SKO_KOD: null },
+  ],
 };
 
 let dir: string;
@@ -194,6 +200,20 @@ describe("writeGeoPackage", () => {
     expect(
       (db.prepare("SELECT COUNT(*) c FROM MIG_SKO_KO").get() as { c: number }).c
     ).toBe(2);
+    db.close();
+  });
+
+  test("keeps multiple whole-obec rows per obec (Part E / MI11)", () => {
+    const db = new Database(gpkgPath, { readonly: true });
+    const rows = db
+      .prepare(
+        "SELECT OBEC_KOD, SKO_KOD FROM MIG_VYMEZENI_ZBYLYCH_KO WHERE OBEC_KOD = 500002 ORDER BY SKO_KOD"
+      )
+      .all() as { OBEC_KOD: number; SKO_KOD: number | null }[];
+    expect(rows).toEqual([
+      { OBEC_KOD: 500002, SKO_KOD: null },
+      { OBEC_KOD: 500002, SKO_KOD: 10001 },
+    ]);
     db.close();
   });
 

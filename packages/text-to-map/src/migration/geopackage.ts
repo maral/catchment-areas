@@ -298,13 +298,22 @@ const writeVymezeni = (
   db: Database.Database,
   rows: MigVymezeniZbylychKo[]
 ): void => {
+  // OBEC_KOD is NOT unique: a trivial obec yields one whole-obec row per type
+  // (a 1.stupeň row and a 2.stupeň row — the latter possibly with a null ŠO;
+  // Part E / MI11 "záznam pro každý typ ŠO"). Use a synthetic fid PK like the
+  // other attribute tables; (OBEC_KOD, SKO_KOD) uniqueness is enforced upstream
+  // by dedupeExport.
   db.exec(`CREATE TABLE MIG_VYMEZENI_ZBYLYCH_KO (
-    OBEC_KOD INTEGER PRIMARY KEY, SKO_KOD INTEGER
+    fid INTEGER PRIMARY KEY, OBEC_KOD INTEGER, SKO_KOD INTEGER
   )`);
   const stmt = db.prepare(
-    `INSERT INTO MIG_VYMEZENI_ZBYLYCH_KO VALUES (@OBEC_KOD, @SKO_KOD)`
+    `INSERT INTO MIG_VYMEZENI_ZBYLYCH_KO VALUES (@fid, @OBEC_KOD, @SKO_KOD)`
   );
-  insertAll(db, stmt, rows);
+  insertAll(
+    db,
+    stmt,
+    rows.map((r, i) => ({ fid: i + 1, ...r }))
+  );
 };
 
 // ---------------------------------------------------------------------------
