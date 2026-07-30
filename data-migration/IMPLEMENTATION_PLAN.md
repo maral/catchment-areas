@@ -122,17 +122,35 @@ single-boundary obce (C-8/Bechyně). A3 (trivial vs complex) is already handled 
 
 ## Phase 6 — Validation & delivery (Part F)
 
-- [x] **F1** Self-check harness (`migration/self-check.ts` `checkIntegrity`) covering every
-  MI01–MI14 rule verifiable on **our** output tables, run in `exportOrdinances` and surfaced
-  by `export-batch` — `d837eeb`. Covers: code uniqueness (allocator regression), **MI09**
-  (one def point/okrsek + finite coord), CISLO uniqueness per (obec, type), **MI02** (SKO_KO
-  type match + ref integrity), **MI04** (obvod coverage via okrsek or vymezeni), **MI11**
-  (vymezeni → existing obvod), **MI12/MI14** (duplicate SKO_KO / SKOLA_SKO / VYMEZENI rows),
-  **MI13** (grade flags inside the type band), and the **F3** geometry data-quality checks
-  (non-finite def-point coords, degenerate seams). The all-null-coord area (F3) surfaces as
-  an **MI04** obvod-with-no-okrsek at the output level. **MI10** (geometric whole-obec
-  reassembly) stays ČÚZK-side by design — we assert only its combinatorial preconditions
-  (coverage + seam/def-point integrity). 18 unit tests.
+- [x] **F1** Self-check harness (`migration/self-check.ts` `checkIntegrity`) replicating the
+  CR0025 checks **MI01–MI14** (`CR0025.md` §"Kontrola dat") against our output tables, run in
+  `exportOrdinances` and surfaced by `export-batch` — `f77dd72`. Faithful mapping (re-derived
+  from the CR text, superseding the first pass which mislabelled several):
+  - **MI01** OBEC_KOD populated on okrsek/obvod/vymezeni; optional registry membership via
+    `knownObecKods`. **MI02** a KO↔ŠO link, where present, is same-type. **MI03** SKO_KO.KO_KOD
+    → okrsek. **MI04** every ŠO has ≥1 okrsek link *or* whole-obec vymezeni. **MI05** SKO_KO /
+    vymezeni SKO_KOD → obvod. **MI06** every ŠO has ≥1 MIG_SKOLA_SKO. **MI07** SKOLA_IZO in
+    registry — optional via `knownIzos` (else ČÚZK-side). **MI08** def-point / seam KO_KOD →
+    okrsek. **MI09** every okrsek has ≥1 def point. **MI11** each (obec, type) covered by an
+    okrsek of that type or a vymezeni row. **MI12** no two same-type ŠO with identical school
+    set + grade ranges. **MI13** grade flags fit the ŠO type band. **MI14** no two same-type ŠO
+    with an identical linked-okrsek set.
+  - **MI02 divergence (recorded):** CR-literal MI02 also requires *every* okrsek to be linked;
+    ČÚZK relaxed this (`SKO_MIGRATION_PLAN.md` §1 Q1) so Part-E 2.stupeň orphan okrsky are
+    allowed. We check only the same-type half and never flag orphans; `countOrphanOkrsky`
+    exposes the tally. **If ČÚZK runs the strict MI02, every type-2 orphan okrsek would fail —
+    the whole 2.stupeň design leans on that relaxation.**
+  - **MI10** (topological reassembly of each okrsek polygon from seams + def point + the obec's
+    RÚIAN outer boundary) is inherently ČÚZK-side — needs the boundary we don't ship — so we
+    assert only its combinatorial preconditions (MI03/MI08 refs, no self-seam, non-degenerate
+    seam geometry). **F3** data-quality (non-finite def coords, degenerate seams) folded in;
+    the all-null-coord area surfaces as an MI04 obvod-with-no-okrsek. 23 unit tests.
+  - **Validated on the dev DB** (`export-batch --state auto-save`, 5 obce): self-check clean.
+    The run surfaced — and this ticket fixed — two real bugs: (i) `MIG_VYMEZENI_ZBYLYCH_KO`
+    used `OBEC_KOD` as PK but Part E needs one whole-obec row per type (`975c155`); (ii) the
+    assembler minted one ŠO **per area**, so an obec with a single school split across several
+    areas produced duplicate same-school ŠO — a genuine **MI12** hit on obec 541630 — now
+    collapsed to one ŠO per (obec, type, school circle) (`a657748`).
 - [ ] **F2** Delivery: single GeoPackage (all `MIG_*`), WGS-84, CSV mirror fallback.
   One-shot final handover ~start of 2027, then frozen.
 - [x] **QA tool** `packages/text-to-map/demo/` — `npm run -w text-to-map demo` renders a

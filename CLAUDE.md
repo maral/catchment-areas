@@ -16,25 +16,30 @@ Run the library's tests from the package: `npm test -w text-to-map -- <filter>`
 
 ## The migration docs — how to use them
 
-Three files track the ŠO → ISÚI export. Keep them in their lanes:
+The migration docs live in **`data-migration/`**. Keep them in their lanes:
 
-- **`SKO_MIGRATION_PLAN.md`** — the *design / rationale* record. Why each decision was made,
-  the resolved ČÚZK Q&A, the MIG_* table model, OPEN-1/2/3 resolutions (§7/§8), and the
-  ticket-level acceptance criteria (§6). This is the source of truth for *how* and *why*.
+- **`data-migration/CR0025.md`** — the *authoritative ČÚZK source*: the CR spec itself,
+  including the MI01–MI14 pre-migration checks (§"Kontrola dat") and the `MIG_*` interface.
+  Read-only reference — the ground truth when a rule's exact wording matters.
+
+- **`data-migration/SKO_MIGRATION_PLAN.md`** — the *design / rationale* record. Why each
+  decision was made, the resolved ČÚZK Q&A, the MIG_* table model, OPEN-1/2/3 resolutions
+  (§7/§8), and the ticket-level acceptance criteria (§6). Source of truth for *how* and *why*
+  (and for where we deliberately diverge from CR0025 — e.g. the MI02 orphan-okrsek relaxation).
   Edit it when a decision changes or a new question is resolved — not for day-to-day status.
 
-- **`implementation-plan.md`** — the *execution tracker*. An ordered, checkable task list
-  mirroring the plan's work breakdown, marking what's done (with commit hashes) and what's
-  next. Edit it whenever a task's status changes. It carries no rationale — link back to
+- **`data-migration/IMPLEMENTATION_PLAN.md`** — the *execution tracker*. An ordered, checkable
+  task list mirroring the plan's work breakdown, marking what's done (with commit hashes) and
+  what's next. Edit it whenever a task's status changes. It carries no rationale — link back to
   `SKO_MIGRATION_PLAN.md` for that.
 
-- **`ARCHITECTURE.md`** — how the app + library fit together, for onboarding.
+- **`ARCHITECTURE.md`** (repo root) — how the app + library fit together, for onboarding.
 
-**Workflow:** pick the next unchecked task from `implementation-plan.md`, in order; read its
-acceptance criteria in `SKO_MIGRATION_PLAN.md`; implement + test; commit per ticket; then
-tick it in `implementation-plan.md` with the commit hash. If a decision has to change mid-
-flight, update `SKO_MIGRATION_PLAN.md` first (the why), then reflect the task change in
-`implementation-plan.md`.
+**Workflow:** pick the next unchecked task from `data-migration/IMPLEMENTATION_PLAN.md`, in
+order; read its acceptance criteria in `SKO_MIGRATION_PLAN.md` (and the MI rules in `CR0025.md`
+when relevant); implement + test; commit per ticket; then tick it in `IMPLEMENTATION_PLAN.md`
+with the commit hash. If a decision has to change mid-flight, update `SKO_MIGRATION_PLAN.md`
+first (the why), then reflect the task change in `IMPLEMENTATION_PLAN.md`.
 
 ## Committing
 
