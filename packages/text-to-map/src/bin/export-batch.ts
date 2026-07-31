@@ -176,8 +176,26 @@ async function main() {
 
   const grades = loadGradesByIzo();
   console.time("export");
+  const isTty = process.stdout.isTTY;
+  const startedAt = Date.now();
   const { data, skipped, droppedEmptyObvody, integrityProblems } =
-    await exportOrdinances(inputs, grades);
+    await exportOrdinances(inputs, grades, (p) => {
+      const secs = Math.round((Date.now() - startedAt) / 1000);
+      if (p.phase === "assemble") {
+        process.stdout.write(
+          `${isTty ? "\n" : ""}Parsed ${p.total}/${p.total} (${secs}s). ` +
+            `Assembling geometry + self-check…\n`
+        );
+        return;
+      }
+      const pct = Math.round((p.done / p.total) * 100);
+      const line = `  parsing ${p.done}/${p.total} (${pct}%, founder ${p.founderId}, ${secs}s)`;
+      // In a terminal, keep it on one self-updating line; when piped/redirected,
+      // emit a line periodically so a log still shows progress (and where a
+      // timeout hit) without 629 lines of noise.
+      if (isTty) process.stdout.write(`\r${line}\x1b[K`);
+      else if (p.done % 25 === 0 || p.done === p.total) console.log(line);
+    });
   console.timeEnd("export");
 
   const obce = new Set(data.obvody.map((o) => o.OBEC_KOD)).size;

@@ -286,21 +286,39 @@ export const pruneEmptyObvody = (
   };
 };
 
+/** Progress tick from {@link exportOrdinances} (see its `onProgress`). */
+export interface ExportProgress {
+  /** how many ordinance inputs have been resolved+parsed so far */
+  done: number;
+  /** total ordinance inputs */
+  total: number;
+  /** the founder just processed (0 in the `assemble` phase) */
+  founderId: number;
+  /** `parse` = per-ordinance DB parse loop; `assemble` = geometry + self-check */
+  phase: "parse" | "assemble";
+}
+
 /**
  * P4-2 — the multi-founder / multi-type entrypoint. For each ordinance: resolve
  * the founder context (`getNewMunicipalityByFounderId`), seed it as the initial
  * parser state (DB `source_text` has no municipality header), parse to
  * municipalities, then assemble all of them into one export under shared
  * allocators + the supplied grade lookup, and self-check.
+ *
+ * The parse loop is the slow, DB-heavy part (address-point resolution per
+ * ordinance); `onProgress` fires once per input so a long batch can show how far
+ * it has got, then once with `phase: "assemble"` before the geometry pass.
  */
 export const exportOrdinances = async (
   inputs: OrdinanceInput[],
-  gradesByIzo?: GradesByIzo
+  gradesByIzo?: GradesByIzo,
+  onProgress?: (p: ExportProgress) => void
 ): Promise<ExportResult> => {
   const groups: ExportGroup[] = [];
   const skipped: { founderId: number; reason: string }[] = [];
 
-  for (const input of inputs) {
+  for (let i = 0; i < inputs.length; i++) {
+    const input = inputs[i];
     const resolved = await getNewMunicipalityByFounderId(
       input.founderId,
       input.schoolType
@@ -310,27 +328,39 @@ export const exportOrdinances = async (
         founderId: input.founderId,
         reason: resolved.errors.map((e) => e.message).join("; "),
       });
-      continue;
+    } else {
+      const municipalities = await parseOrdinanceToAddressPoints({
+        lines: input.sourceText.split("\n"),
+        schoolType: input.schoolType,
+        initialState: { currentMunicipality: resolved.municipality },
+        onError: () => {},
+        onWarning: () => {},
+        includeUnmappedAddressPoints: false,
+      });
+
+      // A zš ordinance drives both 1.stupeň and (derived, same partition)
+      // 2.stupeň (Part E); a mš ordinance is only type M.
+      const baseType = schoolTypeToCode(input.schoolType);
+      groups.push({ municipalities, typeCode: baseType });
+      if (baseType === "1") {
+        groups.push({ municipalities, typeCode: "2" });
+      }
     }
 
-    const municipalities = await parseOrdinanceToAddressPoints({
-      lines: input.sourceText.split("\n"),
-      schoolType: input.schoolType,
-      initialState: { currentMunicipality: resolved.municipality },
-      onError: () => {},
-      onWarning: () => {},
-      includeUnmappedAddressPoints: false,
+    onProgress?.({
+      done: i + 1,
+      total: inputs.length,
+      founderId: input.founderId,
+      phase: "parse",
     });
-
-    // A zš ordinance drives both 1.stupeň and (derived, same partition)
-    // 2.stupeň (Part E); a mš ordinance is only type M.
-    const baseType = schoolTypeToCode(input.schoolType);
-    groups.push({ municipalities, typeCode: baseType });
-    if (baseType === "1") {
-      groups.push({ municipalities, typeCode: "2" });
-    }
   }
 
+  onProgress?.({
+    done: inputs.length,
+    total: inputs.length,
+    founderId: 0,
+    phase: "assemble",
+  });
   const raw = await buildMigrationExportForGroups(groups, gradesByIzo);
   const { data, dropped } = pruneEmptyObvody(raw);
   return {
