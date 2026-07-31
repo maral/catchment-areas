@@ -118,6 +118,7 @@ async function main() {
       .whereRaw("LENGTH(s.source_text) > 0")
       .select(
         "s.founder_id as founderId",
+        "s.ordinance_id as ordinanceId",
         "o.school_type as schoolType",
         "s.source_text as sourceText"
       )
@@ -135,6 +136,7 @@ async function main() {
       .join(latest.as("l"), "s.id", "l.max_id")
       .select(
         "s.founder_id as founderId",
+        "s.ordinance_id as ordinanceId",
         "o.school_type as schoolType",
         "s.source_text as sourceText"
       )
@@ -149,11 +151,17 @@ async function main() {
   if (limit > 0) query = query.limit(limit);
 
   const rows = await query;
+  // One ordinance is the source document even for a broken-down city (its
+  // districts each contribute a street-markdown row that pools into one obec),
+  // so the ordinance count is the meaningful "how many documents" number; the
+  // row count is the founder-level breakdown.
+  const ordinanceCount = new Set(rows.map((r) => r.ordinanceId)).size;
   const selectorNote = publishedMode ? "published" : `'${state}'`;
   const filterNote =
     founderId > 0 ? ` (founder ${founderId})` : city ? ` (city ~ "${city}")` : "";
   console.log(
-    `Found ${rows.length} ${selectorNote} ordinance(s) to export${filterNote}.`
+    `Found ${ordinanceCount} ${selectorNote} ordinance(s) to export${filterNote}` +
+      ` (${rows.length} street-markdown row(s) across founders).`
   );
   if (rows.length === 0) {
     await disconnectKnex();
