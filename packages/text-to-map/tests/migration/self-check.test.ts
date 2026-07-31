@@ -112,14 +112,14 @@ describe("checkIntegrity", () => {
   test("MI04: flags an obvod with no okrsek and no whole-obec coverage", () => {
     const d = base();
     d.skoKo = [];
-    expect(checkIntegrity(d).some((p) => p.includes("MI04 risk"))).toBe(true);
+    expect(checkIntegrity(d).some((p) => p.startsWith("MI04:"))).toBe(true);
   });
 
   test("MI04: accepts a whole-obec obvod with no okrsek", () => {
     const d = base();
     d.skoKo = [];
     d.vymezeni = [{ OBEC_KOD: 500001, SKO_KOD: 10001 }];
-    expect(checkIntegrity(d).some((p) => p.includes("MI04 risk"))).toBe(false);
+    expect(checkIntegrity(d).some((p) => p.startsWith("MI04:"))).toBe(false);
   });
 
   test("MI05: flags a dangling SKO_KOD in MIG_SKO_KO and in vymezeni", () => {

@@ -79,13 +79,23 @@ export const checkIntegrity = (
   }
 
   // === MI04 — every ŠO has ≥1 okrsek link OR whole-obec coverage. ===========
+  // A common cause is an editorial slip: a school listed in the ordinance with
+  // no addresses -> no territory. Name the obec + school IZO(s) so it's easy to
+  // find and fix in the source SMD.
   const wholeObecObvody = new Set(
     data.vymezeni.map((v) => v.SKO_KOD).filter((k): k is number => k !== null)
   );
   const linkedObvody = new Set(data.skoKo.map((l) => l.SKO_KOD));
+  const obvodObec = new Map(data.obvody.map((o) => [o.KOD, o.OBEC_KOD]));
+  const izosByObvod = groupBy(data.skolaSko, (s) => s.SKO_KOD);
   for (const kod of obvodKods) {
     if (!linkedObvody.has(kod) && !wholeObecObvody.has(kod)) {
-      problems.push(`MI04: obvod ${kod} has no okrsek and no whole-obec vymezeni (MI04 risk)`);
+      const izos = (izosByObvod.get(kod) ?? []).map((s) => s.SKOLA_IZO).join(", ");
+      problems.push(
+        `MI04: obvod ${kod} (obec ${obvodObec.get(kod)}, type ${obvodType.get(kod)}, ` +
+          `school IZO ${izos || "—"}) has no okrsek and no whole-obec vymezeni ` +
+          `(likely a school with no addresses in the ordinance)`
+      );
     }
   }
 
