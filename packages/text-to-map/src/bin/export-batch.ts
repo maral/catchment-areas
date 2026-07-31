@@ -18,53 +18,128 @@ import { loadGradesByIzo } from "../migration/grades";
 import { exportOrdinances, OrdinanceInput } from "../migration/run";
 
 /**
- * P4-4 — batch runner. Enumerates the ordinances to export from the app DB (the
- * latest `street_markdown` per founder + ordinance in a given lifecycle state,
- * `active` for a real handover), runs the whole export, and writes the batch
- * GeoPackage + CSV mirror. CLI counterpart of the Phase 7 app trigger.
+ * P4-4 — batch runner. Enumerates the ordinances to export from the app DB and
+ * runs the whole export, writing the batch GeoPackage + CSV mirror. CLI
+ * counterpart of the Phase 7 app trigger.
  *
- *   npm run -w text-to-map export-batch -- <outDir> [--state active] [--limit N]
+ *   npm run -w text-to-map export-batch -- <outDir> [--state <lifecycle>] [--limit N]
  *                                                   [--founder <id>] [--city <name>]
  *
- * Run from the repo root so `.env.local` (the DB config) resolves. `--state`
- * accepts the raw lifecycle value (active / draft / auto-save …); `--limit`
- * caps the number of ordinances (for a quick dry run on non-active data).
- * To export a single city, pass `--founder <founder_id>` or `--city <name>`
- * (matches the founder name, case-insensitively; a big city's districts all
- * pool into its one obec automatically).
+ * Selection modes (mutually exclusive):
+ *   - default / --published : the handover set. For every city marked Published
+ *     for a school type (status_elementary / status_kindergarten = 3), export
+ *     its *operative* ordinance — the newest currently-valid one, mirroring the
+ *     app's OrdinanceController.determineActiveOrdinanceByCityCode: valid_from
+ *     <= now AND (valid_to is null OR valid_to >= now), newest valid_from wins,
+ *     exactly one per (city, type). We recompute this from valid_from/valid_to
+ *     rather than trusting the stored `ordinance.is_active` flag, which has
+ *     drifted stale in prod (Published cities with no active row; some with
+ *     several). Then take the latest non-empty `street_markdown` per (founder,
+ *     ordinance) for that operative ordinance — content lives in `auto-save`,
+ *     never `active`, so the finalized set is defined by the *city* status +
+ *     ordinance validity, not the markdown lifecycle state.
+ *   - --state <lifecycle> : legacy/dry-run mode — pick the latest markdown per
+ *     (founder, ordinance) whose markdown is in that raw lifecycle state
+ *     (auto-save / draft / initial …). Useful to smoke a specific state.
+ *
+ * Run from the repo root so `.env.local` (the DB config) resolves. `--limit`
+ * caps the number of ordinances. To export a single city, pass
+ * `--founder <founder_id>` or `--city <name>` (matches the founder name,
+ * case-insensitively; a big city's districts all pool into its one obec).
  */
+const PUBLISHED = 3; // City.CityStatus.Published
+
 async function main() {
   const args = process.argv.slice(2);
   const outDir = args.find((a) => !a.startsWith("--"));
-  const state = argValue(args, "--state") ?? "active";
+  const state = argValue(args, "--state"); // explicit → legacy state mode
+  const publishedMode = state === undefined; // default is the Published handover set
   const limit = Number(argValue(args, "--limit") ?? "0");
   const founderId = Number(argValue(args, "--founder") ?? "0");
   const city = argValue(args, "--city");
   if (!outDir) {
     console.error(
-      "Usage: export-batch <outDir> [--state active] [--limit N] [--founder <id>] [--city <name>]"
+      "Usage: export-batch <outDir> [--state <lifecycle>] [--limit N] [--founder <id>] [--city <name>]"
     );
     process.exit(1);
   }
 
   const db = getKnexDb();
-  // `state` is stored JSON-quoted (e.g. "active"); pick the latest markdown per
-  // (founder, ordinance) in that state, joined to its ordinance for the type.
-  const latest = db("street_markdown")
-    .select("founder_id", "ordinance_id")
-    .max("id as max_id")
-    .where("state", JSON.stringify(state))
-    .groupBy("founder_id", "ordinance_id");
+  let query;
+  if (publishedMode) {
+    // Step 1: the operative ordinance per (city, type) — newest currently-valid
+    // ordinance of each Published city+type. One row per candidate; we pick the
+    // first per (city, type) in JS (ordered newest valid_from first).
+    const candidates = await db("ordinance as o")
+      .join("city as c", "o.city_code", "c.code")
+      .where((b) =>
+        b
+          .where((e) =>
+            e
+              .where("o.school_type", SchoolType.Elementary)
+              .andWhere("c.status_elementary", PUBLISHED)
+          )
+          .orWhere((k) =>
+            k
+              .where("o.school_type", SchoolType.Kindergarten)
+              .andWhere("c.status_kindergarten", PUBLISHED)
+          )
+      )
+      .whereRaw("o.valid_from <= NOW()")
+      .whereRaw("(o.valid_to IS NULL OR o.valid_to >= NOW())")
+      .orderBy([
+        { column: "o.city_code" },
+        { column: "o.school_type" },
+        { column: "o.valid_from", order: "desc" },
+        { column: "o.id", order: "desc" },
+      ])
+      .select("o.id", "o.city_code as cityCode", "o.school_type as schoolType");
 
-  let query = db("street_markdown as s")
-    .join("ordinance as o", "s.ordinance_id", "o.id")
-    .join(latest.as("l"), "s.id", "l.max_id")
-    .select(
-      "s.founder_id as founderId",
-      "o.school_type as schoolType",
-      "s.source_text as sourceText"
-    )
-    .orderBy("s.founder_id");
+    const operativeIds: number[] = [];
+    const seen = new Set<string>();
+    for (const c of candidates) {
+      const key = `${c.cityCode}-${c.schoolType}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      operativeIds.push(c.id);
+    }
+
+    // Step 2: latest non-empty markdown per (founder, ordinance) for those
+    // operative ordinances.
+    const latest = db("street_markdown")
+      .select("founder_id", "ordinance_id")
+      .max("id as max_id")
+      .whereIn("ordinance_id", operativeIds)
+      .groupBy("founder_id", "ordinance_id");
+
+    query = db("street_markdown as s")
+      .join("ordinance as o", "s.ordinance_id", "o.id")
+      .join(latest.as("l"), "s.id", "l.max_id")
+      .whereRaw("LENGTH(s.source_text) > 0")
+      .select(
+        "s.founder_id as founderId",
+        "o.school_type as schoolType",
+        "s.source_text as sourceText"
+      )
+      .orderBy("s.founder_id");
+  } else {
+    // Legacy state mode: `state` is stored JSON-quoted (e.g. "auto-save").
+    const latest = db("street_markdown")
+      .select("founder_id", "ordinance_id")
+      .max("id as max_id")
+      .where("state", JSON.stringify(state))
+      .groupBy("founder_id", "ordinance_id");
+
+    query = db("street_markdown as s")
+      .join("ordinance as o", "s.ordinance_id", "o.id")
+      .join(latest.as("l"), "s.id", "l.max_id")
+      .select(
+        "s.founder_id as founderId",
+        "o.school_type as schoolType",
+        "s.source_text as sourceText"
+      )
+      .orderBy("s.founder_id");
+  }
   if (founderId > 0) query = query.where("s.founder_id", founderId);
   if (city) {
     query = query
@@ -74,9 +149,12 @@ async function main() {
   if (limit > 0) query = query.limit(limit);
 
   const rows = await query;
+  const selectorNote = publishedMode ? "published" : `'${state}'`;
   const filterNote =
     founderId > 0 ? ` (founder ${founderId})` : city ? ` (city ~ "${city}")` : "";
-  console.log(`Found ${rows.length} '${state}' ordinance(s) to export${filterNote}.`);
+  console.log(
+    `Found ${rows.length} ${selectorNote} ordinance(s) to export${filterNote}.`
+  );
   if (rows.length === 0) {
     await disconnectKnex();
     process.exit(0);
