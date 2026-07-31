@@ -176,10 +176,8 @@ async function main() {
 
   const grades = loadGradesByIzo();
   console.time("export");
-  const { data, skipped, integrityProblems } = await exportOrdinances(
-    inputs,
-    grades
-  );
+  const { data, skipped, droppedEmptyObvody, integrityProblems } =
+    await exportOrdinances(inputs, grades);
   console.timeEnd("export");
 
   const obce = new Set(data.obvody.map((o) => o.OBEC_KOD)).size;
@@ -193,6 +191,17 @@ async function main() {
     console.log(`Skipped ${skipped.length} ordinance(s) (founder unresolved):`);
     for (const s of skipped.slice(0, 20)) {
       console.log(`  - founder ${s.founderId}: ${s.reason}`);
+    }
+  }
+  if (droppedEmptyObvody.length > 0) {
+    console.log(
+      `Dropped ${droppedEmptyObvody.length} empty-territory ŠO ` +
+        `(school listed with no addresses — unmigratable, CR0025 MI04):`
+    );
+    for (const d of droppedEmptyObvody) {
+      console.log(
+        `  - obec ${d.OBEC_KOD} type ${d.TYP_OBVODU_KOD}, school IZO ${d.izos.join(", ") || "—"}`
+      );
     }
   }
 

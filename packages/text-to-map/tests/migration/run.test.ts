@@ -1,7 +1,12 @@
 import { describe, expect, test } from "@jest/globals";
 import { featureCollection, polygon } from "@turf/helpers";
 import { PolygonsByCodes } from "../../src/db/types";
-import { assembleExport, ExportGroup } from "../../src/migration/run";
+import {
+  assembleExport,
+  ExportGroup,
+  pruneEmptyObvody,
+} from "../../src/migration/run";
+import { MigrationExport } from "../../src/migration/types";
 import { Municipality } from "../../src/street-markdown/types";
 
 const B = (x: number, y: number): [number, number] => [
@@ -82,5 +87,63 @@ describe("assembleExport (multi-group, shared code space)", () => {
     expect(assembleExport(groups, boundaries, {}, new Map())).toEqual(
       assembleExport(groups, boundaries, {}, new Map())
     );
+  });
+});
+
+describe("pruneEmptyObvody (MI04)", () => {
+  const skola = (SKO_KOD: number, SKOLA_IZO: number) => ({
+    SKO_KOD,
+    SKOLA_IZO,
+    TRIDA_1: "A" as const,
+    TRIDA_2: "N" as const,
+    TRIDA_3: "N" as const,
+    TRIDA_4: "N" as const,
+    TRIDA_5: "N" as const,
+    TRIDA_6: "N" as const,
+    TRIDA_7: "N" as const,
+    TRIDA_8: "N" as const,
+    TRIDA_9: "N" as const,
+  });
+  const base = (): MigrationExport => ({
+    obvody: [
+      { KOD: 10001, NAZEV: null, POZNAMKA: null, OBEC_KOD: 500001, TYP_OBVODU_KOD: "1" },
+      { KOD: 10002, NAZEV: null, POZNAMKA: null, OBEC_KOD: 500001, TYP_OBVODU_KOD: "1" }, // empty
+      { KOD: 10003, NAZEV: null, POZNAMKA: null, OBEC_KOD: 500001, TYP_OBVODU_KOD: "M" }, // whole-obec
+    ],
+    okrsky: [
+      { KOD: 100001, KOD_ISUI: null, NAZEV: null, CISLO: 1, POZNAMKA: null, OBEC_KOD: 500001, TYP_OBVODU_KOD: "1" },
+    ],
+    skoKo: [{ SKO_KOD: 10001, KO_KOD: 100001 }],
+    defBody: [],
+    hrany: [],
+    skolaSko: [skola(10001, 111), skola(10002, 222), skola(10003, 333)],
+    vymezeni: [{ OBEC_KOD: 500001, SKO_KOD: 10003 }],
+  });
+
+  test("drops a ŠO with no okrsek and no whole-obec row, keeping the rest", () => {
+    const { data, dropped } = pruneEmptyObvody(base());
+
+    // only 10002 is dropped (10001 has an okrsek, 10003 has vymezeni)
+    expect(dropped).toHaveLength(1);
+    expect(dropped[0]).toMatchObject({
+      KOD: 10002,
+      OBEC_KOD: 500001,
+      TYP_OBVODU_KOD: "1",
+      izos: [222],
+    });
+    expect(data.obvody.map((o) => o.KOD)).toEqual([10001, 10003]);
+    // its MIG_SKOLA_SKO row goes with it; the others stay
+    expect(data.skolaSko.map((s) => s.SKO_KOD).sort()).toEqual([10001, 10003]);
+    // okrsky / links untouched
+    expect(data.skoKo).toEqual([{ SKO_KOD: 10001, KO_KOD: 100001 }]);
+  });
+
+  test("no empty ŠO -> returns input unchanged, no drops", () => {
+    const input = base();
+    input.obvody = input.obvody.filter((o) => o.KOD !== 10002);
+    input.skolaSko = input.skolaSko.filter((s) => s.SKO_KOD !== 10002);
+    const { data, dropped } = pruneEmptyObvody(input);
+    expect(dropped).toHaveLength(0);
+    expect(data).toBe(input);
   });
 });

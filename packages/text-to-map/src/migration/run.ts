@@ -221,13 +221,70 @@ export interface OrdinanceInput {
   schoolType: SchoolType;
 }
 
+/** A ŠO dropped from the export because it had no territory (MI04). */
+export interface DroppedObvod {
+  KOD: number;
+  OBEC_KOD: number;
+  TYP_OBVODU_KOD: SchoolTypeCode;
+  izos: number[];
+}
+
 export interface ExportResult {
   data: MigrationExport;
   /** ordinances skipped because their founder couldn't be resolved */
   skipped: { founderId: number; reason: string }[];
+  /** ŠO pruned for having no catchment (school with no addresses — MI04) */
+  droppedEmptyObvody: DroppedObvod[];
   /** structural self-check findings (empty === clean) */
   integrityProblems: string[];
 }
+
+/**
+ * Drop ŠO that ended up with no territory — no MIG_SKO_KO okrsek link and no
+ * MIG_VYMEZENI_ZBYLYCH_KO whole-obec row. That happens when a school is listed
+ * in the ordinance with no addresses: it yields a school circle but no okrsek.
+ * Such a ŠO can't be migrated (CR0025 MI04, severity E), so it's excluded from
+ * the export and returned in `dropped` for reporting. Its MIG_SKOLA_SKO rows go
+ * with it; okrsky/def points/seams are untouched (an empty ŠO owns none).
+ */
+export const pruneEmptyObvody = (
+  data: MigrationExport
+): { data: MigrationExport; dropped: DroppedObvod[] } => {
+  const linked = new Set(data.skoKo.map((l) => l.SKO_KOD));
+  const wholeObec = new Set(
+    data.vymezeni.map((v) => v.SKO_KOD).filter((k): k is number => k !== null)
+  );
+  const izosByObvod = new Map<number, number[]>();
+  for (const s of data.skolaSko) {
+    const arr = izosByObvod.get(s.SKO_KOD);
+    if (arr) arr.push(s.SKOLA_IZO);
+    else izosByObvod.set(s.SKO_KOD, [s.SKOLA_IZO]);
+  }
+
+  const dropKods = new Set<number>();
+  const dropped: DroppedObvod[] = [];
+  for (const o of data.obvody) {
+    if (!linked.has(o.KOD) && !wholeObec.has(o.KOD)) {
+      dropKods.add(o.KOD);
+      dropped.push({
+        KOD: o.KOD,
+        OBEC_KOD: o.OBEC_KOD,
+        TYP_OBVODU_KOD: o.TYP_OBVODU_KOD,
+        izos: izosByObvod.get(o.KOD) ?? [],
+      });
+    }
+  }
+  if (dropKods.size === 0) return { data, dropped };
+
+  return {
+    data: {
+      ...data,
+      obvody: data.obvody.filter((o) => !dropKods.has(o.KOD)),
+      skolaSko: data.skolaSko.filter((s) => !dropKods.has(s.SKO_KOD)),
+    },
+    dropped,
+  };
+};
 
 /**
  * P4-2 — the multi-founder / multi-type entrypoint. For each ordinance: resolve
@@ -274,8 +331,14 @@ export const exportOrdinances = async (
     }
   }
 
-  const data = await buildMigrationExportForGroups(groups, gradesByIzo);
-  return { data, skipped, integrityProblems: checkIntegrity(data) };
+  const raw = await buildMigrationExportForGroups(groups, gradesByIzo);
+  const { data, dropped } = pruneEmptyObvody(raw);
+  return {
+    data,
+    skipped,
+    droppedEmptyObvody: dropped,
+    integrityProblems: checkIntegrity(data),
+  };
 };
 
 /** Ordinance school type → MIG_* obvod type code (2.stupeň is derived, Phase 5). */

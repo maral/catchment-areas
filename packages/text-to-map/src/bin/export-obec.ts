@@ -18,7 +18,7 @@ import {
   writeGeoPackage,
 } from "../migration/geopackage";
 import { loadGradesByIzo } from "../migration/grades";
-import { buildMigrationExport } from "../migration/run";
+import { buildMigrationExport, pruneEmptyObvody } from "../migration/run";
 import { checkIntegrity } from "../migration/self-check";
 import { SchoolTypeCode } from "../migration/types";
 import { parseOrdinanceToAddressPoints } from "../street-markdown/smd";
@@ -70,10 +70,11 @@ async function main() {
   );
 
   const gradesByIzo = loadGradesByIzo();
-  const data = await buildMigrationExport(municipalities, {
+  const raw = await buildMigrationExport(municipalities, {
     typeCode,
     gradesByIzo,
   });
+  const { data, dropped } = pruneEmptyObvody(raw);
 
   console.log(
     `Assembled: ${data.obvody.length} obvody, ${data.okrsky.length} okrsky, ` +
@@ -81,6 +82,16 @@ async function main() {
       `${data.hrany.length} seams, ${data.skolaSko.length} skola-sko, ` +
       `${data.vymezeni.length} whole-obec.`
   );
+  if (dropped.length > 0) {
+    console.log(
+      `Dropped ${dropped.length} empty-territory ŠO (school with no addresses — MI04):`
+    );
+    for (const d of dropped) {
+      console.log(
+        `  - obec ${d.OBEC_KOD} type ${d.TYP_OBVODU_KOD}, school IZO ${d.izos.join(", ") || "—"}`
+      );
+    }
+  }
 
   mkdirSync(outDir, { recursive: true });
   const gpkgPath = join(outDir, "sko_export.gpkg");
