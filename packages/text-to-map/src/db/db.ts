@@ -76,7 +76,11 @@ export const getKnexDb = (config: Partial<DbConfig> = {}): Knex => {
           user,
           password,
           database,
+          // Long export batches run over a flaky link; give the initial connect
+          // room and let a dead pooled connection be replaced rather than reused.
+          connectTimeout: 30000,
         },
+        pool: { min: 0, max: 10 },
         useNullAsDefault: true,
         debug: _knexDbConfig.verbose,
       });

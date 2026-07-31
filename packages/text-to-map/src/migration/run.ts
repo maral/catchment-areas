@@ -24,6 +24,47 @@ import {
   SchoolTypeCode,
 } from "./types";
 
+/**
+ * Transient MySQL/socket error codes worth retrying — a dropped or timed-out
+ * connection over a long batch, not a logical failure. Read-only work, so a
+ * retry is always safe.
+ */
+const TRANSIENT_DB_ERRORS = new Set([
+  "ETIMEDOUT",
+  "PROTOCOL_CONNECTION_LOST",
+  "PROTOCOL_SEQUENCE_TIMEOUT",
+  "ECONNRESET",
+  "EPIPE",
+  "ECONNREFUSED",
+]);
+
+/**
+ * Run `fn`, retrying it on a transient DB/connection error with exponential
+ * backoff (1s, 2s, 4s…). On a fatal connection error knex discards the dead
+ * pooled connection, so the retry acquires a fresh one. `fn` MUST be idempotent
+ * — callers wrap a self-contained read (e.g. resolve+parse one ordinance) so a
+ * retry starts from clean state, never a half-mutated one.
+ */
+export const withDbRetry = async <T>(
+  fn: () => Promise<T>,
+  onRetry?: (attempt: number, err: unknown) => void,
+  attempts = 5,
+  backoffMs: (attempt: number) => number = (a) => 1000 * 2 ** (a - 1)
+): Promise<T> => {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await fn();
+    } catch (err) {
+      const code = (err as { code?: string } | null)?.code;
+      if (attempt >= attempts || !code || !TRANSIENT_DB_ERRORS.has(code)) {
+        throw err;
+      }
+      onRetry?.(attempt, err);
+      await new Promise((r) => setTimeout(r, backoffMs(attempt)));
+    }
+  }
+};
+
 /** Starting seeds for the deterministic, globally-unique code/id allocators. */
 const OBVOD_KOD_START = 10001; // 5-digit space
 const OKRSEK_KOD_START = 100001; // 6-digit space
@@ -294,8 +335,13 @@ export interface ExportProgress {
   total: number;
   /** the founder just processed (0 in the `assemble` phase) */
   founderId: number;
-  /** `parse` = per-ordinance DB parse loop; `assemble` = geometry + self-check */
-  phase: "parse" | "assemble";
+  /**
+   * `parse` = per-ordinance DB parse loop; `assemble` = geometry + self-check;
+   * `retry` = a transient DB error is being retried (see `attempt`).
+   */
+  phase: "parse" | "assemble" | "retry";
+  /** retry attempt number, set only when `phase === "retry"` */
+  attempt?: number;
 }
 
 /**
@@ -319,31 +365,47 @@ export const exportOrdinances = async (
 
   for (let i = 0; i < inputs.length; i++) {
     const input = inputs[i];
-    const resolved = await getNewMunicipalityByFounderId(
-      input.founderId,
-      input.schoolType
+    // Resolve + parse as one idempotent unit: a retry re-fetches a clean
+    // municipality (getNewMunicipalityByFounderId) rather than reusing one the
+    // failed attempt may have partly populated.
+    const parsed = await withDbRetry(
+      async (): Promise<{ skip: string } | { municipalities: Municipality[] }> => {
+        const resolved = await getNewMunicipalityByFounderId(
+          input.founderId,
+          input.schoolType
+        );
+        if (resolved.errors.length > 0) {
+          return { skip: resolved.errors.map((e) => e.message).join("; ") };
+        }
+        const municipalities = await parseOrdinanceToAddressPoints({
+          lines: input.sourceText.split("\n"),
+          schoolType: input.schoolType,
+          initialState: { currentMunicipality: resolved.municipality },
+          onError: () => {},
+          onWarning: () => {},
+          includeUnmappedAddressPoints: false,
+        });
+        return { municipalities };
+      },
+      (attempt) =>
+        onProgress?.({
+          done: i,
+          total: inputs.length,
+          founderId: input.founderId,
+          phase: "retry",
+          attempt,
+        })
     );
-    if (resolved.errors.length > 0) {
-      skipped.push({
-        founderId: input.founderId,
-        reason: resolved.errors.map((e) => e.message).join("; "),
-      });
-    } else {
-      const municipalities = await parseOrdinanceToAddressPoints({
-        lines: input.sourceText.split("\n"),
-        schoolType: input.schoolType,
-        initialState: { currentMunicipality: resolved.municipality },
-        onError: () => {},
-        onWarning: () => {},
-        includeUnmappedAddressPoints: false,
-      });
 
+    if ("skip" in parsed) {
+      skipped.push({ founderId: input.founderId, reason: parsed.skip });
+    } else {
       // A zš ordinance drives both 1.stupeň and (derived, same partition)
       // 2.stupeň (Part E); a mš ordinance is only type M.
       const baseType = schoolTypeToCode(input.schoolType);
-      groups.push({ municipalities, typeCode: baseType });
+      groups.push({ municipalities: parsed.municipalities, typeCode: baseType });
       if (baseType === "1") {
-        groups.push({ municipalities, typeCode: "2" });
+        groups.push({ municipalities: parsed.municipalities, typeCode: "2" });
       }
     }
 
@@ -361,7 +423,19 @@ export const exportOrdinances = async (
     founderId: 0,
     phase: "assemble",
   });
-  const raw = await buildMigrationExportForGroups(groups, gradesByIzo);
+  // The boundary fetch + assembly is idempotent (fresh allocators each call), so
+  // a transient drop here retries the whole step cleanly.
+  const raw = await withDbRetry(
+    () => buildMigrationExportForGroups(groups, gradesByIzo),
+    (attempt) =>
+      onProgress?.({
+        done: inputs.length,
+        total: inputs.length,
+        founderId: 0,
+        phase: "retry",
+        attempt,
+      })
+  );
   const { data, dropped } = pruneEmptyObvody(raw);
   return {
     data,

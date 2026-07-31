@@ -5,6 +5,7 @@ import {
   assembleExport,
   ExportGroup,
   pruneEmptyObvody,
+  withDbRetry,
 } from "../../src/migration/run";
 import { MigrationExport } from "../../src/migration/types";
 import { Municipality } from "../../src/street-markdown/types";
@@ -145,5 +146,60 @@ describe("pruneEmptyObvody (MI04)", () => {
     const { data, dropped } = pruneEmptyObvody(input);
     expect(dropped).toHaveLength(0);
     expect(data).toBe(input);
+  });
+});
+
+describe("withDbRetry", () => {
+  const noDelay = () => 0;
+  const transient = (code: string) => Object.assign(new Error(code), { code });
+
+  test("retries a transient error and eventually succeeds", async () => {
+    let calls = 0;
+    const retries: number[] = [];
+    const result = await withDbRetry(
+      async () => {
+        calls++;
+        if (calls < 3) throw transient("ETIMEDOUT");
+        return "ok";
+      },
+      (attempt) => retries.push(attempt),
+      5,
+      noDelay
+    );
+    expect(result).toBe("ok");
+    expect(calls).toBe(3);
+    expect(retries).toEqual([1, 2]); // two retries before the 3rd call worked
+  });
+
+  test("does not retry a non-transient error", async () => {
+    let calls = 0;
+    await expect(
+      withDbRetry(
+        async () => {
+          calls++;
+          throw Object.assign(new Error("ER_PARSE_ERROR"), { code: "ER_PARSE_ERROR" });
+        },
+        undefined,
+        5,
+        noDelay
+      )
+    ).rejects.toThrow("ER_PARSE_ERROR");
+    expect(calls).toBe(1);
+  });
+
+  test("gives up after the attempt cap and rethrows the last error", async () => {
+    let calls = 0;
+    await expect(
+      withDbRetry(
+        async () => {
+          calls++;
+          throw transient("ECONNRESET");
+        },
+        undefined,
+        3,
+        noDelay
+      )
+    ).rejects.toThrow("ECONNRESET");
+    expect(calls).toBe(3);
   });
 });

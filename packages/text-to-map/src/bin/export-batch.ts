@@ -181,6 +181,13 @@ async function main() {
   const { data, skipped, droppedEmptyObvody, integrityProblems } =
     await exportOrdinances(inputs, grades, (p) => {
       const secs = Math.round((Date.now() - startedAt) / 1000);
+      if (p.phase === "retry") {
+        process.stdout.write(
+          `${isTty ? "\n" : ""}  ↻ DB hiccup — retry ${p.attempt} ` +
+            `(founder ${p.founderId}, ${secs}s)…\n`
+        );
+        return;
+      }
       if (p.phase === "assemble") {
         process.stdout.write(
           `${isTty ? "\n" : ""}Parsed ${p.total}/${p.total} (${secs}s). ` +
