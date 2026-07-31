@@ -146,6 +146,36 @@ describe("buildObecTables", () => {
     expect(linkedKo.size).toBe(t.okrsky.length); // every okrsek covered, no dup links
   });
 
+  test("two schools over identical territory collapse to one ŠO (MI14), both schools attached", () => {
+    // Two different schools, each listed with the very same address set (e.g.
+    // both ZŠ serve the whole undivided town). Distinct school circles, but the
+    // geometry resolves them onto the same okrsky -> MI14 forbids two same-type
+    // ŠO with identical okrsek sets, so they must merge into one.
+    const sameTerritoryTwoSchools: Municipality = {
+      ...municipality,
+      areas: [
+        { index: 0, schools: [{ name: "A", izo: "600001111" }], addresses: [addr("P-1", 2, 2), addr("P-2", 8, 8)] },
+        { index: 1, schools: [{ name: "B", izo: "600002222" }], addresses: [addr("P-1", 2, 2), addr("P-2", 8, 8)] },
+      ],
+    };
+    const t = buildObecTables(sameTerritoryTwoSchools, boundary, makeContext());
+
+    // one ŠO carrying BOTH schools
+    expect(t.obvody).toHaveLength(1);
+    expect(t.skolaSko).toHaveLength(2);
+    const sko = t.obvody[0].KOD;
+    expect(new Set(t.skolaSko.map((s) => s.SKO_KOD))).toEqual(new Set([sko]));
+    expect(new Set(t.skolaSko.map((s) => s.SKOLA_IZO))).toEqual(
+      new Set([600001111, 600002222])
+    );
+    // every link points at the survivor, with no duplicates
+    expect(t.skoKo.every((l) => l.SKO_KOD === sko)).toBe(true);
+    const linkKeys = t.skoKo.map((l) => `${l.SKO_KOD}|${l.KO_KOD}`);
+    expect(new Set(linkKeys).size).toBe(linkKeys.length);
+    // no two same-type ŠO share an okrsek set (MI14 holds)
+    expect(t.okrsky.length).toBeGreaterThan(0);
+  });
+
   test("trivial obec (one area = whole obec) -> one vymezeni row, no geometry (B3)", () => {
     const trivial: Municipality = {
       ...municipality,

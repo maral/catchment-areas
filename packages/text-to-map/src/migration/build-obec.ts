@@ -232,7 +232,7 @@ export const buildPooledObecTables = (
     geometry: seam.line.geometry,
   }));
 
-  return {
+  return mergeIdenticalTerritoryObvody({
     obvody,
     okrsky: okrskyRows,
     skoKo,
@@ -240,7 +240,78 @@ export const buildPooledObecTables = (
     hrany,
     skolaSko,
     vymezeni,
-  };
+  });
+};
+
+/**
+ * CR0025 **MI14** — two same-type ŠO must not share an identical set of linked
+ * okrsky. We mint one ŠO per school circle (set of schools that co-occur in a
+ * parsed area), but several circles can still resolve to the *same territory*:
+ * every kindergarten in a town serving the whole obec, or two ZŠ sharing an
+ * undivided 1./2.stupeň catchment. The geometry then collapses them onto one
+ * okrsek set and we end up with several ŠO over identical okrsky. Merge those
+ * into a single ŠO that carries all the schools (MIG_SKOLA_SKO), keeping the
+ * lowest KOD for determinism and rewriting SKO_KO / vymezeni references.
+ *
+ * Empty-territory ŠO (no linked okrsek) are left untouched — an empty set is not
+ * a shared "vymezení" in MI14's sense; those are an MI04 concern.
+ */
+const mergeIdenticalTerritoryObvody = (tables: ObecTables): ObecTables => {
+  const okrskyByObvod = new Map<number, number[]>();
+  for (const l of tables.skoKo) {
+    const arr = okrskyByObvod.get(l.SKO_KOD);
+    if (arr) arr.push(l.KO_KOD);
+    else okrskyByObvod.set(l.SKO_KOD, [l.KO_KOD]);
+  }
+
+  const survivorBySig = new Map<string, number>();
+  const remap = new Map<number, number>(); // merged ŠO KOD -> survivor KOD
+  for (const o of tables.obvody) {
+    const kos = okrskyByObvod.get(o.KOD);
+    if (!kos || kos.length === 0) continue; // empty ŠO: not MI14
+    const sig = `${o.TYP_OBVODU_KOD}|${[...new Set(kos)]
+      .sort((a, b) => a - b)
+      .join(",")}`;
+    const survivor = survivorBySig.get(sig);
+    if (survivor === undefined) survivorBySig.set(sig, o.KOD);
+    else remap.set(o.KOD, survivor);
+  }
+  if (remap.size === 0) return tables;
+
+  const to = (kod: number): number => remap.get(kod) ?? kod;
+  const obvody = tables.obvody.filter((o) => !remap.has(o.KOD));
+
+  const seenSchool = new Set<string>();
+  const skolaSko: MigSkolaSko[] = [];
+  for (const s of tables.skolaSko) {
+    const skoKod = to(s.SKO_KOD);
+    const key = `${skoKod}|${s.SKOLA_IZO}`;
+    if (seenSchool.has(key)) continue;
+    seenSchool.add(key);
+    skolaSko.push({ ...s, SKO_KOD: skoKod });
+  }
+
+  const seenLink = new Set<string>();
+  const skoKo: MigSkoKo[] = [];
+  for (const l of tables.skoKo) {
+    const skoKod = to(l.SKO_KOD);
+    const key = `${skoKod}|${l.KO_KOD}`;
+    if (seenLink.has(key)) continue;
+    seenLink.add(key);
+    skoKo.push({ SKO_KOD: skoKod, KO_KOD: l.KO_KOD });
+  }
+
+  const seenVym = new Set<string>();
+  const vymezeni: MigVymezeniZbylychKo[] = [];
+  for (const v of tables.vymezeni) {
+    const skoKod = v.SKO_KOD === null ? null : to(v.SKO_KOD);
+    const key = `${v.OBEC_KOD}|${skoKod}`;
+    if (seenVym.has(key)) continue;
+    seenVym.add(key);
+    vymezeni.push({ OBEC_KOD: v.OBEC_KOD, SKO_KOD: skoKod });
+  }
+
+  return { ...tables, obvody, skolaSko, skoKo, vymezeni };
 };
 
 /** Stable, content-derived key for ordering obvody (sorted school IZOs). */
