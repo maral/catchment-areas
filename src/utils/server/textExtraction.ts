@@ -16,6 +16,7 @@ import { join } from "path";
 import { convert } from "pdf-img-convert";
 import pdf from "pdf-parse";
 import * as pdfjs from "pdfjs-dist/legacy/build/pdf.mjs";
+import slugify from "slugify";
 import { createWorker } from "tesseract.js";
 import WordExtractor from "word-extractor";
 import officeParser from "officeparser";
@@ -97,7 +98,13 @@ export function getFilePath(fileName: string): string {
 }
 
 function createUniqueFileName(fileName: string): string {
-  return `${Date.now()}_${fileName}`;
+  const dotIndex = fileName.lastIndexOf(".");
+  const hasExtension = dotIndex > 0 && dotIndex < fileName.length - 1;
+  const baseName = hasExtension ? fileName.slice(0, dotIndex) : fileName;
+  const extension = hasExtension ? fileName.slice(dotIndex + 1) : "";
+  const safeBaseName = slugify(baseName).toLowerCase();
+  const safeExtension = extension ? `.${slugify(extension).toLowerCase()}` : "";
+  return `${Date.now()}_${safeBaseName}${safeExtension}`;
 }
 
 function getEmptyResponse(): TextExtractionResult {
