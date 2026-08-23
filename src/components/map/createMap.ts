@@ -8,6 +8,7 @@ import { SuggestionItem } from "@/types/suggestionTypes";
 import {
   centerLeafletMapOnMarker,
   createCityLayers,
+  findPointByAddress,
   findPointByGPS,
   getUnknownPopupContent,
   prepareMap,
@@ -95,10 +96,13 @@ export const createMap = (
 };
 
 export const onSuggest = (item: SuggestionItem) => {
-  const addressPoint = findPointByGPS(
-    dataForMap?.municipalities ?? [],
-    item.position
-  );
+  const addressPoint =
+    findPointByGPS(dataForMap?.municipalities ?? [], item.position) ??
+    findPointByAddress(
+      dataForMap?.municipalities ?? [],
+      item.name,
+      item.position
+    );
   const marker = addressPoint ? markers[addressPoint.address] : null;
 
   if (marker) {
@@ -108,6 +112,7 @@ export const onSuggest = (item: SuggestionItem) => {
       .bindPopup(getUnknownPopupContent(item, unknownAddressMessage))
       .addTo(map)
       .openPopup();
+    tempMarker.on("popupclose", () => tempMarker.remove());
     map.flyTo(tempMarker.getLatLng());
   }
 };

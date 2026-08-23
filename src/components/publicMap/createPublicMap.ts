@@ -6,6 +6,7 @@ import {
   centerLeafletMapOnMarker,
   createAddressForSuggestionItem,
   createCityLayers,
+  findPointByAddress,
   findPointByGPS,
   getUnknownPopupContent,
   loadMunicipalitiesByCityCodes,
@@ -296,6 +297,7 @@ const onSuggestionSelect = (item: SuggestionItem, schoolType: SchoolType) => {
       )}<br><br><em>Načítám podrobnosti...</em>`
     )
     .addTo(map);
+  tempMarker.on("popupclose", () => tempMarker.remove());
 
   setTimeout(() => {
     tempMarker.openPopup();
@@ -328,10 +330,13 @@ const selectAddress = (
   for (const city of cities) {
     if (loadedCities.has(city.code)) {
       const loadedCity = loadedCities.get(city.code)!;
-      const addressPoint = findPointByGPS(
-        loadedCity.data.municipalities,
-        item.position
-      );
+      const addressPoint =
+        findPointByGPS(loadedCity.data.municipalities, item.position) ??
+        findPointByAddress(
+          loadedCity.data.municipalities,
+          item.name,
+          item.position
+        );
 
       if (addressPoint) {
         const markers = loadedCity.addressMarkers[addressPoint.address];

@@ -29,7 +29,7 @@ import L, {
   PopupEvent,
 } from "leaflet";
 import shuffleSeed from "shuffle-seed";
-import { Municipality } from "text-to-map";
+import { ExportAddressPoint, Municipality } from "text-to-map";
 import { createMarkers } from "./markers";
 
 export const colors = [
@@ -471,4 +471,42 @@ export const findPointByGPS = (
     }
   }
   return minDistancePoint;
+};
+
+/**
+ * Fallback for when the GPS position from the suggestion API (Mapy.com) doesn't
+ * line up closely enough with our RUIAN-sourced point (findPointByGPS misses).
+ * Matches on street + house number instead. Our address strings are formatted as
+ * "Street 123/4, MunicipalityPart, ZIP City" (see czech-address's createSingleLineAddress),
+ * while Mapy.com's suggestion name is just "Street 123/4" — so only the first
+ * comma-separated segment is compared. If several points share that segment (rare,
+ * but happens), picks the one whose GPS is closest to the suggestion.
+ */
+export const findPointByAddress = (
+  municipalities: Municipality[],
+  address: string,
+  position: SuggestionPosition
+): ExportAddressPoint | null => {
+  let closestPoint: ExportAddressPoint | null = null;
+  let closestDistance = Infinity;
+
+  for (const municipality of municipalities) {
+    for (const area of municipality.areas) {
+      for (const point of area.addresses) {
+        const streetAndNumber = point.address.split(",")[0].trim();
+        if (streetAndNumber !== address || !point.lat || !point.lng) {
+          continue;
+        }
+        const distance =
+          Math.abs(point.lat - position.lat) +
+          Math.abs(point.lng - position.lon);
+        if (distance < closestDistance) {
+          closestDistance = distance;
+          closestPoint = point;
+        }
+      }
+    }
+  }
+
+  return closestPoint;
 };

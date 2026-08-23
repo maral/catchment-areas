@@ -1,7 +1,7 @@
 import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 import debounce from "lodash/debounce";
-import { useRef, useState } from "react";
-import {
+import { useMemo, useRef, useState } from "react";
+import Select, {
   components,
   DropdownIndicatorProps,
   InputActionMeta,
@@ -10,7 +10,6 @@ import {
   MenuProps,
   OptionProps,
 } from "react-select";
-import AsyncSelect from "react-select/async";
 import {
   SuggestionItem,
   SuggestionsResponse,
@@ -23,55 +22,57 @@ type SuggestionOption = {
   value: SuggestionItem;
 };
 
-const loadOptions = debounce(
-  (
-    inputValue: string,
-    callback: (options: { label: string; value: SuggestionItem }[]) => void
-  ) => {
-    fetch(
-      `https://api.mapy.cz/v1/suggest?lang=cs&limit=5&locality=cz&type=regional.address&apikey=${API_KEY}&query=${inputValue}`
-    )
-      .then((response) => response.json())
-      .then((jsonData: SuggestionsResponse) => {
-        const options = jsonData.items.map((item) => ({
-          value: item,
-          label: item.name,
-        }));
-
-        callback(options);
-      });
-  },
-  300
-);
-
 type SearchInputProps = {
   onSelect: (item: SuggestionItem) => void;
 };
 
 export function SearchInput({ onSelect }: SearchInputProps) {
-  // This needs to become a controlled component so track state
   const [value, setValue] = useState<SuggestionOption | null>(null);
   const [inputValue, setInputValue] = useState("");
-  const [justSelectedValue, setJustSelectedValue] =
-    useState<SuggestionOption | null>(null);
+  // Kept in local state (not react-select/async's internal cache) so the
+  // previous suggestions are still there if the user re-focuses the search
+  // bar after selecting an address, instead of showing "Žádné výsledky".
+  const [options, setOptions] = useState<SuggestionOption[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const selectRef = useRef<any>(undefined);
 
+  const fetchOptions = useMemo(
+    () =>
+      debounce((query: string) => {
+        fetch(
+          `https://api.mapy.cz/v1/suggest?lang=cs&limit=5&locality=cz&type=regional.address&apikey=${API_KEY}&query=${query}`
+        )
+          .then((response) => response.json())
+          .then((jsonData: SuggestionsResponse) => {
+            setOptions(
+              jsonData.items.map((item) => ({
+                value: item,
+                label: item.name,
+              }))
+            );
+            setIsLoading(false);
+          });
+      }, 300),
+    []
+  );
+
   const onInputChange = (inputValue: string, { action }: InputActionMeta) => {
-    setJustSelectedValue(null);
-
-    if (action === "input-blur") {
-      setInputValue(value ? value.label : "");
-    }
-
+    // Deliberately no handling for "input-blur": keep whatever the user
+    // typed after clicking away instead of reverting/clearing it for them.
     if (action === "input-change") {
       setInputValue(inputValue);
+      if (inputValue) {
+        setIsLoading(true);
+        fetchOptions(inputValue);
+      } else {
+        setOptions([]);
+      }
     }
   };
 
   const onChange = (option: SuggestionOption | null) => {
     setValue(option);
-    setJustSelectedValue(option);
     setInputValue(option ? option.label : "");
     if (option?.value) {
       onSelect(option.value);
@@ -81,10 +82,9 @@ export function SearchInput({ onSelect }: SearchInputProps) {
   const onFocus = () => value && selectRef.current?.select?.inputRef.select();
 
   return (
-    <AsyncSelect
+    <Select
       ref={selectRef}
       className="w-full"
-      loadOptions={loadOptions}
       placeholder="Vyhledat adresu"
       value={value}
       inputValue={inputValue}
@@ -92,7 +92,9 @@ export function SearchInput({ onSelect }: SearchInputProps) {
       isMulti={false}
       onChange={onChange}
       onFocus={onFocus}
-      options={justSelectedValue ? [justSelectedValue] : undefined}
+      options={options}
+      isLoading={isLoading}
+      filterOption={null}
       controlShouldRenderValue={false}
       loadingMessage={() => "Načítám..."}
       noOptionsMessage={() => "Žádné výsledky"}
@@ -153,7 +155,13 @@ function Option(props: OptionProps<SuggestionOption>) {
   >;
   return (
     <OptionComponent {...props}>
-      <div className="font-semibold text-sky-600">{item.name}</div>
+      <div
+        className={`font-semibold ${
+          props.isSelected ? "text-white" : "text-sky-600"
+        }`}
+      >
+        {item.name}
+      </div>
       <div className="text-sm">{item.location}</div>
     </OptionComponent>
   );
