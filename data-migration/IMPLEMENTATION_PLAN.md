@@ -157,6 +157,76 @@ single-boundary obce (C-8/Bechyně). A3 (trivial vs complex) is already handled 
   standalone HTML map (catchments + generated seams + def points + schools) for eyeballing an
   export. Repo-only (not shipped in `dist`). See `demo/README.md`.
 
+## Phase 6b — First ČÚZK round-trip (`data-migration/_kontroly_v1.docx`)
+
+ČÚZK ran the first delivered export through their own checks (Jiří Jindřich,
+2026-08-06–14) and sent back `kontroly_v1.docx` (17 numbered items covering every
+`MIG_*` table + MI01–MI14 + three new checks). Fixed so far, each its own commit:
+
+- [x] **CISLO uniqueness (item 4).** CR0025 requires okrsek `CISLO` unique **within an
+  obec across all three types**, not per (obec, type). `assembleExport` now carries the
+  next free `CISLO` forward between an obec's per-type calls (`ObecBuildContext.cisloStart`)
+  — `2f577d7`.
+- [x] **MI11 all-types coverage (item 11).** Every obec appearing in `MIG_SKOLSKY_OKRSEK`
+  or `MIG_VYMEZENI_ZBYLYCH_KO` must be covered for M **and** 1 **and** 2, not just the
+  types actually submitted. Self-check tightened; `fillObecCoverage` in `run.ts` now
+  synthesizes one blanket `{OBEC_KOD, SKO_KOD: null}` row per obec for whichever types
+  aren't otherwise covered (109 obce hit this in the delivered export) — `c079fc7`.
+- [x] **MI13 both directions (item 13).** Added the missing "type 1/2 must have ≥1 grade
+  flagged inside its band" check (we only checked "none outside"). Was the largest error
+  class in the report (3267 rows) — mostly stale/blank registry data (item 1), expected to
+  shrink once ČÚZK's registry refresh lands, but the check itself needed the direction
+  regardless — `e9ab9dd`.
+- [x] **MI14 narrowed + whole-obec no longer exempt (item 14).** ČÚZK narrowed MI14 to
+  "same **editor** (obvod's own `OBEC_KOD`) + same type + same vymezení" (was flagging
+  false positives across unrelated editors), and stopped exempting whole-obec ŠO — those
+  are now compared by linked `OBEC_KOD` set instead of okrsek set — `75ae1d2`.
+- [x] **MI07 cascade delete (item 2).** 21 `MIG_SKOLA_SKO` rows referenced a `SKOLA_IZO`
+  not in the školský rejstřík (two literally `IZO=1` — worth a follow-up trace, see below).
+  Added `pruneUnknownSchools`: drop the school row, cascade-delete the obvod (+ its
+  `MIG_SKO_KO` links + any `MIG_VYMEZENI_ZBYLYCH_KO` row) if that leaves it with zero
+  schools. Runs before the MI11 fill-in so a cascaded obvod's obec+type gets backfilled —
+  `b7fe9e1`.
+
+**Still open from this report (not yet actioned — needs a decision or more investigation
+before touching code):**
+- **Item 1** — waiting on ČÚZK's refreshed `skolsky_rejstrik.csv`; re-run self-check once
+  it lands, expect most MI07/MI13 noise to clear.
+- **SKOLA_IZO=1** (2 of the 21 item-2 rows) — a literal `1` isn't a real IZO; smells like a
+  sentinel leaking through the street-markdown parse rather than a stale-registry miss.
+  Worth tracing those two source ordinances specifically, independent of the registry
+  refresh.
+- **Item 12 (MI12, 377 duplicate groups / 754 ŠO)** — ČÚZK's own text says this is *their*
+  problem ("tohle je úkol pro mě... čísla SKO generuji automaticky"): duplicates arise in
+  their cross-supplier national merge (SKO_KOD ranges in the report straddle 10000s *and*
+  50000s — different suppliers), not in our single export. No code action; ČÚZK resolves
+  manually (2nd round or hand-edit in ISÚI).
+- **Item 16, new "Kontrola 14" (souběh, 60 obec/type combos)** — an obec+type must not be
+  covered by *both* explicit okrsky and a `MIG_VYMEZENI_ZBYLYCH_KO` row. Root-caused during
+  this round: `assembleExport`'s "obec" branch (`run.ts` `ObecWorkItem` construction) pushes
+  one independent `buildObecTables` call per `Municipality`, with **no bucketing by
+  (obecKod, typeCode)** — unlike the "city" branch, which buckets districts by
+  `` `${typeCode}:${cityCode}` `` before pooling. If two founders' street-markdown both
+  resolve to the same obec code for the same type (data question: legitimate multi-founder
+  split, or a duplicate founder row?), each becomes its own call, and
+  `mergeIdenticalTerritoryObvody`'s same-territory merge (only sees one call's own output)
+  can't catch the cross-call duplicate. This is also the most likely explanation for the
+  item-14 MI14 duplicates that got through despite the existing merge logic (both duplicate
+  SKO_KODY in ČÚZK's file are in *our own* KOD range, unlike item 12's cross-supplier ones).
+  **Needs a decision before fixing:** pool same-obec items like city districts are pooled
+  (masks the upstream cause if it's a real data bug), or detect-and-fail-loud so someone
+  checks the founder/city data first. Not yet implemented either way.
+- **Item 17, new "Kontrola 15" (def-point topology, 325 points) + missing hrany** — def
+  points landing in a municipality other than the one their okrsek's obec code claims, plus
+  screenshots showing incomplete/dangling seam edges near district boundaries. Self-check
+  already documents that MI10 (full topological reassembly) is deliberately ČÚZK-side (no
+  RÚIAN boundary shipped) — but this suggests our *own* internal geometry (seams + def
+  points) isn't always staying inside the right municipality even without that external
+  boundary. Needs a geometry-pipeline investigation (`geopackage.ts` / the seam-building in
+  `build-obec.ts`), not yet started.
+- **Item 15** — ČÚZK's own "Kontrola 13" (DB-table-level checks) is still "v přípravě" on
+  their side; nothing to do yet.
+
 ## Phase 7 — App trigger (catchment-areas)
 
 - [ ] Thin trigger in the app: resolve the `Active` StreetMarkdown per founder/ordinance/type,
