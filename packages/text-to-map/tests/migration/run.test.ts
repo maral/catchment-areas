@@ -74,14 +74,23 @@ describe("assembleExport (multi-group, shared code space)", () => {
     // A tessellates; B is trivial -> vymezeni, no okrsky of its own
     expect(data.okrsky.length).toBeGreaterThan(0);
     for (const ok of data.okrsky) expect(ok.OBEC_KOD).toBe(500001);
-    expect(data.vymezeni).toHaveLength(1);
-    expect(data.vymezeni[0].OBEC_KOD).toBe(500002);
+
+    const realVymezeni = data.vymezeni.filter((v) => v.SKO_KOD !== null);
+    expect(realVymezeni).toHaveLength(1);
+    expect(realVymezeni[0].OBEC_KOD).toBe(500002);
+    // sanity: the trivial obvod is the vymezeni target and is a real obvod
+    expect(typesByKod.has(realVymezeni[0].SKO_KOD!)).toBe(true);
+
+    // MI11 fill-in: A only submitted type "1", B only "M" -> each gets a
+    // blanket null row declaring "no ŠO" for its two missing types
+    const nullVymezeni = data.vymezeni.filter((v) => v.SKO_KOD === null);
+    expect(new Set(nullVymezeni.map((v) => v.OBEC_KOD))).toEqual(
+      new Set([500001, 500002])
+    );
 
     // okrsek codes disjoint from obvod codes (different allocators/spaces)
     const okrsekKods = new Set(data.okrsky.map((o) => o.KOD));
     for (const k of kods) expect(okrsekKods.has(k)).toBe(false);
-    // sanity: the trivial obvod is the vymezeni target and is a real obvod
-    expect(typesByKod.has(data.vymezeni[0].SKO_KOD!)).toBe(true);
   });
 
   test("is deterministic across runs", () => {

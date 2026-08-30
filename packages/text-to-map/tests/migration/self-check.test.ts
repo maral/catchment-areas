@@ -50,7 +50,9 @@ const base = (): MigrationExport => ({
       TRIDA_6: "N", TRIDA_7: "N", TRIDA_8: "N", TRIDA_9: "N",
     },
   ],
-  vymezeni: [],
+  // only type "1" has real coverage; the blanket null row declares "no M/2
+  // ŠO here" so the fixture is well-formed under MI11's per-obec, all-types rule
+  vymezeni: [{ OBEC_KOD: 500001, SKO_KOD: null }],
 });
 
 describe("checkIntegrity", () => {
@@ -160,15 +162,28 @@ describe("checkIntegrity", () => {
     expect(checkIntegrity(e).some((p) => p.includes("MI08") && p.includes("MIG_HRAN_KO"))).toBe(true);
   });
 
-  test("MI11: flags a trivial obec (obvod, no okrsek) with no whole-obec coverage", () => {
+  test("MI11: every obec must be covered for all three types, not just the ones present", () => {
+    const d = base();
+    d.vymezeni = []; // no blanket row — obec 500001 has real okrsek coverage for type 1 only
+    const problems = checkIntegrity(d);
+    expect(problems.some((p) => p.includes("MI11") && p.includes("type 1"))).toBe(false);
+    expect(problems.some((p) => p.includes("MI11") && p.includes("type M"))).toBe(true);
+    expect(problems.some((p) => p.includes("MI11") && p.includes("type 2"))).toBe(true);
+
+    // the blanket null row covers every otherwise-uncovered type at once
+    d.vymezeni = [{ OBEC_KOD: 500001, SKO_KOD: null }];
+    expect(checkIntegrity(d).some((p) => p.includes("MI11"))).toBe(false);
+  });
+
+  test("MI11: an obec is only in scope via MIG_SKOLSKY_OKRSEK or MIG_VYMEZENI_ZBYLYCH_KO", () => {
+    // an obvod with zero territory (no okrsek, no vymezeni) is an MI04 concern,
+    // not MI11 — MI11's population is defined over okrsek/vymezeni, not obvod
     const d = base();
     d.okrsky = [];
     d.skoKo = [];
     d.defBody = [];
     d.hrany = [];
-    // obvod 10001 of type 1 exists but nothing covers obec 500001 -> MI11
-    expect(checkIntegrity(d).some((p) => p.includes("MI11"))).toBe(true);
-    d.vymezeni = [{ OBEC_KOD: 500001, SKO_KOD: 10001 }];
+    d.vymezeni = [];
     expect(checkIntegrity(d).some((p) => p.includes("MI11"))).toBe(false);
   });
 

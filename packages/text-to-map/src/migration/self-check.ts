@@ -153,22 +153,41 @@ export const checkIntegrity = (
     }
   }
 
-  // === MI11 — every obec in the migration is covered per type. ===============
-  // For each (obec, type) that appears (as an obvod or okrsek), there must be an
-  // okrsek of that type OR a whole-obec vymezeni row for that obec.
-  const vymezeniByObec = new Set(data.vymezeni.map((v) => v.OBEC_KOD));
+  // === MI11 — every obec appearing in the migration must be covered for ALL ==
+  // three types (M/1/2), per ČÚZK's kontroly_v1 clarification — not just the
+  // types that happen to appear. Coverage for a type is: an okrsek of that
+  // type, a vymezeni row whose SKO_KOD resolves to a ŠO of that type, or a
+  // blanket SKO_KOD=null vymezeni row for the obec (MIG_VYMEZENI_ZBYLYCH_KO
+  // carries no type column, so one null row stands for "no ŠO here" across
+  // whichever types aren't otherwise covered — see build-obec's MI11 fill-in).
   const okrskyByObecType = new Set(
     data.okrsky.map((o) => `${o.OBEC_KOD}/${o.TYP_OBVODU_KOD}`)
   );
-  const obecTypePairs = new Set<string>([
-    ...data.obvody.map((o) => `${o.OBEC_KOD}/${o.TYP_OBVODU_KOD}`),
-    ...okrskyByObecType,
+  const obceInScope = new Set<number>([
+    ...data.okrsky.map((o) => o.OBEC_KOD),
+    ...data.vymezeni.map((v) => v.OBEC_KOD),
   ]);
-  for (const pair of obecTypePairs) {
-    const [obecStr, type] = pair.split("/");
-    const obec = Number(obecStr);
-    if (!okrskyByObecType.has(pair) && !vymezeniByObec.has(obec)) {
-      problems.push(`MI11: obec ${obec} type ${type} has no okrsek and no whole-obec coverage`);
+  const nullVymezeniByObec = new Set(
+    data.vymezeni.filter((v) => v.SKO_KOD === null).map((v) => v.OBEC_KOD)
+  );
+  const vymezeniTypesByObec = new Map<number, Set<SchoolTypeCode>>();
+  for (const v of data.vymezeni) {
+    if (v.SKO_KOD === null) continue;
+    const type = obvodType.get(v.SKO_KOD);
+    if (!type) continue;
+    const set = vymezeniTypesByObec.get(v.OBEC_KOD);
+    if (set) set.add(type);
+    else vymezeniTypesByObec.set(v.OBEC_KOD, new Set([type]));
+  }
+  for (const obec of obceInScope) {
+    if (nullVymezeniByObec.has(obec)) continue; // blanket "no ŠO" covers every type
+    const vymTypes = vymezeniTypesByObec.get(obec);
+    for (const type of ["M", "1", "2"] as const) {
+      const hasOkrsek = okrskyByObecType.has(`${obec}/${type}`);
+      const hasVymezeni = vymTypes?.has(type) ?? false;
+      if (!hasOkrsek && !hasVymezeni) {
+        problems.push(`MI11: obec ${obec} type ${type} has no okrsek and no whole-obec coverage`);
+      }
     }
   }
 

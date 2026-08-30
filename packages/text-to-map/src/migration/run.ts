@@ -19,6 +19,7 @@ import { dedupeExport } from "./dedupe";
 import { checkIntegrity } from "./self-check";
 import {
   MigrationExport,
+  MigVymezeniZbylychKo,
   ObecTables,
   SchoolGrades,
   SchoolTypeCode,
@@ -259,7 +260,53 @@ export const assembleExport = (
   }
 
   // B5 — collapse duplicate join/attribute rows before serialization.
-  return dedupeExport(merged);
+  return dedupeExport(fillObecCoverage(merged));
+};
+
+/**
+ * CR0025 **MI11** fill-in (ČÚZK kontroly_v1 item 11): every obec appearing in
+ * the export must be covered for all three types (M/1/2) — an okrsek of that
+ * type, or a vymezeni row resolving to a ŠO of that type. Where a type has
+ * neither, add one blanket `{OBEC_KOD, SKO_KOD: null}` row.
+ * MIG_VYMEZENI_ZBYLYCH_KO carries no type column, so a single null row
+ * declares "no ŠO here" across every otherwise-uncovered type for that obec —
+ * ČÚZK's fix asks for one row per obec, not one per missing type.
+ */
+const fillObecCoverage = (data: MigrationExport): MigrationExport => {
+  const obvodType = new Map(data.obvody.map((o) => [o.KOD, o.TYP_OBVODU_KOD]));
+  const okrskyByObecType = new Set(
+    data.okrsky.map((o) => `${o.OBEC_KOD}/${o.TYP_OBVODU_KOD}`)
+  );
+  const obceInScope = new Set<number>([
+    ...data.okrsky.map((o) => o.OBEC_KOD),
+    ...data.vymezeni.map((v) => v.OBEC_KOD),
+  ]);
+  const nullVymezeniByObec = new Set(
+    data.vymezeni.filter((v) => v.SKO_KOD === null).map((v) => v.OBEC_KOD)
+  );
+  const vymezeniTypesByObec = new Map<number, Set<SchoolTypeCode>>();
+  for (const v of data.vymezeni) {
+    if (v.SKO_KOD === null) continue;
+    const type = obvodType.get(v.SKO_KOD);
+    if (!type) continue;
+    const set = vymezeniTypesByObec.get(v.OBEC_KOD);
+    if (set) set.add(type);
+    else vymezeniTypesByObec.set(v.OBEC_KOD, new Set([type]));
+  }
+
+  const additions: MigVymezeniZbylychKo[] = [];
+  for (const obec of obceInScope) {
+    if (nullVymezeniByObec.has(obec)) continue; // already blanket-covered
+    const vymTypes = vymezeniTypesByObec.get(obec);
+    const covered = (["M", "1", "2"] as const).every(
+      (type) =>
+        okrskyByObecType.has(`${obec}/${type}`) || (vymTypes?.has(type) ?? false)
+    );
+    if (!covered) additions.push({ OBEC_KOD: obec, SKO_KOD: null });
+  }
+  return additions.length === 0
+    ? data
+    : { ...data, vymezeni: [...data.vymezeni, ...additions] };
 };
 
 /** One ordinance to export: its founder, the raw street-markdown, and the type. */
