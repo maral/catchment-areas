@@ -242,11 +242,13 @@ export const checkIntegrity = (
       seen.add(kod);
     }
   }
+  // CISLO must be unique within an obec across all three types (CR0025), not
+  // just within one type.
   const cisloSeen = new Set<string>();
   for (const o of data.okrsky) {
-    const key = `${o.OBEC_KOD}/${o.TYP_OBVODU_KOD}/${o.CISLO}`;
+    const key = `${o.OBEC_KOD}/${o.CISLO}`;
     if (cisloSeen.has(key)) {
-      problems.push(`duplicate CISLO ${o.CISLO} in obec ${o.OBEC_KOD} type ${o.TYP_OBVODU_KOD}`);
+      problems.push(`duplicate CISLO ${o.CISLO} in obec ${o.OBEC_KOD}`);
     }
     cisloSeen.add(key);
   }

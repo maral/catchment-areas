@@ -89,6 +89,26 @@ describe("assembleExport (multi-group, shared code space)", () => {
       assembleExport(groups, boundaries, {}, new Map())
     );
   });
+
+  test("CISLO is unique within an obec across types, not just within one type (CR0025)", () => {
+    // Same obec (A), tessellated for both type "1" and type "M" — each call
+    // mints its own okrsky, but CR0025 requires one continuous CISLO sequence
+    // per obec regardless of type.
+    const multiType: ExportGroup[] = [
+      { municipalities: [obecA], typeCode: "1" },
+      { municipalities: [obecA], typeCode: "M" },
+    ];
+    const data = assembleExport(multiType, boundaries, {}, new Map());
+
+    const obecAOkrsky = data.okrsky.filter((o) => o.OBEC_KOD === 500001);
+    expect(obecAOkrsky.length).toBe(4); // 2 per type
+    expect(obecAOkrsky.some((o) => o.TYP_OBVODU_KOD === "1")).toBe(true);
+    expect(obecAOkrsky.some((o) => o.TYP_OBVODU_KOD === "M")).toBe(true);
+
+    const cisla = obecAOkrsky.map((o) => o.CISLO).sort((a, b) => a - b);
+    expect(cisla).toEqual([1, 2, 3, 4]); // continuous, no cross-type collision
+    expect(new Set(cisla).size).toBe(4);
+  });
 });
 
 describe("pruneEmptyObvody (MI04)", () => {

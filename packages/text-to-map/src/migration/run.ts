@@ -211,7 +211,13 @@ export const assembleExport = (
   );
 
   const merged = emptyExport();
+  // CR0025 requires okrsek CISLO to be unique within an obec across all three
+  // types (M/1/2), not just within one type — so the next free number carries
+  // forward between an obec's per-type calls. `items` is sorted by obecKod
+  // first, so each obec's calls are contiguous and this map never grows stale.
+  const cisloStartByObec = new Map<number, number>();
   for (const item of items) {
+    const cisloStart = cisloStartByObec.get(item.obecKod) ?? 1;
     const ctx: ObecBuildContext = {
       obecKod: item.obecKod,
       typeCode: item.typeCode,
@@ -219,22 +225,21 @@ export const assembleExport = (
       allocOkrsekKod,
       allocId,
       gradesByIzo: grades,
+      cisloStart,
     };
 
+    let tables: ObecTables;
     if (item.kind === "city") {
       const districts = [...item.municipalities].sort(
         (a, b) => a.code - b.code
       );
-      appendTables(
-        merged,
-        buildBigCityTables(
-          item.obecKod,
-          item.typeCode,
-          districts,
-          cityPolygons,
-          districtPolygons,
-          ctx
-        )
+      tables = buildBigCityTables(
+        item.obecKod,
+        item.typeCode,
+        districts,
+        cityPolygons,
+        districtPolygons,
+        ctx
       );
     } else {
       const boundary = getMunicipalityBoundary(
@@ -247,8 +252,10 @@ export const assembleExport = (
           `No boundary polygon found for municipality ${item.municipality.municipalityName} (${item.obecKod}). Is the DB synced?`
         );
       }
-      appendTables(merged, buildObecTables(item.municipality, boundary, ctx));
+      tables = buildObecTables(item.municipality, boundary, ctx);
     }
+    cisloStartByObec.set(item.obecKod, cisloStart + tables.okrsky.length);
+    appendTables(merged, tables);
   }
 
   // B5 — collapse duplicate join/attribute rows before serialization.

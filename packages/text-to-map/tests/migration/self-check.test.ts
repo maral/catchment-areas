@@ -70,11 +70,11 @@ describe("checkIntegrity", () => {
     expect(checkIntegrity(d).some((p) => p.includes("duplicate CISLO"))).toBe(true);
   });
 
-  test("allows the same CISLO across different types (independent okrsek sets)", () => {
+  test("flags a duplicate CISLO across types too (CR0025: unique per obec, not per obec+type)", () => {
     const d = base();
     d.okrsky[1].CISLO = 1;
-    d.okrsky[1].TYP_OBVODU_KOD = "M"; // same obec, different type -> not a dup
-    expect(checkIntegrity(d).some((p) => p.includes("duplicate CISLO"))).toBe(false);
+    d.okrsky[1].TYP_OBVODU_KOD = "M"; // same obec, different type -> still a dup
+    expect(checkIntegrity(d).some((p) => p.includes("duplicate CISLO"))).toBe(true);
   });
 
   test("MI01: flags an OBEC_KOD not in the supplied obec registry", () => {

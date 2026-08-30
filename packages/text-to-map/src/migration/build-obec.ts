@@ -33,6 +33,14 @@ export interface ObecBuildContext {
   allocId: () => number;
   /** grades a school teaches (from the ČÚZK CSV), or undefined if not listed */
   gradesByIzo: (izo: string) => SchoolGrades | undefined;
+  /**
+   * First CISLO to hand out for this call (default 1). CR0025 requires okrsek
+   * CISLO to be unique within an obec **across all three types**, not just
+   * within one type — so a caller building the same obec's M/1/2 types in turn
+   * must carry the next free number forward between calls (see
+   * `assembleExport`'s `cisloStartByObec`).
+   */
+  cisloStart?: number;
 }
 
 const GRADE_BANDS: Record<SchoolTypeCode, number[]> = {
@@ -188,6 +196,7 @@ export const buildPooledObecTables = (
   const numbered = assignOkrsekNumbers(okrsky).sort(
     (a, b) => a.cislo - b.cislo
   );
+  const cisloBase = (ctx.cisloStart ?? 1) - 1;
   for (const { ko, cislo } of numbered) {
     const kod = ctx.allocOkrsekKod();
     okrsekKodByKo.set(ko, kod);
@@ -195,7 +204,7 @@ export const buildPooledObecTables = (
       KOD: kod,
       KOD_ISUI: null,
       NAZEV: null,
-      CISLO: cislo,
+      CISLO: cislo + cisloBase,
       POZNAMKA: null,
       OBEC_KOD: obecKod,
       TYP_OBVODU_KOD: typeCode,
