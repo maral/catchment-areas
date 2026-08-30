@@ -215,17 +215,30 @@ export const checkIntegrity = (
   }
 
   // === MI13 — a school's class range fits its ŠO type (M none, 1st 1–5, 2nd 6–9). ==
+  // ČÚZK's kontroly_v1 clarification widened this to both directions: no A
+  // outside the band (as before) AND — for types 1/2, whose band is non-empty
+  // — at least one A inside it. A school with every TRIDA_* flag "N" no longer
+  // silently passes.
   for (const s of data.skolaSko) {
     const type = obvodType.get(s.SKO_KOD);
     if (!type) continue;
     const band = TYPE_BANDS[type];
+    let hasFlagInBand = false;
     for (let grade = 1; grade <= 9; grade++) {
       const flag = s[`TRIDA_${grade}` as keyof typeof s] as TridaFlag;
-      if (flag === "A" && !band.includes(grade)) {
+      if (flag !== "A") continue;
+      if (band.includes(grade)) {
+        hasFlagInBand = true;
+      } else {
         problems.push(
           `MI13: MIG_SKOLA_SKO ${s.SKO_KOD}/${s.SKOLA_IZO} flags grade ${grade} outside type ${type} band`
         );
       }
+    }
+    if (band.length > 0 && !hasFlagInBand) {
+      problems.push(
+        `MI13: MIG_SKOLA_SKO ${s.SKO_KOD}/${s.SKOLA_IZO} (type ${type}) has no grade flagged within its band ${band.join(",")}`
+      );
     }
   }
 

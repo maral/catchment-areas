@@ -202,6 +202,24 @@ describe("checkIntegrity", () => {
     expect(checkIntegrity(d).some((p) => p.includes("MI13"))).toBe(true);
   });
 
+  test("MI13: flags a type-1/2 school with no grade flagged inside its band (all N)", () => {
+    const d = base();
+    // stale/blank registry data: every TRIDA_* is "N" on a type-1 obvod
+    d.skolaSko[0] = { ...d.skolaSko[0], TRIDA_1: "N", TRIDA_2: "N", TRIDA_3: "N", TRIDA_4: "N", TRIDA_5: "N" };
+    expect(
+      checkIntegrity(d).some((p) => p.includes("MI13") && p.includes("no grade flagged"))
+    ).toBe(true);
+  });
+
+  test("MI13: an all-N type-M school is fine (M's band is empty)", () => {
+    const d = base();
+    d.obvody[0].TYP_OBVODU_KOD = "M";
+    d.okrsky.forEach((o) => (o.TYP_OBVODU_KOD = "M"));
+    // already all-N for 1-5 in base(); M has no band, so nothing to require
+    d.skolaSko[0] = { ...d.skolaSko[0], TRIDA_1: "N", TRIDA_2: "N", TRIDA_3: "N", TRIDA_4: "N", TRIDA_5: "N" };
+    expect(checkIntegrity(d).some((p) => p.includes("MI13"))).toBe(false);
+  });
+
   test("MI13: accepts 2.stupeň grade flags on a type-2 obvod", () => {
     const d = base();
     d.obvody[0].TYP_OBVODU_KOD = "2";
