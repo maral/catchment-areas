@@ -19,6 +19,7 @@ import { dedupeExport } from "./dedupe";
 import { checkIntegrity } from "./self-check";
 import {
   MigrationExport,
+  MigSkolaSko,
   MigVymezeniZbylychKo,
   ObecTables,
   SchoolGrades,
@@ -259,8 +260,87 @@ export const assembleExport = (
     appendTables(merged, tables);
   }
 
+  // MI07 cascade must run before the MI11 fill-in: dropping a ŠO can leave an
+  // obec+type newly uncovered, and the fill-in needs to see that.
+  const withoutUnknownSchools = gradesByIzo
+    ? pruneUnknownSchools(merged, gradesByIzo).data
+    : merged;
+
   // B5 — collapse duplicate join/attribute rows before serialization.
-  return dedupeExport(fillObecCoverage(merged));
+  return dedupeExport(fillObecCoverage(withoutUnknownSchools));
+};
+
+/** A MIG_SKOLA_SKO row dropped because its IZO isn't in the ČÚZK registry (MI07). */
+export interface DroppedSchool {
+  SKO_KOD: number;
+  SKOLA_IZO: number;
+}
+
+/**
+ * CR0025 **MI07** cascade (ČÚZK kontroly_v1 item 2): a school whose IZO isn't
+ * carried in the ČÚZK školský rejstřík (`gradesByIzo` returns undefined) can't
+ * be migrated — drop its MIG_SKOLA_SKO row. If that leaves a ŠO with no
+ * schools at all, the ŠO can't be migrated either: drop the obvod, its
+ * MIG_SKO_KO links, and any MIG_VYMEZENI_ZBYLYCH_KO row pointing at it. Its
+ * okrsek geometry is left untouched — an orphan okrsek is allowed (MI02).
+ */
+export const pruneUnknownSchools = (
+  data: MigrationExport,
+  gradesByIzo: GradesByIzo
+): {
+  data: MigrationExport;
+  droppedSchools: DroppedSchool[];
+  droppedObvody: DroppedObvod[];
+} => {
+  const skolaSko: MigSkolaSko[] = [];
+  const droppedSchools: DroppedSchool[] = [];
+  const survivingObvody = new Set<number>();
+  for (const s of data.skolaSko) {
+    if (gradesByIzo(String(s.SKOLA_IZO)) === undefined) {
+      droppedSchools.push({ SKO_KOD: s.SKO_KOD, SKOLA_IZO: s.SKOLA_IZO });
+    } else {
+      skolaSko.push(s);
+      survivingObvody.add(s.SKO_KOD);
+    }
+  }
+  if (droppedSchools.length === 0) {
+    return { data, droppedSchools: [], droppedObvody: [] };
+  }
+
+  const izosByObvod = new Map<number, number[]>();
+  for (const s of data.skolaSko) {
+    const arr = izosByObvod.get(s.SKO_KOD);
+    if (arr) arr.push(s.SKOLA_IZO);
+    else izosByObvod.set(s.SKO_KOD, [s.SKOLA_IZO]);
+  }
+
+  const dropKods = new Set<number>();
+  const droppedObvody: DroppedObvod[] = [];
+  for (const o of data.obvody) {
+    if (!survivingObvody.has(o.KOD)) {
+      dropKods.add(o.KOD);
+      droppedObvody.push({
+        KOD: o.KOD,
+        OBEC_KOD: o.OBEC_KOD,
+        TYP_OBVODU_KOD: o.TYP_OBVODU_KOD,
+        izos: izosByObvod.get(o.KOD) ?? [],
+      });
+    }
+  }
+
+  return {
+    data: {
+      ...data,
+      obvody: data.obvody.filter((o) => !dropKods.has(o.KOD)),
+      skolaSko,
+      skoKo: data.skoKo.filter((l) => !dropKods.has(l.SKO_KOD)),
+      vymezeni: data.vymezeni.filter(
+        (v) => v.SKO_KOD === null || !dropKods.has(v.SKO_KOD)
+      ),
+    },
+    droppedSchools,
+    droppedObvody,
+  };
 };
 
 /**

@@ -5,6 +5,7 @@ import {
   assembleExport,
   ExportGroup,
   pruneEmptyObvody,
+  pruneUnknownSchools,
   withDbRetry,
 } from "../../src/migration/run";
 import { MigrationExport } from "../../src/migration/types";
@@ -174,6 +175,74 @@ describe("pruneEmptyObvody (MI04)", () => {
     input.skolaSko = input.skolaSko.filter((s) => s.SKO_KOD !== 10002);
     const { data, dropped } = pruneEmptyObvody(input);
     expect(dropped).toHaveLength(0);
+    expect(data).toBe(input);
+  });
+});
+
+describe("pruneUnknownSchools (MI07)", () => {
+  const skola = (SKO_KOD: number, SKOLA_IZO: number) => ({
+    SKO_KOD,
+    SKOLA_IZO,
+    TRIDA_1: "A" as const,
+    TRIDA_2: "N" as const,
+    TRIDA_3: "N" as const,
+    TRIDA_4: "N" as const,
+    TRIDA_5: "N" as const,
+    TRIDA_6: "N" as const,
+    TRIDA_7: "N" as const,
+    TRIDA_8: "N" as const,
+    TRIDA_9: "N" as const,
+  });
+  const base = (): MigrationExport => ({
+    obvody: [
+      { KOD: 10001, NAZEV: null, POZNAMKA: null, OBEC_KOD: 500001, TYP_OBVODU_KOD: "1" },
+      { KOD: 10002, NAZEV: null, POZNAMKA: null, OBEC_KOD: 500001, TYP_OBVODU_KOD: "1" }, // its only school is unregistered
+    ],
+    okrsky: [
+      { KOD: 100001, KOD_ISUI: null, NAZEV: null, CISLO: 1, POZNAMKA: null, OBEC_KOD: 500001, TYP_OBVODU_KOD: "1" },
+      { KOD: 100002, KOD_ISUI: null, NAZEV: null, CISLO: 2, POZNAMKA: null, OBEC_KOD: 500001, TYP_OBVODU_KOD: "1" },
+    ],
+    skoKo: [
+      { SKO_KOD: 10001, KO_KOD: 100001 },
+      { SKO_KOD: 10002, KO_KOD: 100002 },
+    ],
+    defBody: [],
+    hrany: [],
+    skolaSko: [skola(10001, 111), skola(10002, 999)], // IZO 999 isn't in the registry
+    vymezeni: [{ OBEC_KOD: 555000, SKO_KOD: 10002 }], // an absorbed village pointing at the doomed obvod
+  });
+  const registered = {
+    t1: true, t2: false, t3: false, t4: false, t5: false,
+    t6: false, t7: false, t8: false, t9: false,
+  };
+  const gradesByIzo = (izo: string) => (izo === "111" ? registered : undefined);
+
+  test("drops a school not in the registry and cascades to its now-empty obvod", () => {
+    const { data, droppedSchools, droppedObvody } = pruneUnknownSchools(base(), gradesByIzo);
+
+    expect(droppedSchools).toEqual([{ SKO_KOD: 10002, SKOLA_IZO: 999 }]);
+    expect(droppedObvody).toHaveLength(1);
+    expect(droppedObvody[0]).toMatchObject({
+      KOD: 10002,
+      OBEC_KOD: 500001,
+      TYP_OBVODU_KOD: "1",
+      izos: [999],
+    });
+
+    expect(data.obvody.map((o) => o.KOD)).toEqual([10001]);
+    expect(data.skolaSko.map((s) => s.SKO_KOD)).toEqual([10001]);
+    expect(data.skoKo).toEqual([{ SKO_KOD: 10001, KO_KOD: 100001 }]);
+    expect(data.vymezeni).toEqual([]); // the row pointing at the dropped obvod goes too
+    // its okrsek geometry is left untouched — now orphan, which is allowed (MI02)
+    expect(data.okrsky.map((o) => o.KOD)).toEqual([100001, 100002]);
+  });
+
+  test("every school known -> returns input unchanged, no drops", () => {
+    const input = base();
+    input.skolaSko[1] = skola(10002, 111);
+    const { data, droppedSchools, droppedObvody } = pruneUnknownSchools(input, gradesByIzo);
+    expect(droppedSchools).toHaveLength(0);
+    expect(droppedObvody).toHaveLength(0);
     expect(data).toBe(input);
   });
 });
