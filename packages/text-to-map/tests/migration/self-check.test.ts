@@ -233,12 +233,41 @@ describe("checkIntegrity", () => {
     expect(checkIntegrity(d).some((p) => p.includes("MI13"))).toBe(false);
   });
 
-  test("MI14: flags two same-type ŠO linked to an identical okrsek set", () => {
+  test("MI14: flags two same-editor same-type ŠO linked to an identical okrsek set", () => {
     const d = base();
     d.obvody.push({ KOD: 10002, NAZEV: null, POZNAMKA: null, OBEC_KOD: 500001, TYP_OBVODU_KOD: "1" });
     d.skolaSko.push({ ...d.skolaSko[0], SKO_KOD: 10002, SKOLA_IZO: 600002222 });
     // second obvod links exactly the same okrsky as the first
     d.skoKo.push({ SKO_KOD: 10002, KO_KOD: 100001 }, { SKO_KOD: 10002, KO_KOD: 100002 });
+    expect(checkIntegrity(d).some((p) => p.includes("MI14"))).toBe(true);
+  });
+
+  test("MI14: does NOT flag the same okrsek-set signature across different editors", () => {
+    // ČÚZK's narrowed MI14: same type + same okrsky is only a duplicate within
+    // one editor (obvod.OBEC_KOD). A different obec's obvod that coincidentally
+    // shares the same KO_KOD numbers isn't a real duplicate.
+    const d = base();
+    d.obvody.push({ KOD: 10002, NAZEV: null, POZNAMKA: null, OBEC_KOD: 500002, TYP_OBVODU_KOD: "1" });
+    d.skolaSko.push({ ...d.skolaSko[0], SKO_KOD: 10002, SKOLA_IZO: 600002222 });
+    d.skoKo.push({ SKO_KOD: 10002, KO_KOD: 100001 }, { SKO_KOD: 10002, KO_KOD: 100002 });
+    d.vymezeni.push({ OBEC_KOD: 500002, SKO_KOD: null }); // dodge MI11 for the new obec
+    expect(checkIntegrity(d).some((p) => p.includes("MI14"))).toBe(false);
+  });
+
+  test("MI14: flags two same-editor whole-obec ŠO covering the identical OBEC_KOD set", () => {
+    // whole-obec ŠO (no okrsek) are no longer exempt — compared by their
+    // linked OBEC_KOD set in MIG_VYMEZENI_ZBYLYCH_KO instead of okrsky
+    const d = base();
+    d.okrsky = [];
+    d.skoKo = [];
+    d.defBody = [];
+    d.hrany = [];
+    d.obvody.push({ KOD: 10002, NAZEV: null, POZNAMKA: null, OBEC_KOD: 500001, TYP_OBVODU_KOD: "1" });
+    d.skolaSko.push({ ...d.skolaSko[0], SKO_KOD: 10002, SKOLA_IZO: 600002222 });
+    d.vymezeni = [
+      { OBEC_KOD: 563889, SKO_KOD: 10001 },
+      { OBEC_KOD: 563889, SKO_KOD: 10002 },
+    ];
     expect(checkIntegrity(d).some((p) => p.includes("MI14"))).toBe(true);
   });
 

@@ -242,19 +242,33 @@ export const checkIntegrity = (
     }
   }
 
-  // === MI14 — no two same-type ŠO with an identical set of linked okrsky. =====
-  // Whole-obec ŠO (no linked okrsek — covered by vymezeni) are exempt: an empty
-  // okrsek set is not a shared "vymezení" in MI14's sense.
+  // === MI14 — no two ŠO of the same editor + type with an identical vymezení. ==
+  // ČÚZK's kontroly_v1 narrowed this from "same type, same okrsky" (too loose —
+  // flagged false duplicates across unrelated editors) to "same **editor**
+  // (the obvod's own OBEC_KOD) + same type + same vymezení". Whole-obec ŠO (no
+  // linked okrsek) are no longer exempt: they're compared by their linked
+  // OBEC_KOD set in MIG_VYMEZENI_ZBYLYCH_KO instead of by okrsek set.
   const okrskyByObvod = groupBy(data.skoKo, (l) => l.SKO_KOD);
+  const wholeObecByObvod = groupBy(
+    data.vymezeni.filter((v): v is { OBEC_KOD: number; SKO_KOD: number } => v.SKO_KOD !== null),
+    (v) => v.SKO_KOD
+  );
   const mi14Seen = new Map<string, number>();
   for (const kod of obvodKods) {
     const kos = (okrskyByObvod.get(kod) ?? []).map((l) => l.KO_KOD);
-    if (kos.length === 0) continue;
+    const editor = obvodObec.get(kod);
     const type = obvodType.get(kod)!;
-    const sig = `${type}|${[...new Set(kos)].sort((a, b) => a - b).join(",")}`;
+    let sig: string;
+    if (kos.length > 0) {
+      sig = `OKRSKY|${editor}|${type}|${[...new Set(kos)].sort((a, b) => a - b).join(",")}`;
+    } else {
+      const obce = (wholeObecByObvod.get(kod) ?? []).map((v) => v.OBEC_KOD);
+      if (obce.length === 0) continue; // no vymezení at all: an MI04 concern
+      sig = `OBCE|${editor}|${type}|${[...new Set(obce)].sort((a, b) => a - b).join(",")}`;
+    }
     const prev = mi14Seen.get(sig);
     if (prev !== undefined) {
-      problems.push(`MI14: duplicate ŠO vymezení (type ${type}, same okrsky): obvody ${prev}, ${kod}`);
+      problems.push(`MI14: duplicate ŠO vymezení (editor ${editor}, type ${type}): obvody ${prev}, ${kod}`);
     } else {
       mi14Seen.set(sig, kod);
     }
