@@ -56,6 +56,17 @@ export const createMarkers = ({
   const schoolColors: Record<string, string> = {};
   const addressLayerGroupsMap: Record<string, AddressLayerGroup> = {};
 
+  const schoolPositionCounts: Record<string, number> = {};
+  data.municipalities.forEach((municipality) => {
+    municipality.areas.forEach((area) => {
+      area.schools.forEach((school) => {
+        const key = getSchoolPositionKey(school);
+        schoolPositionCounts[key] = (schoolPositionCounts[key] ?? 0) + 1;
+      });
+    });
+  });
+  const schoolPositionIndices: Record<string, number> = {};
+
   data.municipalities.forEach((municipality) => {
     const layerGroup: AddressLayerGroup = L.layerGroup();
     municipalityLayerGroups.push(layerGroup);
@@ -64,9 +75,16 @@ export const createMarkers = ({
       area.schools.forEach((school) => {
         const schoolColor =
           options.color ?? colors[areaColorIndicesMap[area.index]];
-        const schoolMarker = createSchoolMarker(school, schoolColor).addTo(
-          schoolsLayerGroup
-        );
+        const positionKey = getSchoolPositionKey(school);
+        const countAtPosition = schoolPositionCounts[positionKey];
+        const indexAtPosition = schoolPositionIndices[positionKey] ?? 0;
+        schoolPositionIndices[positionKey] = indexAtPosition + 1;
+        const schoolMarker = createSchoolMarker(
+          school,
+          schoolColor,
+          indexAtPosition,
+          countAtPosition
+        ).addTo(schoolsLayerGroup);
 
         schoolColors[school.izo] = schoolColor;
         addressLayerGroupsMap[school.izo] = layerGroup;
@@ -141,27 +159,52 @@ const addToMarkersToCreate = (
 
 const defaultPosition = [49.19506, 16.606837];
 
-export const createSchoolMarker = (school: School, color: string) => {
+const getSchoolPositionKey = (school: School) => {
+  const lat = school.position?.lat ?? defaultPosition[0];
+  const lng = school.position?.lng ?? defaultPosition[1];
+  return `${lat.toFixed(7)},${lng.toFixed(7)}`;
+};
+
+const schoolMarkerRadius = 19;
+const metersPerDegree = 111320;
+// keeps markers clearly apart (not just touching) even for the 2-school case
+const schoolOffsetRadiusDegrees = (schoolMarkerRadius * 1.25) / metersPerDegree;
+
+export const createSchoolMarker = (
+  school: School,
+  color: string,
+  indexAtPosition = 0,
+  countAtPosition = 1
+) => {
   const schoolTooltip = L.tooltip({
     direction: "top",
     content: `<div style="text-align: center;">${school.name}</div>`,
     opacity: 1,
   });
-  return L.circle(
-    [
-      school.position?.lat ?? defaultPosition[0],
-      school.position?.lng ?? defaultPosition[1],
-    ],
-    {
-      radius: 19,
-      fill: true,
-      fillColor: color,
-      fillOpacity: 1,
-      weight: 4,
-      color,
-      bubblingMouseEvents: false,
-    }
-  ).bindTooltip(schoolTooltip);
+  const lat = school.position?.lat ?? defaultPosition[0];
+  const lng = school.position?.lng ?? defaultPosition[1];
+  const position: [number, number] =
+    countAtPosition > 1
+      ? flip(
+          rotatePointOnCircle(
+            lng,
+            lat,
+            schoolOffsetRadiusDegrees,
+            (360 / countAtPosition) * indexAtPosition,
+            1,
+            0.7
+          )
+        )
+      : [lat, lng];
+  return L.circle(position, {
+    radius: schoolMarkerRadius,
+    fill: true,
+    fillColor: color,
+    fillOpacity: 1,
+    weight: 4,
+    color,
+    bubblingMouseEvents: false,
+  }).bindTooltip(schoolTooltip);
 };
 
 export const createAddressMarker = (
