@@ -169,6 +169,11 @@ export const assembleExport = (
   const allocId = counter(ID_START);
   const grades = gradesByIzo ?? (() => undefined);
 
+  // Cities that also have at least one self-governing district (Vratislavice
+  // nad Nisou under Liberec; Praha/Ostrava/Brno's městské části) — used below
+  // to pool a "leftover" whole-city founder in with its district siblings.
+  const citiesWithDistricts = new Set(parentCityByDistrict.values());
+
   const cityBuckets = new Map<string, ObecWorkItem & { kind: "city" }>();
   const items: ObecWorkItem[] = [];
 
@@ -176,8 +181,30 @@ export const assembleExport = (
     for (const municipality of group.municipalities) {
       if (municipality.areas.length === 0) continue;
 
-      if (municipality.municipalityType === "district") {
-        const cityCode = parentCityByDistrict.get(municipality.code);
+      // A "leftover" whole-city founder (e.g. "Statutární město Liberec",
+      // governing everything outside the separately-founded Vratislavice nad
+      // Nisou) is still `municipalityType: "city"`, but its city code is the
+      // *parent* of a real district being processed in this same run. Pool it
+      // with that district instead of building it standalone: standalone, its
+      // own `mergeIdenticalTerritoryObvody` pass never sees the district's
+      // output (and vice versa), so an obec+type can end up covered *both* by
+      // real okrsky and an independent whole-obec vymezeni row (ČÚZK
+      // kontroly_v1 items 14/16 — confirmed live for Liberec, obec 563889).
+      // Brno is excluded to mirror `getMunicipalityPolygons`'s own "don't
+      // subtract district polygons from the city polygon for Brno" guard
+      // (`street-markdown/polygons.ts`) — pooling it here would silently
+      // resolve its boundary to the *undivided* city polygon (overlapping
+      // every real district) rather than throwing, which is worse than today.
+      const isPoolableLeftoverCity =
+        municipality.municipalityType === "city" &&
+        municipality.municipalityName !== "Brno" &&
+        citiesWithDistricts.has(municipality.code);
+
+      if (municipality.municipalityType === "district" || isPoolableLeftoverCity) {
+        const cityCode =
+          municipality.municipalityType === "district"
+            ? parentCityByDistrict.get(municipality.code)
+            : municipality.code;
         if (cityCode === undefined) {
           throw new Error(
             `No parent city for district ${municipality.code} (${municipality.municipalityName}).`

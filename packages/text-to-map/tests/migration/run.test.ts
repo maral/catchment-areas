@@ -121,6 +121,74 @@ describe("assembleExport (multi-group, shared code space)", () => {
   });
 });
 
+// Liberec's real shape: a self-governing district (Vratislavice nad Nisou)
+// plus a "city"-typed founder ("Statutární město Liberec") that governs
+// everything else, sharing the SAME obec code. Confirmed live against the
+// dev DB (city 563889) while investigating ČÚZK's kontroly_v1 items 14/16.
+describe("assembleExport — leftover whole-city founder pooling (Liberec pattern)", () => {
+  const cityCode = 700001;
+  const districtCode = 700002;
+  const citySquare = polygon([[B(0, 0), B(10, 0), B(10, 10), B(0, 10), B(0, 0)]]);
+  const districtCorner = polygon([[B(0, 0), B(3, 0), B(3, 3), B(0, 3), B(0, 0)]]);
+  const cityPolygonsLeftover: PolygonsByCodes = { [cityCode]: featureCollection([citySquare]) };
+  const districtPolygonsLeftover: PolygonsByCodes = { [districtCode]: featureCollection([districtCorner]) };
+
+  const vratislavice: Municipality = {
+    municipalityName: "Liberec-Vratislavice nad Nisou",
+    code: districtCode,
+    municipalityType: "district",
+    cityCodes: [],
+    districtCodes: [districtCode],
+    unmappedPoints: [],
+    areas: [
+      { index: 0, schools: [{ name: "ZŠ Vratislavice", izo: "600009001" }], addresses: [addr("V1", 1, 1), addr("V2", 2, 2)] },
+    ],
+  };
+
+  const statutarniMestoLiberec: Municipality = {
+    municipalityName: "Statutární město Liberec",
+    code: cityCode,
+    municipalityType: "city",
+    cityCodes: [cityCode],
+    districtCodes: [],
+    unmappedPoints: [],
+    areas: [
+      { index: 0, schools: [{ name: "ZŠ Liberec 1", izo: "600009002" }], addresses: [addr("L1", 6, 2), addr("L2", 6, 8)] },
+      { index: 1, schools: [{ name: "ZŠ Liberec 2", izo: "600009003" }], addresses: [addr("L3", 9, 2), addr("L4", 9, 8)] },
+    ],
+  };
+
+  test("pools the city-type founder into its district sibling's bucket instead of building it standalone", () => {
+    const groups: ExportGroup[] = [
+      { municipalities: [vratislavice, statutarniMestoLiberec], typeCode: "1" },
+    ];
+    const parentCityByDistrict = new Map([[districtCode, cityCode]]);
+    const data = assembleExport(groups, cityPolygonsLeftover, districtPolygonsLeftover, parentCityByDistrict);
+
+    // everything lands under the city's obec code — nothing under the
+    // district's own code, and no standalone item was built for either
+    expect(data.obvody.every((o) => o.OBEC_KOD === cityCode)).toBe(true);
+    expect(data.okrsky.every((o) => o.OBEC_KOD === cityCode)).toBe(true);
+    // 3 schools total (1 Vratislavice + 2 Liberec) -> 3 obvody, pooled together
+    expect(data.obvody).toHaveLength(3);
+
+    // pooled into ONE build: CISLO is one continuous, unique range — not two
+    // independent 1..N ranges from two separate, uncoordinated calls
+    const cisla = data.okrsky.map((o) => o.CISLO).sort((a, b) => a - b);
+    expect(new Set(cisla).size).toBe(cisla.length);
+    expect(cisla[0]).toBe(1);
+
+    // No leftover *real* whole-obec vymezeni row: pooled, Vratislavice's
+    // single school gets a real okrsek instead of hitting the standalone
+    // trivial-obec shortcut it would hit if built alone. That's what closes
+    // ČÚZK's "explicit okrsky + vymezeni row for the same obec+type" conflict
+    // (kontroly_v1 item 16) and the MI14 duplicate (item 14). The only row
+    // left is the unrelated MI11 fill-in (this fixture only exercises type
+    // "1", so types M/2 correctly get the blanket null-coverage row).
+    expect(data.vymezeni).toEqual([{ OBEC_KOD: cityCode, SKO_KOD: null }]);
+  });
+});
+
 describe("pruneEmptyObvody (MI04)", () => {
   const skola = (SKO_KOD: number, SKOLA_IZO: number) => ({
     SKO_KOD,
