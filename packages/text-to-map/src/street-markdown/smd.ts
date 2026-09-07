@@ -345,13 +345,28 @@ const processWholeMunicipalityLine = async ({
   if (errors.length > 0) {
     onError({ lineNumber, line, errors });
   } else {
+    const isSelfReference =
+      municipality.type === MunicipalityType.City &&
+      municipality.code === state.currentMunicipality.code;
     if (municipality.type === MunicipalityType.City) {
-      state.currentMunicipality.cityCodes.push(municipality.code);
-      // A whole *separate obec* (village) absorbed into this school's ŠO →
-      // one MIG_VYMEZENI_ZBYLYCH_KO row (§8 mechanism B). District-type
-      // inclusions are městské části of the *same* obec (Q3) and are handled
-      // by the geometry as extra okrsky, so they are deliberately excluded.
-      (state.currentArea.absorbedWholeObce ??= []).push(municipality.code);
+      if (!isSelfReference) {
+        state.currentMunicipality.cityCodes.push(municipality.code);
+        // A whole *separate obec* (village) absorbed into this school's ŠO →
+        // one MIG_VYMEZENI_ZBYLYCH_KO row (§8 mechanism B). District-type
+        // inclusions are městské části of the *same* obec (Q3) and are
+        // handled by the geometry as extra okrsky, so they are deliberately
+        // excluded. A self-reference ("území obce X" inside X's own
+        // ordinance — e.g. several kindergartens jointly declared to cover
+        // the whole town) is neither: it's this area claiming the whole
+        // obec's addresses, which real okrsek geometry already covers.
+        // Recording it as an absorbed obec produced a same-obec
+        // MIG_VYMEZENI_ZBYLYCH_KO row alongside that real coverage — CR0025
+        // "Kontrola 14" souběh, confirmed against ČÚZK's kontroly_v1 item 16
+        // (60/60 of their flagged obec+type conflicts were this exact
+        // pattern, independent of city/district pooling — e.g. Ostrava,
+        // whose founders are already correctly pooled, still hit it).
+        (state.currentArea.absorbedWholeObce ??= []).push(municipality.code);
+      }
     } else {
       state.currentMunicipality.districtCodes.push(municipality.code);
     }
