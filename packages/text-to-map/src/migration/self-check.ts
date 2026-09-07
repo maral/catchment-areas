@@ -274,6 +274,29 @@ export const checkIntegrity = (
     }
   }
 
+  // === Kontrola 14 (souběh) — an obec+type must not be covered by BOTH ======
+  // explicit okrsky and a MIG_VYMEZENI_ZBYLYCH_KO row (ČÚZK kontroly_v1 item
+  // 16 — a new check beyond the official MI01–14 set: "Stejná kombinace
+  // OBEC_KOD a TYP_OBVODU_KOD nesmí být definována současně v
+  // MIG_SKOLSKY_OKRSEK a MIG_VYMEZENI_ZBYLYCH_KO."). Two causes found and
+  // fixed so far (a leftover whole-city founder built standalone instead of
+  // pooled with its district siblings; a self-referential "území obce X" line
+  // wrongly treated as an absorbed foreign village) — kept here as a standing
+  // regression guard against a third, not-yet-seen cause.
+  const soubehSeen = new Set<string>();
+  for (const v of data.vymezeni) {
+    if (v.SKO_KOD === null) continue;
+    const type = obvodType.get(v.SKO_KOD);
+    if (!type) continue;
+    const key = `${v.OBEC_KOD}/${type}`;
+    if (okrskyByObecType.has(key) && !soubehSeen.has(key)) {
+      soubehSeen.add(key);
+      problems.push(
+        `Kontrola 14: obec ${v.OBEC_KOD} type ${type} has both explicit okrsky and a MIG_VYMEZENI_ZBYLYCH_KO row`
+      );
+    }
+  }
+
   // === Additional internal invariants (beyond MI01–14) ======================
   // Deterministic code minting -> KODs must be globally unique; a collision is an
   // allocator regression. CISLO is unique within an obec+type (C2). Def-point /

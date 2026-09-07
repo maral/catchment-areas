@@ -195,13 +195,12 @@ single-boundary obce (C-8/Bechyně). A3 (trivial vs complex) is already handled 
     school (its type-1 and type-2 obvody) with a garbage IZO in the feed. `"1"` isn't in
     `skolsky_rejstrik.csv` either, so `pruneUnknownSchools` above already drops it going forward
     — no separate fix needed.
-- [x] **Leftover whole-city founder pooling (items 14 + 16).** Confirmed against the dev DB:
-  Liberec (563889) has "Statutární město Liberec" (`city`-typed, a real ~15KB street-by-street
-  ordinance) alongside the self-governing `district`-typed "Vratislavice nad Nisou" — same obec
-  code, but only the district branch in `assembleExport` bucketed/pooled them. The city-typed
-  founder built standalone via `buildObecTables`, so its own `mergeIdenticalTerritoryObvody`
-  pass never saw Vratislavice's output and vice versa. Exactly reproduces ČÚZK's flagged row in
-  both their MI14 and Kontrola-14-souběh detail files: `563889 M OBCE 11662,11663 2 563889 1`.
+- [x] **Leftover whole-city founder pooling (item 14, part of item 16).** Confirmed against the
+  dev DB: Liberec (563889) has "Statutární město Liberec" (`city`-typed, a real ~15KB
+  street-by-street ordinance) alongside the self-governing `district`-typed "Vratislavice nad
+  Nisou" — same obec code, but only the district branch in `assembleExport` bucketed/pooled
+  them. The city-typed founder built standalone via `buildObecTables`, so its own
+  `mergeIdenticalTerritoryObvody` pass never saw Vratislavice's output and vice versa.
   `assembleExport` now pools a `city`-typed municipality into its district siblings' bucket
   whenever its own code is some other district's parent city (`citiesWithDistricts`, derived
   from `parentCityByDistrict`) — no new geometry work needed, since `getMunicipalityPolygons`
@@ -209,7 +208,23 @@ single-boundary obce (C-8/Bechyně). A3 (trivial vs complex) is already handled 
   polygon for any non-Brno city. Brno is excluded from pooling to mirror that same existing
   guard — it has an analogous stray "Statutární město Brno" founder, but its content is
   currently empty/fully `!`-commented so it never reaches the build loop; not live today, but
-  the same class of bug the moment someone edits that content back in — `206a7b6`.
+  the same class of bug the moment someone edits that content back in — `206a7b6`. This fixed
+  the specific `563889 M OBCE 11662,11663 2 563889 1` conflict in ČÚZK's Kontrola-14-souběh
+  file (Liberec kindergarten), but *not* Liberec's elementary types — those needed the next fix.
+- [x] **Self-referential "whole municipality" line (item 16, the actual majority cause).**
+  `processWholeMunicipalityLine` (`street-markdown/smd.ts`) treated any City-type "území obce X"
+  reference as a foreign absorbed village (§8 mechanism B) and emitted a
+  `MIG_VYMEZENI_ZBYLYCH_KO` row for it — even when X is the school's *own* obec, declaring "this
+  area covers the whole town" (e.g. several kindergartens jointly covering all of a town). That
+  row then collides with the real okrsek geometry the same area produces once it's not going
+  through the single-area trivial-obec shortcut. Scanned the delivered export (`out/`) for
+  self-referential vymezeni rows (`OBEC_KOD` == the owning obec of their own `SKO_KOD`): 211
+  total, of which exactly **60** also had real okrsek coverage for the same obec+type — an exact
+  match to ČÚZK's reported count, and confirmed independent of the pooling fix above (Ostrava,
+  already correctly pooled, was in that 60 too). Fix: only record the `absorbedWholeObce` entry
+  when the referenced municipality's code differs from the current one. Validated against the
+  live dev DB: re-ran `export-batch --city Liberec` and `--city Ostrava` — both now show **0**
+  self-referential conflicts (Liberec: 4→3 vymezeni rows; Ostrava: 2→0 conflicts) — `c517151`.
 
 **Still open from this report (not yet actioned — needs a decision or more investigation
 before touching code):**
@@ -220,6 +235,10 @@ before touching code):**
   their cross-supplier national merge (SKO_KOD ranges in the report straddle 10000s *and*
   50000s — different suppliers), not in our single export. No code action; ČÚZK resolves
   manually (2nd round or hand-edit in ISÚI).
+- **A new self-check for Kontrola 14 (souběh) is still worth adding**, even though both known
+  causes are fixed — `self-check.ts` has no rule replicating ČÚZK's "an obec+type can't have
+  both explicit okrsky and a vymezeni row" check, so a *third*, not-yet-seen cause of this
+  pattern could still slip through undetected. Not yet implemented.
 - **Item 17, new "Kontrola 15" (def-point topology, 325 points) + missing hrany** — def
   points landing in a municipality other than the one their okrsek's obec code claims, plus
   screenshots showing incomplete/dangling seam edges near district boundaries. Self-check

@@ -271,6 +271,23 @@ describe("checkIntegrity", () => {
     expect(checkIntegrity(d).some((p) => p.includes("MI14"))).toBe(true);
   });
 
+  test("Kontrola 14 (souběh): flags an obec+type with both explicit okrsky and a vymezení row", () => {
+    const d = base();
+    // obec 500001 type 1 already has real okrsky (from base()); a vymezeni
+    // row for that same obec+type — even pointing at the same real obvod —
+    // is the souběh conflict ČÚZK's new check forbids.
+    d.vymezeni = [{ OBEC_KOD: 500001, SKO_KOD: 10001 }];
+    expect(checkIntegrity(d).some((p) => p.includes("Kontrola 14"))).toBe(true);
+  });
+
+  test("Kontrola 14 (souběh): does not flag a genuinely absorbed foreign village", () => {
+    const d = base();
+    // a different obec, with no okrsky of its own, whole-obec-covered by
+    // 500001's ŠO (§8) — a legitimate absorbed village, not a conflict
+    d.vymezeni = [{ OBEC_KOD: 555000, SKO_KOD: 10001 }];
+    expect(checkIntegrity(d).some((p) => p.includes("Kontrola 14"))).toBe(false);
+  });
+
   test("flags a self-referential seam (MI10 precondition)", () => {
     const d = base();
     d.hrany[0].KO_KOD2 = d.hrany[0].KO_KOD1;
