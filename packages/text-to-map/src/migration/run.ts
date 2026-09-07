@@ -113,7 +113,8 @@ export const buildMigrationExport = (
  */
 export const buildMigrationExportForGroups = async (
   groups: ExportGroup[],
-  gradesByIzo?: GradesByIzo
+  gradesByIzo?: GradesByIzo,
+  onProgress?: (done: number, total: number, obecKod: number) => void
 ): Promise<MigrationExport> => {
   const allMunicipalities = groups.flatMap((g) => g.municipalities);
   const { cityCodes, districtCodes } =
@@ -129,7 +130,8 @@ export const buildMigrationExportForGroups = async (
     cityPolygons,
     districtPolygons,
     parentCityByDistrict,
-    gradesByIzo
+    gradesByIzo,
+    onProgress
   );
 };
 
@@ -157,13 +159,18 @@ type ObecWorkItem =
  * parent city (per `parentCityByDistrict`) are exported as one obec (P4-3);
  * everything else is a standalone obec. Obce are processed in a deterministic
  * order (by obec code, then type) so shared allocators are reproducible.
+ * `onProgress`, when given, fires once per obec (`done`/`total` count work
+ * items, not okrsky) — this is the slow part of a big batch (per-obec
+ * Voronoi tessellation), noticeably slower than the DB-bound parse loop
+ * `exportOrdinances` already reports on.
  */
 export const assembleExport = (
   groups: ExportGroup[],
   cityPolygons: PolygonsByCodes,
   districtPolygons: PolygonsByCodes,
   parentCityByDistrict: Map<number, number>,
-  gradesByIzo?: GradesByIzo
+  gradesByIzo?: GradesByIzo,
+  onProgress?: (done: number, total: number, obecKod: number) => void
 ): MigrationExport => {
   const allocObvodKod = counter(OBVOD_KOD_START);
   const allocOkrsekKod = counter(OKRSEK_KOD_START);
@@ -246,6 +253,7 @@ export const assembleExport = (
   // forward between an obec's per-type calls. `items` is sorted by obecKod
   // first, so each obec's calls are contiguous and this map never grows stale.
   const cisloStartByObec = new Map<number, number>();
+  let itemsDone = 0;
   for (const item of items) {
     const cisloStart = cisloStartByObec.get(item.obecKod) ?? 1;
     const ctx: ObecBuildContext = {
@@ -294,6 +302,8 @@ export const assembleExport = (
     }
     cisloStartByObec.set(item.obecKod, cisloStart + tables.okrsky.length);
     appendTables(merged, tables);
+    itemsDone++;
+    onProgress?.(itemsDone, items.length, item.obecKod);
   }
 
   // MI07 cascade must run before the MI11 fill-in: dropping a ŠO can leave an
@@ -499,17 +509,22 @@ export const pruneEmptyObvody = (
 
 /** Progress tick from {@link exportOrdinances} (see its `onProgress`). */
 export interface ExportProgress {
-  /** how many ordinance inputs have been resolved+parsed so far */
+  /** how many ordinance inputs (parse) or obce (geometry) are done so far */
   done: number;
-  /** total ordinance inputs */
+  /** total ordinance inputs (parse) or obce (geometry) */
   total: number;
-  /** the founder just processed (0 in the `assemble` phase) */
+  /** the founder just processed — 0 outside the `parse` phase */
   founderId: number;
   /**
-   * `parse` = per-ordinance DB parse loop; `assemble` = geometry + self-check;
-   * `retry` = a transient DB error is being retried (see `attempt`).
+   * `parse` = per-ordinance DB parse loop; `assemble` = a brief transition
+   * tick before the geometry loop starts; `geometry` = per-obec Voronoi
+   * tessellation (`assembleExport`'s obec/city loop) — usually the slowest
+   * phase of a big batch, noticeably slower than `parse`; `retry` = a
+   * transient DB error is being retried (see `attempt`).
    */
-  phase: "parse" | "assemble" | "retry";
+  phase: "parse" | "assemble" | "geometry" | "retry";
+  /** the obec just finished, set only when `phase === "geometry"` */
+  obecKod?: number;
   /** retry attempt number, set only when `phase === "retry"` */
   attempt?: number;
 }
@@ -596,7 +611,16 @@ export const exportOrdinances = async (
   // The boundary fetch + assembly is idempotent (fresh allocators each call), so
   // a transient drop here retries the whole step cleanly.
   const raw = await withDbRetry(
-    () => buildMigrationExportForGroups(groups, gradesByIzo),
+    () =>
+      buildMigrationExportForGroups(groups, gradesByIzo, (done, total, obecKod) =>
+        onProgress?.({
+          done,
+          total,
+          founderId: 0,
+          phase: "geometry",
+          obecKod,
+        })
+      ),
     (attempt) =>
       onProgress?.({
         done: inputs.length,

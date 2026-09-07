@@ -196,13 +196,19 @@ async function main() {
         return;
       }
       const pct = Math.round((p.done / p.total) * 100);
-      const line = `  parsing ${p.done}/${p.total} (${pct}%, founder ${p.founderId}, ${secs}s)`;
+      const line =
+        p.phase === "geometry"
+          ? `  geometry ${p.done}/${p.total} obce (${pct}%, obec ${p.obecKod}, ${secs}s)`
+          : `  parsing ${p.done}/${p.total} (${pct}%, founder ${p.founderId}, ${secs}s)`;
       // In a terminal, keep it on one self-updating line; when piped/redirected,
       // emit a line periodically so a log still shows progress (and where a
-      // timeout hit) without 629 lines of noise.
+      // timeout hit) without hundreds of lines of noise.
       if (isTty) process.stdout.write(`\r${line}\x1b[K`);
       else if (p.done % 25 === 0 || p.done === p.total) console.log(line);
     });
+  // the last geometry tick left the cursor mid-line (no trailing \n, same as
+  // the parse phase's ticks do before the "assemble" transition message)
+  if (isTty) process.stdout.write("\n");
   console.timeEnd("export");
 
   const obce = new Set(data.obvody.map((o) => o.OBEC_KOD)).size;

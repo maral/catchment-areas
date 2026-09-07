@@ -119,6 +119,18 @@ describe("assembleExport (multi-group, shared code space)", () => {
     expect(cisla).toEqual([1, 2, 3, 4]); // continuous, no cross-type collision
     expect(new Set(cisla).size).toBe(4);
   });
+
+  test("onProgress fires once per obec work item, in processing order", () => {
+    const ticks: { done: number; total: number; obecKod: number }[] = [];
+    assembleExport(groups, boundaries, {}, new Map(), undefined, (done, total, obecKod) => {
+      ticks.push({ done, total, obecKod });
+    });
+
+    expect(ticks).toEqual([
+      { done: 1, total: 2, obecKod: 500001 },
+      { done: 2, total: 2, obecKod: 500002 },
+    ]);
+  });
 });
 
 // Liberec's real shape: a self-governing district (Vratislavice nad Nisou)
