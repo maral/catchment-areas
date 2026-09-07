@@ -230,9 +230,31 @@ single-boundary obce (C-8/Bechyně). A3 (trivial vs complex) is already handled 
   after both causes above were fixed — added as a standing regression guard against a third,
   not-yet-seen cause. Naturally covers the absorbed-foreign-village case too (an absorbed
   village owns no okrsky of its own, so it never matches) — `30087b9`.
+- [x] **Def-point topology (item 17, new "Kontrola 15") — the §8 absorption boundary.** Checked
+  the live dev DB for the D3 street-level-cross-obec mechanism (`smd.ts`'s "navíc ulice obce X"):
+  essentially unused in production (1 case in the whole operative set — Cheb/Odrava), so it isn't
+  the cause. The real mechanism is §8 whole-village absorption (the *foreign*-obec case — the
+  self-reference case was fix #7 above): `processWholeMunicipalityLine` folds an absorbed
+  village's real addresses into the current area so they still pull the Voronoi lines the way
+  they always have, and `getMunicipalityBoundary` unions every absorbed village's polygon into
+  the *clip boundary* used to shape that same tessellation. The resulting okrsek polygon (and any
+  def point picked from its generators) can legitimately end up inside the absorbed village
+  rather than the owning obec. Confirmed against the dev DB: Benešov (529303) absorbs 10
+  neighbouring villages (Kozmice, Petroupim, Mrač, …) — exactly the villages ČÚZK's file names as
+  mismatch targets for this obec. Fix (per the user's suggested shape — keep the existing wide
+  tessellation untouched so internal boundaries between an obec's own schools don't shift, then
+  re-clip *after*): `dissolveAreaSetComponents` gets an optional `trueBoundary` param applied via
+  a second `intersect` after the existing one; a fragment that disappears or loses all its
+  generators there is handled by the exact same null-check and `mergeEmptyFragments` paths
+  already used for the first clip. `getMunicipalityOwnBoundary` computes the narrow boundary by
+  reusing `getMunicipalityBoundary` with `cityCodes` restricted to the municipality's own code
+  (`districtCodes` — always same-obec sibling městské části, never a foreign absorption — is left
+  untouched). Threaded through `build-obec.ts`, `build-big-city.ts`, and `run.ts`'s standalone
+  obec path. Validated against real data: ran `export-batch --city Benešov` against the live dev
+  DB and checked all 30 resulting def points against Benešov's actual RÚIAN polygon
+  (`city.polygon_geojson`) — 30/30 now fall inside, self-check clean — `fc93fd3`.
 
-**Still open from this report (not yet actioned — needs a decision or more investigation
-before touching code):**
+**Still open from this report:**
 - **Item 1** — waiting on ČÚZK's refreshed `skolsky_rejstrik.csv`; re-run self-check once
   it lands, expect most MI07/MI13 noise to clear.
 - **Item 12 (MI12, 377 duplicate groups / 754 ŠO)** — ČÚZK's own text says this is *their*
@@ -240,16 +262,13 @@ before touching code):**
   their cross-supplier national merge (SKO_KOD ranges in the report straddle 10000s *and*
   50000s — different suppliers), not in our single export. No code action; ČÚZK resolves
   manually (2nd round or hand-edit in ISÚI).
-- **Item 17, new "Kontrola 15" (def-point topology, 325 points) + missing hrany** — def
-  points landing in a municipality other than the one their okrsek's obec code claims, plus
-  screenshots showing incomplete/dangling seam edges near district boundaries. Self-check
-  already documents that MI10 (full topological reassembly) is deliberately ČÚZK-side (no
-  RÚIAN boundary shipped) — but this suggests our *own* internal geometry (seams + def
-  points) isn't always staying inside the right municipality even without that external
-  boundary. Needs a geometry-pipeline investigation (`geopackage.ts` / the seam-building in
-  `build-obec.ts`), not yet started.
 - **Item 15** — ČÚZK's own "Kontrola 13" (DB-table-level checks) is still "v přípravě" on
   their side; nothing to do yet.
+- **Missing hrany (part of item 17)** — the screenshots also showed some dangling/incomplete
+  seam edges; the def-point fix above should shrink this (a seam that used to run through
+  absorbed-village territory now gets cropped away with the rest of that geometry), but it
+  hasn't been separately re-verified against the specific "missing hrany" screenshots ČÚZK sent.
+  Worth another look once ČÚZK re-runs their checks on a fresh export.
 
 ## Phase 7 — App trigger (catchment-areas)
 
