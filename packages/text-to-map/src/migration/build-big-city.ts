@@ -2,6 +2,7 @@ import { PolygonsByCodes } from "../db/types";
 import {
   getExtraAreas,
   getMunicipalityBoundary,
+  getMunicipalityOwnBoundary,
 } from "../street-markdown/polygons";
 import { Municipality } from "../street-markdown/types";
 import {
@@ -57,6 +58,10 @@ export const buildBigCityTables = (
     return {
       areas: [...m.areas, ...(extraAreas.get(m.code) ?? [])],
       boundary,
+      // re-clip to this district's own polygon after `boundary` (wider, if it
+      // absorbed a whole village via §8) has shaped the tessellation — see
+      // getMunicipalityOwnBoundary.
+      trueBoundary: getMunicipalityOwnBoundary(m, cityPolygons, districtPolygons),
     };
   });
 

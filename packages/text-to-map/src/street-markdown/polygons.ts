@@ -359,10 +359,25 @@ export interface AreaSetComponent {
  * `createPolygons` — the renderer lets shared cells belong to several
  * overlapping polygons, whereas here a shared cell becomes its own atom that
  * later links to multiple obvody.
+ *
+ * `boundary` is the *wide* clip used to shape the tessellation — for a
+ * municipality that absorbed whole villages (§8 mechanism B), this is the
+ * union of its own polygon with every absorbed obec's, so those villages'
+ * real address points still pull the Voronoi lines the way they always have.
+ * `trueBoundary`, when given, is a second, narrower clip applied *after*
+ * that — the municipality's own polygon alone — so the exported okrsek
+ * geometry (and any def point/generator selected from it) never actually
+ * extends into an absorbed village. A fragment that ends up outside
+ * `trueBoundary` entirely disappears here exactly like one clipped away by
+ * `boundary` (`clipped === null`, below); a fragment that survives with no
+ * local generator left inside it is exactly the "empty fragment" shape
+ * {@link mergeEmptyFragments} already merges into its nearest real neighbour
+ * — no new handling needed for either case.
  */
 export const dissolveAreaSetComponents = (
   cells: FeatureCollection<Polygon, LabeledCellProps>,
-  boundary: Feature<Polygon | MultiPolygon>
+  boundary: Feature<Polygon | MultiPolygon>,
+  trueBoundary?: Feature<Polygon | MultiPolygon>
 ): AreaSetComponent[] => {
   const groups = new Map<
     string,
@@ -390,7 +405,13 @@ export const dissolveAreaSetComponents = (
     if (merged === null) {
       continue;
     }
-    const clipped = intersect(merged, boundary);
+    const clippedWide = intersect(merged, boundary);
+    if (clippedWide === null) {
+      continue;
+    }
+    const clipped = trueBoundary
+      ? intersect(clippedWide, trueBoundary)
+      : clippedWide;
     if (clipped === null) {
       continue;
     }
@@ -848,6 +869,37 @@ export const getMunicipalityBoundary = (
     Object.values(
       getMunicipalityPolygons(municipality, cityPolygons, districtPolygons)
     )
+  );
+
+/**
+ * `municipality`'s own boundary alone — without any whole obce it absorbed
+ * via "území obce X" (§8 mechanism B, `Area.absorbedWholeObce`) unioned in.
+ * `cityCodes` accumulates one entry per absorption on top of the
+ * municipality's own code, so dropping every entry but its own reproduces
+ * the same city-minus-sibling-districts computation `getMunicipalityBoundary`
+ * already does, just without the extra villages. `districtCodes` is left
+ * untouched — those are always sibling městské části of the *same* obec
+ * (P4-3 pooling), never a foreign absorption.
+ *
+ * Used to re-clip tessellated okrsek geometry back to the true municipal
+ * boundary after `getMunicipalityBoundary`'s wide (absorption-inclusive)
+ * boundary has done its job of shaping the Voronoi tessellation — see
+ * `dissolveAreaSetComponents`'s `trueBoundary` parameter. For a municipality
+ * that never absorbed anything this is the same polygon as
+ * `getMunicipalityBoundary` returns.
+ */
+export const getMunicipalityOwnBoundary = (
+  municipality: Municipality,
+  cityPolygons: PolygonsByCodes,
+  districtPolygons: PolygonsByCodes
+): Feature<Polygon | MultiPolygon> =>
+  getMunicipalityBoundary(
+    {
+      ...municipality,
+      cityCodes: municipality.cityCodes.filter((c) => c === municipality.code),
+    },
+    cityPolygons,
+    districtPolygons
   );
 
 export const getMunicipalityCodes = (municipalities: Municipality[]) =>

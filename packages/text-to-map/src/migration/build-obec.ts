@@ -67,6 +67,13 @@ const hasSecondStage = (
 export interface DistrictInput {
   areas: Area[];
   boundary: Feature<Polygon | MultiPolygon>;
+  /**
+   * The narrower re-clip applied after `boundary` has shaped the
+   * tessellation — see `dissolveAreaSetComponents`'s `trueBoundary` param
+   * and `getMunicipalityOwnBoundary`. Omit only in tests that don't care
+   * about §8 whole-village absorption.
+   */
+  trueBoundary?: Feature<Polygon | MultiPolygon>;
 }
 
 /**
@@ -78,17 +85,23 @@ export interface DistrictInput {
  * `boundary` is the clip boundary — the obec boundary for a normal obec. The
  * district-first big cities go through {@link buildPooledObecTables} directly
  * with one district input per městská část (P4-3).
+ *
+ * `trueBoundary`, when given, re-clips the resulting okrsek geometry to the
+ * municipality's own polygon after `boundary` (which, for a municipality
+ * that absorbed whole villages via §8, is wider) has shaped the Voronoi —
+ * see `getMunicipalityOwnBoundary`.
  */
 export const buildObecTables = (
   municipality: Municipality,
   boundary: Feature<Polygon | MultiPolygon>,
-  ctx: ObecBuildContext
+  ctx: ObecBuildContext,
+  trueBoundary?: Feature<Polygon | MultiPolygon>
 ): ObecTables =>
   buildPooledObecTables(
     ctx.obecKod,
     ctx.typeCode,
     municipality.areas,
-    [{ areas: municipality.areas, boundary }],
+    [{ areas: municipality.areas, boundary, trueBoundary }],
     ctx
   );
 
@@ -186,7 +199,9 @@ export const buildPooledObecTables = (
   for (const input of districtInputs) {
     const cells = buildLabeledCells(input.areas);
     okrsky.push(
-      ...mergeEmptyFragments(dissolveAreaSetComponents(cells, input.boundary))
+      ...mergeEmptyFragments(
+        dissolveAreaSetComponents(cells, input.boundary, input.trueBoundary)
+      )
     );
   }
 

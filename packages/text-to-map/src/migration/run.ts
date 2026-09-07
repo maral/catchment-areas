@@ -7,6 +7,7 @@ import { PolygonsByCodes, SchoolType } from "../db/types";
 import {
   getMunicipalityBoundary,
   getMunicipalityCodes,
+  getMunicipalityOwnBoundary,
 } from "../street-markdown/polygons";
 import {
   getNewMunicipalityByFounderId,
@@ -281,7 +282,15 @@ export const assembleExport = (
           `No boundary polygon found for municipality ${item.municipality.municipalityName} (${item.obecKod}). Is the DB synced?`
         );
       }
-      tables = buildObecTables(item.municipality, boundary, ctx);
+      // re-clip to the obec's own polygon after `boundary` (wider, if it
+      // absorbed a whole village via §8) has shaped the tessellation — see
+      // getMunicipalityOwnBoundary.
+      const trueBoundary = getMunicipalityOwnBoundary(
+        item.municipality,
+        cityPolygons,
+        districtPolygons
+      );
+      tables = buildObecTables(item.municipality, boundary, ctx, trueBoundary);
     }
     cisloStartByObec.set(item.obecKod, cisloStart + tables.okrsky.length);
     appendTables(merged, tables);

@@ -1,5 +1,6 @@
 import { describe, expect, test } from "@jest/globals";
-import { featureCollection, polygon } from "@turf/helpers";
+import { booleanIntersects } from "@turf/boolean-intersects";
+import { featureCollection, point as turfPoint, polygon } from "@turf/helpers";
 import {
   ObecBuildContext,
   buildObecTables,
@@ -218,6 +219,50 @@ describe("buildObecTables", () => {
     expect(tables.vymezeni[0].OBEC_KOD).toBe(555000);
     const obvodKods = new Set(tables.obvody.map((o) => o.KOD));
     expect(obvodKods.has(tables.vymezeni[0].SKO_KOD!)).toBe(true);
+  });
+
+  test("§8 absorption: trueBoundary keeps okrsek geometry inside the main obec, not the absorbed village", () => {
+    // mirrors what processWholeMunicipalityLine actually produces: the
+    // absorbed village's real address gets folded into the area (so it can
+    // pull the Voronoi lines like it always has), while the wide clip
+    // boundary — used only to shape that tessellation — also reaches out to
+    // include the village. trueBoundary is the obec's own polygon alone.
+    // Confirmed against the real Benešov case (obec 529303, ČÚZK kontroly_v1
+    // item 17): a school absorbing several neighbouring villages this way
+    // produced def points landing outside their declared obec.
+    const villageAddr = addr("V-1", 15, 5);
+    const withVillageAddress: Municipality = {
+      ...municipality,
+      areas: [
+        municipality.areas[0],
+        {
+          ...municipality.areas[1],
+          addresses: [...municipality.areas[1].addresses, villageAddr],
+          absorbedWholeObce: [555000],
+        },
+      ],
+    };
+    const wideBoundary = polygon([
+      [B(0, 0), B(20, 0), B(20, 10), B(0, 10), B(0, 0)],
+    ]);
+
+    const tables = buildObecTables(
+      withVillageAddress,
+      wideBoundary,
+      makeContext(),
+      boundary // trueBoundary: the narrow, original obec polygon
+    );
+
+    // every def point stays inside the true obec boundary, not the wide one
+    // that only existed to shape the tessellation
+    expect(tables.defBody.length).toBeGreaterThan(0);
+    for (const d of tables.defBody) {
+      expect(
+        booleanIntersects(turfPoint(d.geometry.coordinates), boundary)
+      ).toBe(true);
+    }
+    // the absorbed village is still correctly declared via vymezeni
+    expect(tables.vymezeni.some((v) => v.OBEC_KOD === 555000)).toBe(true);
   });
 
   test("trivial obec that also absorbs a village emits both rows", () => {

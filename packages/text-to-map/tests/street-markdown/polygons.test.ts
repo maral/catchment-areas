@@ -139,6 +139,59 @@ describe("dissolveAreaSetComponents", () => {
   });
 });
 
+describe("dissolveAreaSetComponents — trueBoundary re-clip (§8 absorbed village)", () => {
+  // "Right" school also absorbed a whole neighbouring village — its address
+  // gets folded into the same area (mirrors processWholeMunicipalityLine),
+  // which is why the *wide* clip boundary used to shape the tessellation
+  // reaches out to include it, while trueBoundary stays the obec's own
+  // polygon. Mirrors the real Benešov case (obec 529303) from ČÚZK's
+  // kontroly_v1 item 17: 325 def points landing outside their declared obec.
+  const villageAddr = addr("V-1", 15, 5);
+  const areasWithAbsorption: Area[] = [
+    areas[0],
+    { ...areas[1], addresses: [...areas[1].addresses, villageAddr] },
+  ];
+  const wideBoundary = polygon([
+    [B(0, 0), B(20, 0), B(20, 10), B(0, 10), B(0, 0)],
+  ]);
+  // a strict gap past x=10 so a component whose edge lands exactly on the
+  // true boundary doesn't count as "intersecting" the village region
+  const villageOnlyRegion = polygon([
+    [B(10.5, 0), B(20, 0), B(20, 10), B(10.5, 10), B(10.5, 0)],
+  ]);
+
+  test("without trueBoundary, the wide tessellation extends into the absorbed village", () => {
+    const components = dissolveAreaSetComponents(
+      buildLabeledCells(areasWithAbsorption),
+      wideBoundary
+    );
+    const rightComponent = components.find((c) => c.areaIndexes.includes(1))!;
+    expect(booleanIntersects(rightComponent.polygon, villageOnlyRegion)).toBe(
+      true
+    );
+  });
+
+  test("with trueBoundary, the geometry is re-clipped back to the obec's own polygon", () => {
+    const components = dissolveAreaSetComponents(
+      buildLabeledCells(areasWithAbsorption),
+      wideBoundary,
+      boundary // the narrow, original obec polygon
+    );
+
+    expect(components.length).toBeGreaterThan(0);
+    for (const c of components) {
+      expect(booleanIntersects(c.polygon, villageOnlyRegion)).toBe(false);
+    }
+    // the absorbed village's own address is no longer a generator of any
+    // component — a def point can never be picked from it
+    const [vLng, vLat] = B(15, 5);
+    const allGenerators = components.flatMap((c) => c.generators);
+    expect(
+      allGenerators.some((g) => g[0] === vLng && g[1] === vLat)
+    ).toBe(false);
+  });
+});
+
 describe("mergeEmptyFragments", () => {
   // U-shaped obec: bottom bar + left/right arms; the top-centre notch is OUTSIDE.
   // School A sits in the left arm; school B fills the bottom. A's Voronoi cell
