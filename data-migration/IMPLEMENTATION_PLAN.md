@@ -225,6 +225,11 @@ single-boundary obce (C-8/Bechyně). A3 (trivial vs complex) is already handled 
   when the referenced municipality's code differs from the current one. Validated against the
   live dev DB: re-ran `export-batch --city Liberec` and `--city Ostrava` — both now show **0**
   self-referential conflicts (Liberec: 4→3 vymezeni rows; Ostrava: 2→0 conflicts) — `c517151`.
+- [x] **Kontrola 14 (souběh) self-check.** `self-check.ts` had no rule replicating ČÚZK's own
+  "an obec+type can't have both explicit okrsky and a MIG_VYMEZENI_ZBYLYCH_KO row" check, even
+  after both causes above were fixed — added as a standing regression guard against a third,
+  not-yet-seen cause. Naturally covers the absorbed-foreign-village case too (an absorbed
+  village owns no okrsky of its own, so it never matches) — `30087b9`.
 
 **Still open from this report (not yet actioned — needs a decision or more investigation
 before touching code):**
@@ -235,10 +240,6 @@ before touching code):**
   their cross-supplier national merge (SKO_KOD ranges in the report straddle 10000s *and*
   50000s — different suppliers), not in our single export. No code action; ČÚZK resolves
   manually (2nd round or hand-edit in ISÚI).
-- **A new self-check for Kontrola 14 (souběh) is still worth adding**, even though both known
-  causes are fixed — `self-check.ts` has no rule replicating ČÚZK's "an obec+type can't have
-  both explicit okrsky and a vymezeni row" check, so a *third*, not-yet-seen cause of this
-  pattern could still slip through undetected. Not yet implemented.
 - **Item 17, new "Kontrola 15" (def-point topology, 325 points) + missing hrany** — def
   points landing in a municipality other than the one their okrsek's obec code claims, plus
   screenshots showing incomplete/dangling seam edges near district boundaries. Self-check
