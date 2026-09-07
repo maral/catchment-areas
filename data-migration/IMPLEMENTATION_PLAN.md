@@ -182,40 +182,44 @@ single-boundary obce (C-8/Bechyně). A3 (trivial vs complex) is already handled 
   false positives across unrelated editors), and stopped exempting whole-obec ŠO — those
   are now compared by linked `OBEC_KOD` set instead of okrsek set — `75ae1d2`.
 - [x] **MI07 cascade delete (item 2).** 21 `MIG_SKOLA_SKO` rows referenced a `SKOLA_IZO`
-  not in the školský rejstřík (two literally `IZO=1` — worth a follow-up trace, see below).
-  Added `pruneUnknownSchools`: drop the school row, cascade-delete the obvod (+ its
-  `MIG_SKO_KO` links + any `MIG_VYMEZENI_ZBYLYCH_KO` row) if that leaves it with zero
-  schools. Runs before the MI11 fill-in so a cascaded obvod's obec+type gets backfilled —
-  `b7fe9e1`.
+  not in the školský rejstřík. Added `pruneUnknownSchools`: drop the school row,
+  cascade-delete the obvod (+ its `MIG_SKO_KO` links + any `MIG_VYMEZENI_ZBYLYCH_KO` row)
+  if that leaves it with zero schools. Runs before the MI11 fill-in so a cascaded obvod's
+  obec+type gets backfilled — `b7fe9e1`.
+  - **`SKOLA_IZO=1` traced and resolved.** Two of the 21 rows had the literal IZO `1`.
+    Confirmed it's upstream open-data feed garbage, not our parser: `open-data-sync/schools.ts`
+    pulls `izo: school.izo` straight off the ČÚZK/MŠMT JSON-LD feed with no fallback, and a
+    repo-wide grep found no code path that could construct `"1"` on our side. Located it in both
+    delivered exports (`out/` and `out2/MIG_SKOLA_SKO.csv`, `SKO_KOD` 10763/10958, obec 554782 —
+    Praha) — same coordinates for both (`14.489396, 50.073953`), confirming it's one physical
+    school (its type-1 and type-2 obvody) with a garbage IZO in the feed. `"1"` isn't in
+    `skolsky_rejstrik.csv` either, so `pruneUnknownSchools` above already drops it going forward
+    — no separate fix needed.
+- [x] **Leftover whole-city founder pooling (items 14 + 16).** Confirmed against the dev DB:
+  Liberec (563889) has "Statutární město Liberec" (`city`-typed, a real ~15KB street-by-street
+  ordinance) alongside the self-governing `district`-typed "Vratislavice nad Nisou" — same obec
+  code, but only the district branch in `assembleExport` bucketed/pooled them. The city-typed
+  founder built standalone via `buildObecTables`, so its own `mergeIdenticalTerritoryObvody`
+  pass never saw Vratislavice's output and vice versa. Exactly reproduces ČÚZK's flagged row in
+  both their MI14 and Kontrola-14-souběh detail files: `563889 M OBCE 11662,11663 2 563889 1`.
+  `assembleExport` now pools a `city`-typed municipality into its district siblings' bucket
+  whenever its own code is some other district's parent city (`citiesWithDistricts`, derived
+  from `parentCityByDistrict`) — no new geometry work needed, since `getMunicipalityPolygons`
+  (`street-markdown/polygons.ts`) already subtracts sibling district polygons from the city
+  polygon for any non-Brno city. Brno is excluded from pooling to mirror that same existing
+  guard — it has an analogous stray "Statutární město Brno" founder, but its content is
+  currently empty/fully `!`-commented so it never reaches the build loop; not live today, but
+  the same class of bug the moment someone edits that content back in — `206a7b6`.
 
 **Still open from this report (not yet actioned — needs a decision or more investigation
 before touching code):**
 - **Item 1** — waiting on ČÚZK's refreshed `skolsky_rejstrik.csv`; re-run self-check once
   it lands, expect most MI07/MI13 noise to clear.
-- **SKOLA_IZO=1** (2 of the 21 item-2 rows) — a literal `1` isn't a real IZO; smells like a
-  sentinel leaking through the street-markdown parse rather than a stale-registry miss.
-  Worth tracing those two source ordinances specifically, independent of the registry
-  refresh.
 - **Item 12 (MI12, 377 duplicate groups / 754 ŠO)** — ČÚZK's own text says this is *their*
   problem ("tohle je úkol pro mě... čísla SKO generuji automaticky"): duplicates arise in
   their cross-supplier national merge (SKO_KOD ranges in the report straddle 10000s *and*
   50000s — different suppliers), not in our single export. No code action; ČÚZK resolves
   manually (2nd round or hand-edit in ISÚI).
-- **Item 16, new "Kontrola 14" (souběh, 60 obec/type combos)** — an obec+type must not be
-  covered by *both* explicit okrsky and a `MIG_VYMEZENI_ZBYLYCH_KO` row. Root-caused during
-  this round: `assembleExport`'s "obec" branch (`run.ts` `ObecWorkItem` construction) pushes
-  one independent `buildObecTables` call per `Municipality`, with **no bucketing by
-  (obecKod, typeCode)** — unlike the "city" branch, which buckets districts by
-  `` `${typeCode}:${cityCode}` `` before pooling. If two founders' street-markdown both
-  resolve to the same obec code for the same type (data question: legitimate multi-founder
-  split, or a duplicate founder row?), each becomes its own call, and
-  `mergeIdenticalTerritoryObvody`'s same-territory merge (only sees one call's own output)
-  can't catch the cross-call duplicate. This is also the most likely explanation for the
-  item-14 MI14 duplicates that got through despite the existing merge logic (both duplicate
-  SKO_KODY in ČÚZK's file are in *our own* KOD range, unlike item 12's cross-supplier ones).
-  **Needs a decision before fixing:** pool same-obec items like city districts are pooled
-  (masks the upstream cause if it's a real data bug), or detect-and-fail-loud so someone
-  checks the founder/city data first. Not yet implemented either way.
 - **Item 17, new "Kontrola 15" (def-point topology, 325 points) + missing hrany** — def
   points landing in a municipality other than the one their okrsek's obec code claims, plus
   screenshots showing incomplete/dangling seam edges near district boundaries. Self-check
