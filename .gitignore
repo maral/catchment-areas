@@ -38,3 +38,5 @@ next-env.d.ts
 
 # MCPs
 .playwright-mcp
+
+packages
