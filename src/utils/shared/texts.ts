@@ -45,6 +45,7 @@ export const texts = {
   founderNotFound: "Zřizovatel nenalezen.",
   fullName: "Jméno a příjmení",
   gpt: "GPT",
+  history: "Historie",
   help: "Nápověda",
   logout: "Odhlásit se",
   map: "Mapa",

@@ -96,9 +96,10 @@ async function getProcessedText(originalText: string) {
 
   const answer = await getGptAnswer(messages);
 
+  const result = parseGptAnswer(answer);
+
   let processedText = "";
-  if (answer) {
-    const result: SchoolResult[] = JSON.parse(answer);
+  if (result) {
     for (const school of result) {
       processedText += school.school + "\n";
       if (school.streets) {
@@ -119,16 +120,40 @@ async function getProcessedText(originalText: string) {
   }
 }
 
+function parseGptAnswer(answer: string | undefined): SchoolResult[] | null {
+  if (!answer) {
+    return null;
+  }
+  // the model sometimes wraps the JSON in a markdown code block
+  const json = answer
+    .trim()
+    .replace(/^```(?:json)?\s*/, "")
+    .replace(/\s*```$/, "");
+  try {
+    const result = JSON.parse(json);
+    return Array.isArray(result) ? result : null;
+  } catch (error) {
+    console.error("Could not parse GPT answer as JSON:", error);
+    return null;
+  }
+}
+
 const getGptAnswer = async (
   messages: CreateChatCompletionRequest["messages"]
 ): Promise<string | undefined> => {
   try {
     const result = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo-16k",
+      // large ordinances produce long answers, the model needs a big output limit
+      model: "gpt-4.1-mini",
       messages: messages,
       temperature: 0.1,
     });
-    return result.choices.pop()?.message?.content ?? undefined;
+    const choice = result.choices.pop();
+    if (choice?.finish_reason === "length") {
+      console.error("GPT answer was truncated (output token limit reached)");
+      return undefined;
+    }
+    return choice?.message?.content ?? undefined;
   } catch (error) {
     console.log(error);
     return undefined;
@@ -154,30 +179,54 @@ function splitTextToChunks(text: string): string[] {
   return chunks;
 }
 
-const systemPrompt = `Uživatel ti pošle text z PDF spádové vyhlášky, ve které jsou uvedené definice ulic pro jednotlivé školy. Každá škola má určitý počet ulic (nebo je definovaná jiným popisem). Text z PDF je poměrně rozházený, protože se zbavil formátování. Uživatel z něj potřebuje získat vyčištěný seznam škol a všechny definice jejich ulic a částí obce, ze kterých se spádový obvod skládá. Definice ulice vždy obsahuje název ulice a navíc může obsahovat popis čísel popisných / orientačních, rozsah od-do atp. Části obcí obsahují pouze název části obce.
+const systemPrompt = `Uživatel ti pošle text z PDF spádové vyhlášky, ve které jsou uvedené definice ulic pro jednotlivé školy. Text z PDF je poměrně rozházený, protože se zbavil formátování. Tvým úkolem je z něj získat vyčištěný seznam škol a ke každé škole všechny ulice (případně celé části obce), ze kterých se její spádový obvod skládá. Výstup se dále strojově zpracovává, proto musí přesně dodržet pravidla níže.
 
-Prosím výstup ve formátu JSON, podobně jako tady:
+## Formát výstupu
+
+Odpověz pouze validním JSON polem (bez komentářů, bez čárek za posledním prvkem, bez dalšího textu), např.:
 [
-{
-  "school": "Základní škola Dr. Miroslava Tyrše Děčín II, Vrchlického 630/5, příspěvková organizace",
-  "streets": [
-     "Akátová",
-     "Příčná",
-     "Šrobárova - od č. 1 do č. 15",
-  ],
-  "municipalityParts": [
-    "Děčín II"
-  ],
-},
-{ // další škola },
-{ // další škola }
+  {
+    "school": "Základní škola Dr. Miroslava Tyrše Děčín, Vrchlického 630/5, příspěvková organizace",
+    "streets": [
+      "Akátová",
+      "náměstí Míru",
+      "Šrobárova - č. 1-15",
+      "Komenského - lichá č. 1-29, sudá č. 2-40",
+      "Palackého - č. 12, 12b, 14a",
+      "Nádražní - č. p. 120, 135",
+      "Husova - č. 20 a výše",
+      "Jiráskova - bez č. 5, 7"
+    ],
+    "municipalityParts": ["Bynov"]
+  }
 ]
 
-U názvu školy prosím vždy uveď celý název školy, většinou bývá v názvu i adresa školy.
+## Název školy
 
-U názvů ulic vždy odděluj upřesnění ulice (jako např. "od č. 1 do č. 15") od názvu ulice pomlčkou, např: Šrobárova - od č. 1 do č. 15. Odstraň závorky, pokud jsou v originále.
+Uveď vždy celý název školy tak, jak je ve vyhlášce, většinou včetně adresy školy.
 
-U názvů částí obcí uveď pouze ty, které jsou celé pod danou školou. Pokud jsou pod částí obce uvedeny pouze vybrané ulice a není použita celá část, do výstupu tuto část obce neuváděj.
+## Ulice
 
-Zkontroluj si, že jsi udělal všechny tyto kroky a že ti nechybí žádná škola, ulice ani část obce.
+- Každá položka obsahuje název jedné ulice v plném tvaru, zkratky rozepiš (např. "nám. Míru" → "náměstí Míru", "nábř." → "nábřeží", "tř." → "třída").
+- Pokud patří škole celá ulice, uveď jen její název, bez čísel.
+- Pokud patří škole jen některá čísla, odděl je od názvu ulice vždy " - " (mezera, pomlčka, mezera). Nikdy nepiš čísla přímo za název ulice.
+  - špatně: "Palackého 12, 12b"; "Palackého (č. 12, 12b)"; "Palackého: 12-20"
+  - správně: "Palackého - č. 12, 12b"; "Palackého - č. 12-20"
+- Za " - " musí každá skupina čísel začínat typem čísel:
+  - "č." = všechna (orientační) čísla, "lichá č." = lichá, "sudá č." = sudá, "č. p." = čísla popisná
+  - čísla po typu jsou buď jednotlivá ("č. 7", "č. 12b"), rozsah ("č. 2-66"), "č. 20 a výše" nebo "do č. 18"
+  - více čísel nebo rozsahů odděluj ", " (např. "lichá č. 1-9, 11, 23 a výše")
+  - více skupin různého typu odděluj také ", " a typ uveď znovu (např. "lichá č. 1-29, sudá č. 2-40")
+  - výjimky zapiš pomocí "bez" (např. "Jiráskova - bez č. 5, 7")
+- Závorky z originálu odstraň.
+- Pokud se ulice ve vyhlášce opakuje u jedné školy s různými čísly, můžeš ji uvést vícekrát.
+
+## Části obce
+
+- Do "municipalityParts" patří pouze části obce (např. vesnice, osady), které vyhláška výslovně přiřazuje škole celé, bez výčtu ulic.
+- Pokud jsou u části obce uvedeny jen vybrané ulice, část obce neuváděj a uveď jen ty ulice.
+- Nikdy sem nedávej název města, obce nebo městské části / městského obvodu, pro který vyhláška platí (např. "Praha 2", "Brno-střed", "Ostrava-Jih"), ani název, který se ve vyhlášce objevuje jen v záhlaví, v názvu školy nebo v adrese.
+- Pokud vyhláška u školy žádnou celou část obce nezmiňuje, vrať prázdné pole [].
+
+Než odpovíš, zkontroluj, že ti nechybí žádná škola ani ulice a že každá ulice s čísly odpovídá pravidlům výše.
 `;

@@ -13,24 +13,27 @@ import { texts } from "@/utils/shared/texts";
 import { SuggestionList } from "@/utils/shared/types";
 import {
   ArrowDownTrayIcon,
+  ClockIcon,
   CloudArrowDownIcon,
   EyeIcon,
   EyeSlashIcon,
   MapIcon,
   SparklesIcon,
 } from "@heroicons/react/24/outline";
-import MonacoEditor, { useMonaco } from "@monaco-editor/react";
+import MonacoEditor, { loader } from "@monaco-editor/react";
 import debounce from "lodash/debounce";
 import type { editor } from "monaco-editor";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { remult } from "remult";
 import { MapDataController } from "../../controllers/MapDataController";
+import { StreetMarkdownController } from "../../controllers/StreetMarkdownController";
 import { getRootPathBySchoolType } from "../../entities/School";
 import LinkButton from "../buttons/LinkButton";
 import HeaderBox from "../common/HeaderBox";
 import Spinner from "../common/Spinner";
 import { Button } from "../ui/button";
 import { Monaco, configureMonaco } from "./configureMonaco";
+import { HistoryDialog } from "./HistoryDialog";
 import { PreprocessDialog } from "./PreprocessDialog";
 
 const owner = "street-markdown";
@@ -62,6 +65,10 @@ export default function Editor({
   const [isSaving, setIsSaving] = useState(false);
   const [isPreprocessing, setIsPreprocessing] = useState(false);
   const [showPreprocessDialog, setShowPreprocessDialog] = useState(false);
+  const [showHistoryDialog, setShowHistoryDialog] = useState(false);
+  // autosave reads the row from a ref, so that after restoring an older save
+  // it writes into the new row right away (and doesn't overwrite the previous one)
+  const streetMarkdownRef = useRef(streetMarkdown);
   const isValidating = useRef(false);
   const shouldValidate = useRef(false);
   const isMountedRef = useRef(true);
@@ -78,14 +85,15 @@ export default function Editor({
     () => ({
       ordinance,
       founder,
+      skipAutoPreprocess: founderCount > 1,
       setPreprocessedText,
       setStreetMarkdown,
       setIsPreprocessing,
     }),
-    [ordinance, founder]
+    [ordinance, founder, founderCount]
   );
 
-  const monacoInstance = useMonaco();
+  const monacoInstance = useMonacoInstance();
 
   // debounced validation function
   // only one validation can be running at a time
@@ -118,6 +126,7 @@ export default function Editor({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const autoSave = useCallback(
     debounce(async () => {
+      const streetMarkdown = streetMarkdownRef.current;
       if (monacoInstance && streetMarkdown) {
         setIsSaving(true);
         const text = monacoInstance.editor.getModels()[0].getValue();
@@ -139,7 +148,47 @@ export default function Editor({
         saveToSmd();
       }
     }, 1000),
-    [monacoInstance, streetMarkdown]
+    [monacoInstance]
+  );
+
+  useEffect(() => {
+    streetMarkdownRef.current = streetMarkdown;
+  }, [streetMarkdown]);
+
+  const getCurrentText = useCallback(
+    () => monacoInstance?.editor.getModels()[0]?.getValue() ?? "",
+    [monacoInstance]
+  );
+
+  // Restoring keeps the current text in its own row (so it stays in the history)
+  // and continues in a new autosave row with the restored text.
+  const restoreText = useCallback(
+    async (text: string) => {
+      const model = monacoInstance?.editor.getModels()[0];
+      if (!model) return;
+
+      autoSave.flush();
+      const newStreetMarkdown =
+        await StreetMarkdownController.insertAutoSaveStreetMarkdown(
+          ordinance,
+          founder,
+          text
+        );
+      if (!newStreetMarkdown) {
+        console.error("Could not create a new save for the restored text");
+        return;
+      }
+      streetMarkdownRef.current = newStreetMarkdown;
+
+      // edit operation (not setValue), so that the restore can be undone by ctrl+z
+      model.pushEditOperations(
+        [],
+        [{ range: model.getFullModelRange(), text }],
+        () => null
+      );
+      setStreetMarkdown(newStreetMarkdown);
+    },
+    [monacoInstance, autoSave, ordinance, founder]
   );
 
   // Cleanup on unmount
@@ -229,6 +278,14 @@ export default function Editor({
           </LinkButton>
           <Button
             variant="secondary"
+            onClick={() => setShowHistoryDialog(true)}
+            disabled={!streetMarkdown || isPreprocessing}
+          >
+            <ClockIcon />
+            {texts.history}
+          </Button>
+          <Button
+            variant="secondary"
             onClick={() => setShowPreprocessDialog(true)}
             disabled={isPreprocessing}
           >
@@ -281,8 +338,38 @@ export default function Editor({
         onSubmit={handlePreprocessDialogSubmit}
         isProcessing={isPreprocessing}
       />
+
+      <HistoryDialog
+        open={showHistoryDialog}
+        onOpenChange={setShowHistoryDialog}
+        ordinanceId={ordinance.id}
+        founderId={founder.id}
+        currentStreetMarkdownId={streetMarkdown?.id ?? null}
+        getCurrentText={getCurrentText}
+        onRestore={restoreText}
+      />
     </div>
   );
+}
+
+// Same as useMonaco from @monaco-editor/react, but it handles the cancelation
+// rejection (thrown when unmounted before init finishes, e.g. in React strict
+// mode), which the library hook leaves as an unhandled promise rejection.
+function useMonacoInstance() {
+  const [monaco, setMonaco] = useState(loader.__getMonacoInstance());
+
+  useEffect(() => {
+    if (monaco) return;
+    const cancelable = loader.init();
+    cancelable.then(setMonaco).catch((error) => {
+      if (error?.type !== "cancelation") {
+        console.error("Monaco initialization error:", error);
+      }
+    });
+    return () => cancelable.cancel();
+  }, [monaco]);
+
+  return monaco;
 }
 
 function LoadingIndicator({ text }: { text: string }) {

@@ -14,6 +14,9 @@ export type PreprocessTextProps = {
   ordinance: Ordinance;
   founder: Founder;
   customText?: string;
+  // ordinance covers more founders (e.g. a large city split into districts),
+  // so preprocessing the whole text for a single founder makes no sense
+  skipAutoPreprocess?: boolean;
   setPreprocessedText: Dispatch<SetStateAction<string | null>>;
   setStreetMarkdown: Dispatch<SetStateAction<StreetMarkdown | null>>;
   setIsPreprocessing: Dispatch<SetStateAction<boolean>>;
@@ -23,12 +26,16 @@ export async function getPreprocessedText({
   ordinance,
   founder,
   customText,
+  skipAutoPreprocess,
   setPreprocessedText,
   setStreetMarkdown,
   setIsPreprocessing,
 }: PreprocessTextProps) {
   try {
-    if (founder.founderType === FounderType.City || customText) {
+    if (
+      (founder.founderType === FounderType.City && !skipAutoPreprocess) ||
+      customText
+    ) {
       const response = await fetch("/api/text-to-map/preprocess-text", {
         method: "POST",
         headers: {
