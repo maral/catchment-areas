@@ -255,8 +255,8 @@ single-boundary obce (C-8/Bechyně). A3 (trivial vs complex) is already handled 
   (`city.polygon_geojson`) — 30/30 now fall inside, self-check clean — `fc93fd3`.
 
 **Still open from this report:**
-- **Item 1** — waiting on ČÚZK's refreshed `skolsky_rejstrik.csv`; re-run self-check once
-  it lands, expect most MI07/MI13 noise to clear.
+- ~~**Item 1** — waiting on ČÚZK's refreshed `skolsky_rejstrik.csv`~~ — landed with
+  `_kontroly_v2_final.docx`, see Phase 6c.
 - **Item 12 (MI12, 377 duplicate groups / 754 ŠO)** — ČÚZK's own text says this is *their*
   problem ("tohle je úkol pro mě... čísla SKO generuji automaticky"): duplicates arise in
   their cross-supplier national merge (SKO_KOD ranges in the report straddle 10000s *and*
@@ -269,6 +269,29 @@ single-boundary obce (C-8/Bechyně). A3 (trivial vs complex) is already handled 
   absorbed-village territory now gets cropped away with the rest of that geometry), but it
   hasn't been separately re-verified against the specific "missing hrany" screenshots ČÚZK sent.
   Worth another look once ČÚZK re-runs their checks on a fresh export.
+
+## Phase 6c — Second ČÚZK round-trip (`data-migration/_kontroly_v2_final.docx`)
+
+ČÚZK (J. Jindřich) re-ran their checks on 2026-09-25; only the yellow-highlighted items
+(1, 2, 3 = MI02, 5 = MI10, 9 = Kontrola 14) are ours.
+
+- [x] **Registry refresh (item 1).** `data/skolsky_rejstrik.csv` replaced with ČÚZK's
+  2026-08-01 snapshot (8396 IZOs: −15, +1, no grade changes; new `EditorIcoWS` /
+  `DatumUkonceni` / `Url` columns carried unused). Clears the 6 item-2 MI07 schools via the
+  existing `pruneUnknownSchools` — `7ba64b5`. ČÚZK will send a newer one before the final export.
+- [x] **Leading-zero IZO lookup (item 2, "doplňujete třídu").** `gradesByIzo` keyed on the raw
+  DB string (`047011297`) vs the CSV's `47011297`, so ~1000 schools fell back to the full grade
+  band and an unconditional type-2 ŠO. Normalized inside the loader — `1961905`.
+
+**Still open from this report:**
+- **Item 3 (MI02)** — ČÚZK now runs the strict check (every okrsek needs a `MIG_SKO_KO` link),
+  contradicting Q1. 212 orphans: 20 M/type-1 are leftovers of the MI07 cascade (e.g. Náchod M,
+  all 5 MŠ unknown); 192 type-2 are the Part-E design. Needs a decision before any code.
+- **Item 5 (MI10)** — 2584/2602 rows are dangling seam ends on městská-část lines (Praha
+  1172/1172 matched point-for-point): `deriveSeams` exact-segment matching breaks at T-junctions.
+  18 "face without def point" rows in small obce not yet explained.
+- **Item 9 (Kontrola 14)** — Králíky M (one okrsek + vymezení). Not reproduced at HEAD;
+  candidate fix: collapse a single-okrsek obec+type to one vymezení row.
 
 ## Phase 7 — App trigger (catchment-areas)
 
