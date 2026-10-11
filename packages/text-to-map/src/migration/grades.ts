@@ -33,6 +33,11 @@ interface RejstrikRow {
 
 export type GradesByIzo = (izo: string) => SchoolGrades | undefined;
 
+// The DB carries IZOs as 9-digit strings ("047011297"), the registry CSV as
+// plain numbers ("47011297") — compare them without leading zeros.
+const normalizeIzo = (izo: string): string =>
+  String(izo).trim().replace(/^0+(?=\d)/, "");
+
 export const loadGradesByIzo = (
   csvPath: string = DEFAULT_CSV_PATH
 ): GradesByIzo => {
@@ -46,7 +51,7 @@ export const loadGradesByIzo = (
 
   const byIzo = new Map<string, SchoolGrades>();
   for (const row of rows) {
-    const izo = String(row.SkolaIzo ?? "").trim();
+    const izo = normalizeIzo(row.SkolaIzo ?? "");
     if (!izo) continue;
     const existing = byIzo.get(izo);
     // A school IZO should carry one grade profile; if it appears twice, take
@@ -58,5 +63,5 @@ export const loadGradesByIzo = (
     byIzo.set(izo, grades);
   }
 
-  return (izo: string) => byIzo.get(String(izo).trim());
+  return (izo: string) => byIzo.get(normalizeIzo(izo));
 };

@@ -35,6 +35,7 @@ beforeAll(() => {
     // duplicate IZO with complementary grades -> union: 1-5 ∪ 5-8 = 1-8
     row("444444444", "Škola A", "XXXXX____"),
     row("444444444", "Škola A (2)", "____XXXX_"),
+    row("47011297", "Krátké IZO", "___X_____"), // grade 4 only
   ].join("\n");
   writeFileSync(csv, lines + "\n", "utf8");
 });
@@ -58,6 +59,17 @@ describe("loadGradesByIzo", () => {
     const grades = loadGradesByIzo(csv);
     expect(grades("999999999")).toBeUndefined();
     expect(grades("  111111111 ")).toBeDefined();
+  });
+
+  test("DB IZO with leading zeros matches the CSV's plain number", () => {
+    // DB "047011297" vs CSV "47011297" — a miss here used to fall back to the
+    // full grade band (kontroly_v2 item 2).
+    const grades = loadGradesByIzo(csv);
+    expect(grades("047011297")).toEqual({
+      t1: false, t2: false, t3: false, t4: true, t5: false,
+      t6: false, t7: false, t8: false, t9: false,
+    });
+    expect(grades("47011297")).toEqual(grades("047011297"));
   });
 
   test("duplicate IZO rows union their grades (never lose an X)", () => {
