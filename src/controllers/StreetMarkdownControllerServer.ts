@@ -20,11 +20,20 @@ export class StreetMarkdownControllerServer {
       WHERE s.rn = 1`,
       [ordinanceId, cityCode]
     );
-    return texts[0].map((smd: any) => ({
-      founderId: Number(smd.founder_id),
-      sourceText: smd.source_text,
-      founderType: smd.founder_type_code,
-      founderName: smd.name,
-    }));
+    // sorted by founder name ("Praha 2" before "Praha 10"), so that the combined
+    // text (and line numbers in the map data) is stable and matches the download
+    const collator = new Intl.Collator("cs", { numeric: true });
+    return texts[0]
+      .map((smd: any) => ({
+        founderId: Number(smd.founder_id),
+        sourceText: smd.source_text,
+        founderType: smd.founder_type_code,
+        founderName: smd.name,
+      }))
+      .sort(
+        (a: SmdText, b: SmdText) =>
+          collator.compare(a.founderName, b.founderName) ||
+          a.founderId - b.founderId
+      );
   }
 }
