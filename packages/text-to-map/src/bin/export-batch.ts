@@ -1,5 +1,5 @@
 import { configDotenv } from "dotenv";
-import { mkdirSync } from "fs";
+import { mkdirSync, writeFileSync } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 
@@ -245,7 +245,11 @@ async function main() {
   if (integrityProblems.length === 0) {
     console.log("Self-check: OK (all structural invariants hold).");
   } else {
-    console.log(`Self-check: ${integrityProblems.length} problem(s):`);
+    const reportPath = join(outDir, "self-check.txt");
+    writeFileSync(reportPath, integrityProblems.join("\n") + "\n", "utf8");
+    console.log(
+      `Self-check: ${integrityProblems.length} problem(s) (full list -> ${reportPath}):`
+    );
     for (const p of integrityProblems.slice(0, 30)) console.log(`  - ${p}`);
   }
 

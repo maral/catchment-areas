@@ -6,7 +6,9 @@ import {
   deriveSeams,
   dissolveAreaSetComponents,
   mergeEmptyFragments,
+  okrsekTerritory,
   selectDefPoints,
+  selectExclaveDefPoints,
 } from "../street-markdown/polygons";
 import { Area, Municipality } from "../street-markdown/types";
 import {
@@ -243,13 +245,16 @@ export const buildPooledObecTables = (
   });
 
   // --- def points (C-5) + seams (C-4)
-  const defBody = selectDefPoints(okrsky).map(({ ko, point }) => ({
+  const defBody = [
+    ...selectDefPoints(okrsky),
+    ...selectExclaveDefPoints(okrsky),
+  ].map(({ ko, point }) => ({
     ID: ctx.allocId(),
     KO_KOD: okrsekKodByKo.get(ko)!,
     geometry: point.geometry,
   }));
 
-  const hrany = deriveSeams(okrsky.map((o) => o.polygon)).map((seam) => ({
+  const hrany = deriveSeams(okrsky.map(okrsekTerritory)).map((seam) => ({
     ID: ctx.allocId(),
     KO_KOD1: okrsekKodByKo.get(seam.ko1)!,
     KO_KOD2: okrsekKodByKo.get(seam.ko2)!,

@@ -3,11 +3,13 @@ import {
   getCityPolygons,
   getDistrictPolygons,
 } from "../db/cities";
+import { Feature, MultiPolygon, Polygon } from "@turf/helpers";
 import { PolygonsByCodes, SchoolType } from "../db/types";
 import {
   getMunicipalityBoundary,
   getMunicipalityCodes,
   getMunicipalityOwnBoundary,
+  getObecBoundary,
 } from "../street-markdown/polygons";
 import {
   getNewMunicipalityByFounderId,
@@ -18,6 +20,7 @@ import { buildBigCityTables } from "./build-big-city";
 import { buildObecTables, counter, ObecBuildContext } from "./build-obec";
 import { dedupeExport } from "./dedupe";
 import { checkIntegrity } from "./self-check";
+import { checkSeamTopology } from "./topology-check";
 import {
   MigrationExport,
   MigSkolaSko,
@@ -635,11 +638,28 @@ export const exportOrdinances = async (
     data,
     skipped,
     droppedEmptyObvody: dropped,
-    integrityProblems: checkIntegrity(data),
+    integrityProblems: [
+      ...checkIntegrity(data),
+      ...(await withDbRetry(() => checkTopologyAgainstObce(data))),
+    ],
   };
 };
 
 /** Ordinance school type → MIG_* obvod type code (2.stupeň is derived, Phase 5). */
+/** MI10 needs each obec's whole outline — fetched once for every obec with okrsky. */
+const checkTopologyAgainstObce = async (
+  data: MigrationExport
+): Promise<string[]> => {
+  const obecKods = new Set(data.okrsky.map((o) => o.OBEC_KOD));
+  const cityPolygons = await getCityPolygons(obecKods);
+  const boundaryByObec = new Map<number, Feature<Polygon | MultiPolygon>>();
+  for (const obecKod of obecKods) {
+    const boundary = getObecBoundary(cityPolygons, obecKod);
+    if (boundary) boundaryByObec.set(obecKod, boundary);
+  }
+  return checkSeamTopology(data, boundaryByObec);
+};
+
 export const schoolTypeToCode = (type: SchoolType): SchoolTypeCode =>
   type === SchoolType.Kindergarten ? "M" : "1";
 

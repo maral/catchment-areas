@@ -18,9 +18,10 @@ export interface CheckOptions {
  * matching registry is supplied via {@link CheckOptions}: **MI01** (obec codes)
  * and **MI07** (school registry). **MI10** (topological reassembly of each okrsek
  * polygon from its seams + def point + the obec's outer boundary) is inherently
- * ČÚZK-side — it needs the RÚIAN obec boundary we deliberately don't ship — so we
- * assert only its combinatorial preconditions (MI03/MI08 references + no
- * degenerate seam geometry).
+ * ČÚZK-side — it needs the RÚIAN obec boundary we deliberately don't ship — so
+ * here we assert only its combinatorial preconditions (MI03/MI08 references + no
+ * degenerate seam geometry); the geometric part is `checkSeamTopology`
+ * (`topology-check.ts`), which `exportOrdinances` runs against the obec polygons.
  *
  * ⚠ **MI02 divergence.** CR0025 MI02 literally requires *every* okrsek to carry a
  * same-type ŠO link. ČÚZK relaxed this for us (`SKO_MIGRATION_PLAN.md` §1 Q1):
@@ -299,7 +300,8 @@ export const checkIntegrity = (
 
   // === Additional internal invariants (beyond MI01–14) ======================
   // Deterministic code minting -> KODs must be globally unique; a collision is an
-  // allocator regression. CISLO is unique within an obec+type (C2). Def-point /
+  // allocator regression. CISLO is unique within an obec+type (C2). (An okrsek may carry several def points —
+  // one per exclave part, MI09's "alespoň jeden" — so no upper bound.) Def-point /
   // seam geometry must be finite and non-degenerate (MI10 precondition, F3).
   for (const [label, kods] of [
     ["obvod", data.obvody.map((o) => o.KOD)] as const,
@@ -320,10 +322,6 @@ export const checkIntegrity = (
       problems.push(`duplicate CISLO ${o.CISLO} in obec ${o.OBEC_KOD}`);
     }
     cisloSeen.add(key);
-  }
-  for (const kod of okrsekKods) {
-    const n = defByKo.get(kod) ?? 0;
-    if (n > 1) problems.push(`okrsek ${kod}: expected exactly 1 def point, found ${n}`);
   }
   for (const d of data.defBody) {
     if (!isFiniteCoord(d.geometry.coordinates)) {

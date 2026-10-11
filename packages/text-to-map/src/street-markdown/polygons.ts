@@ -10,6 +10,7 @@ import {
   Polygon,
   featureCollection,
   lineString,
+  multiPolygon,
   point as turfPoint,
   polygon,
 } from "@turf/helpers";
@@ -347,6 +348,13 @@ export interface AreaSetComponent {
   polygon: Feature<Polygon>;
   /** generating address points ([lng,lat]) that fall inside this component; empty = "empty fragment" */
   generators: number[][];
+  /**
+   * Address-free, detached parts of the obec that touch no other okrsek (an
+   * exclave with no ordinance address in it), carried by this okrsek so the
+   * obec stays fully covered — see {@link mergeEmptyFragments}. Each gets its
+   * own def point ({@link selectExclaveDefPoints}).
+   */
+  exclaves?: Feature<Polygon>[];
 }
 
 /**
@@ -467,8 +475,39 @@ export const mergeEmptyFragments = (
       .filter((n) => n.shared > 0);
 
     if (neighbours.length === 0) {
-      // isolated fragment (shouldn't happen for a tessellation) — drop it
-      working.splice(emptyIndex, 1);
+      // An isolated fragment: a detached part of the boundary (obec exclave)
+      // with no address of this ordinance in it. Dropping it left that part
+      // uncovered — ISÚI then finds a face with no def point there (ČÚZK
+      // kontroly_v2 item 5, MI10: Dačice, Karlovy Vary, Bruntál). Attach it
+      // to the nearest okrsek as an extra part instead.
+      const others = working
+        .map((component, index) => ({ component, index }))
+        .filter(({ index }) => index !== emptyIndex);
+      if (others.length === 0) {
+        working.splice(emptyIndex, 1);
+        continue;
+      }
+      const realOthers = others.filter((n) => n.component.generators.length > 0);
+      const target = (realOthers.length > 0 ? realOthers : others)
+        .map((n) => ({ ...n, gap: polygonGap(empty.polygon, n.component.polygon) }))
+        .sort(
+          (a, b) =>
+            a.gap - b.gap ||
+            compareAreaIndexes(a.component.areaIndexes, b.component.areaIndexes) ||
+            compareCorner(a.component.polygon, b.component.polygon)
+        )[0];
+      const withExclave: AreaSetComponent = {
+        ...target.component,
+        exclaves: [
+          ...(target.component.exclaves ?? []),
+          empty.polygon,
+          ...(empty.exclaves ?? []),
+        ],
+      };
+      working = working.filter(
+        (_, index) => index !== emptyIndex && index !== target.index
+      );
+      working.push(withExclave);
       continue;
     }
 
@@ -483,10 +522,15 @@ export const mergeEmptyFragments = (
         compareCorner(a.component.polygon, b.component.polygon)
     )[0];
 
+    const exclaves = [
+      ...(target.component.exclaves ?? []),
+      ...(empty.exclaves ?? []),
+    ];
     const mergedComponent: AreaSetComponent = {
       areaIndexes: target.component.areaIndexes,
       generators: target.component.generators,
       polygon: mergePolygons(target.component.polygon, empty.polygon),
+      ...(exclaves.length > 0 ? { exclaves } : {}),
     };
 
     working = working.filter(
@@ -530,6 +574,17 @@ const boundarySegments = (feature: Feature<Polygon>): Map<string, number> => {
 
 const roundKey = (coord: number[]): string =>
   `${coord[0].toFixed(7)},${coord[1].toFixed(7)}`;
+
+/** Smallest vertex-to-vertex distance (m) between two polygons — ranks nearness. */
+const polygonGap = (a: Feature<Polygon>, b: Feature<Polygon>): number => {
+  let best = Infinity;
+  for (const p of a.geometry.coordinates[0]) {
+    for (const q of b.geometry.coordinates[0]) {
+      best = Math.min(best, distance(p, q, { units: "meters" }));
+    }
+  }
+  return best;
+};
 
 /** Union two edge-adjacent polygons; defensively keep the largest part. */
 const mergePolygons = (
@@ -602,32 +657,24 @@ const snap = (coord: number[]): number[] => [
  *
  * `ko1`/`ko2` are array indexes; the caller maps them to minted KO_KOD in C-6.
  */
-export const deriveSeams = (okrsky: Feature<Polygon>[]): Seam[] => {
-  const segments = new Map<
-    string,
-    { owners: Set<number>; a: number[]; b: number[] }
-  >();
+export const deriveSeams = (
+  okrsky: Feature<Polygon | MultiPolygon>[]
+): Seam[] => {
+  const segments: SegmentMap = new Map();
 
   okrsky.forEach((okrsek, id) => {
-    for (const ring of okrsek.geometry.coordinates) {
+    for (const ring of polygonRings(okrsek)) {
       for (let i = 0; i + 1 < ring.length; i++) {
         const a = snap(ring[i]);
         const b = snap(ring[i + 1]);
-        const ka = gridKey(a);
-        const kb = gridKey(b);
-        if (ka === kb) {
+        if (gridKey(a) === gridKey(b)) {
           continue; // zero-length after snapping
         }
-        const key = ka < kb ? `${ka}|${kb}` : `${kb}|${ka}`;
-        const entry = segments.get(key);
-        if (entry) {
-          entry.owners.add(id);
-        } else {
-          segments.set(key, { owners: new Set([id]), a, b });
-        }
+        addSegment(segments, a, b, id);
       }
     }
   });
+  nodeSingleOwnerSegments(segments);
 
   // group shared segments (owned by exactly two okrsky) by ordered okrsek pair
   const pairs = new Map<
@@ -655,6 +702,98 @@ export const deriveSeams = (okrsky: Feature<Polygon>[]): Seam[] => {
     }
   }
   return seams;
+};
+
+type SegmentMap = Map<string, { owners: Set<number>; a: number[]; b: number[] }>;
+
+const polygonRings = (feature: Feature<Polygon | MultiPolygon>): number[][][] =>
+  feature.geometry.type === "Polygon"
+    ? feature.geometry.coordinates
+    : feature.geometry.coordinates.flat();
+
+const addSegment = (
+  segments: SegmentMap,
+  a: number[],
+  b: number[],
+  owner: number
+): void => {
+  const ka = gridKey(a);
+  const kb = gridKey(b);
+  const key = ka < kb ? `${ka}|${kb}` : `${kb}|${ka}`;
+  const entry = segments.get(key);
+  if (entry) {
+    entry.owners.add(owner);
+  } else {
+    segments.set(key, { owners: new Set([owner]), a, b });
+  }
+};
+
+/** A vertex this close to a segment (metres) lies on it — a few snap cells. */
+const T_JUNCTION_TOLERANCE_M = 0.03;
+const NODE_CELL = 1e-3; // degrees, bucket size of the vertex index
+
+/**
+ * Node T-junctions before matching (ČÚZK kontroly_v2 item 5 / MI10). Okrsky
+ * tessellated in different districts (P4-3) meet on the district line, but
+ * each side only has vertices where *its own* seams hit that line: where
+ * district A's seam ends on the line, district B's okrsek still runs one
+ * unbroken segment past that point. Exact endpoint matching then pairs
+ * nothing there, so both sides look like obec edge and the seam is dropped —
+ * leaving the A-side seams dangling. Splitting every single-owner segment at
+ * any other single-owner vertex lying on it gives both sides the same vertex
+ * sequence, so the shared district line pairs up segment by segment.
+ */
+const nodeSingleOwnerSegments = (segments: SegmentMap): void => {
+  const lonely = [...segments]
+    .filter(([, s]) => s.owners.size === 1)
+    .map(([key, s]) => ({ key, owner: [...s.owners][0], a: s.a, b: s.b }));
+  const cellKey = (x: number, y: number) =>
+    `${Math.floor(x / NODE_CELL)},${Math.floor(y / NODE_CELL)}`;
+  const vertexCells = new Map<string, Map<string, number[]>>();
+  for (const { a, b } of lonely) {
+    for (const v of [a, b]) {
+      const k = cellKey(v[0], v[1]);
+      const bucket = vertexCells.get(k) ?? new Map<string, number[]>();
+      bucket.set(gridKey(v), v);
+      vertexCells.set(k, bucket);
+    }
+  }
+
+  for (const { key, owner, a, b } of lonely) {
+    // already paired by another segment's split piece -> a real seam, keep it
+    if ((segments.get(key)?.owners.size ?? 0) > 1) continue;
+    const kx = 111320 * Math.cos((a[1] * Math.PI) / 180);
+    const ky = 110574;
+    const [dx, dy] = [(b[0] - a[0]) * kx, (b[1] - a[1]) * ky];
+    const len2 = dx * dx + dy * dy;
+    const [ka, kb] = [gridKey(a), gridKey(b)];
+    const splits: { t: number; v: number[] }[] = [];
+    const [cx0, cy0] = cellKey(Math.min(a[0], b[0]), Math.min(a[1], b[1]))
+      .split(",")
+      .map(Number);
+    const [cx1, cy1] = cellKey(Math.max(a[0], b[0]), Math.max(a[1], b[1]))
+      .split(",")
+      .map(Number);
+    for (let cx = cx0 - 1; cx <= cx1 + 1; cx++) {
+      for (let cy = cy0 - 1; cy <= cy1 + 1; cy++) {
+        for (const [vk, v] of vertexCells.get(`${cx},${cy}`) ?? []) {
+          if (vk === ka || vk === kb) continue;
+          const [px, py] = [(v[0] - a[0]) * kx, (v[1] - a[1]) * ky];
+          const t = (px * dx + py * dy) / len2;
+          if (t <= 0 || t >= 1) continue;
+          const off = Math.abs(px * dy - py * dx) / Math.sqrt(len2);
+          if (off <= T_JUNCTION_TOLERANCE_M) splits.push({ t, v });
+        }
+      }
+    }
+    if (splits.length === 0) continue;
+
+    segments.delete(key);
+    const chain = [a, ...splits.sort((p, q) => p.t - q.t).map((s) => s.v), b];
+    for (let i = 0; i + 1 < chain.length; i++) {
+      addSegment(segments, chain[i], chain[i + 1], owner);
+    }
+  }
 };
 
 /** Stitch unordered, endpoint-sharing segments into maximal polylines. */
@@ -742,6 +881,67 @@ const pickCentralGenerator = (generators: number[][]): number[] => {
     }
   }
   return best;
+};
+
+/**
+ * One extra def point per exclave an okrsek carries ({@link
+ * AreaSetComponent.exclaves}) — ISÚI needs a def point in every face of the
+ * okrsek network (MI10), and an exclave has no address of its own to use, so
+ * this is a synthetic interior point ({@link interiorPoint}).
+ */
+export const selectExclaveDefPoints = (
+  okrsky: AreaSetComponent[]
+): DefPoint[] =>
+  okrsky.flatMap((okrsek, ko) =>
+    (okrsek.exclaves ?? []).map((exclave) => ({
+      ko,
+      point: turfPoint(interiorPoint(exclave)),
+    }))
+  );
+
+/** The okrsek's whole territory: its main polygon plus any exclaves. */
+export const okrsekTerritory = (
+  okrsek: AreaSetComponent
+): Feature<Polygon | MultiPolygon> =>
+  okrsek.exclaves?.length
+    ? multiPolygon([
+        okrsek.polygon.geometry.coordinates,
+        ...okrsek.exclaves.map((e) => e.geometry.coordinates),
+      ])
+    : okrsek.polygon;
+
+/**
+ * A point strictly inside a polygon: the midpoint of the widest inside span of
+ * a horizontal scanline through the middle of its bounding box.
+ */
+export const interiorPoint = (feature: Feature<Polygon>): number[] => {
+  const rings = feature.geometry.coordinates;
+  const ys = rings[0].map((c) => c[1]);
+  const [minY, maxY] = [Math.min(...ys), Math.max(...ys)];
+  // a few scanlines in case the middle one hits a vertex exactly
+  for (const f of [0.5, 0.45, 0.55, 0.4, 0.6, 0.3, 0.7]) {
+    const y = minY + (maxY - minY) * f;
+    const xs: number[] = [];
+    for (const ring of rings) {
+      for (let i = 0; i + 1 < ring.length; i++) {
+        const [[x1, y1], [x2, y2]] = [ring[i], ring[i + 1]];
+        if (y1 > y !== y2 > y) {
+          xs.push(x1 + ((y - y1) * (x2 - x1)) / (y2 - y1));
+        }
+      }
+    }
+    xs.sort((a, b) => a - b);
+    let best: number[] | null = null;
+    let bestWidth = 0;
+    for (let i = 0; i + 1 < xs.length; i += 2) {
+      if (xs[i + 1] - xs[i] > bestWidth) {
+        bestWidth = xs[i + 1] - xs[i];
+        best = [(xs[i] + xs[i + 1]) / 2, y];
+      }
+    }
+    if (best) return best;
+  }
+  return rings[0][0];
 };
 
 /** Deterministic per-obec okrsek numbering (CISLO) for one okrsek list. */
@@ -853,6 +1053,19 @@ const createMunicipalitiesMultipolygon = (
     featureCollection(municipalityPolygonFeatures)
   );
 };
+
+/**
+ * The whole obec polygon by its code — for a district-first city the undivided
+ * city outline, i.e. the "vnější hranice obce" ISÚI closes the okrsek network
+ * against (MI10). Undefined when the city isn't in `cityPolygons`.
+ */
+export const getObecBoundary = (
+  cityPolygons: PolygonsByCodes,
+  obecKod: number
+): Feature<Polygon | MultiPolygon> | undefined =>
+  cityPolygons[obecKod]
+    ? createMunicipalitiesMultipolygon([cityPolygons[obecKod]])
+    : undefined;
 
 /**
  * The single clip boundary for one municipality — the same polygon the renderer

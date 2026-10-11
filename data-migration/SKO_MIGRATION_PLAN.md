@@ -302,6 +302,38 @@ benefits (no white gaps, simpler shapes); export re-tags to one obec.
 - If adjacent districts' RÚIAN boundaries don't share identical vertices, the cm-grid snap
   reconciles them; verify in the C-8 dry run.
 
+**Amendments after ČÚZK kontroly_v2 item 5 (MI10, 2602 rows):**
+
+- **District lines need T-junction noding.** The "pair automatically" claim above was wrong:
+  each district side only has vertices where *its own* seams hit the district line, so where
+  Praha-1's seam ends on the line, Praha-2's okrsek still runs one unbroken segment past it.
+  Exact endpoint matching paired nothing there, both sides looked like outer obec edge and were
+  skipped — every seam meeting a district line dangled (Praha 1172, Brno ~1280, Ostrava, Plzeň,
+  Liberec), plus 4 Praha "3 okrsky at one point" junctions. `deriveSeams` now splits every
+  single-owner segment at any other single-owner vertex lying on it (≤ 3 cm) before pairing.
+- **Exclaves are attached, not dropped.** Step 3's "isolated empty fragment" branch (assumed
+  impossible) is exactly an obec exclave with no ordinance address in it. Dropping it left that
+  part of the obec without an okrsek, which ISÚI reports as "plocha sítě okrsku nemá
+  odpovídající definiční bod" (Dačice, Karlovy Vary, Bruntál). It now joins the **nearest**
+  okrsek as an extra part with its own synthetic interior def point (`interiorPoint`), so that
+  okrsek is a multipolygon with one def point per part — CR0025 MI09 asks for "alespoň jeden"
+  def point, so several are allowed.
+- **A district claimed whole by several founders is tessellated once.** "území městské části
+  Praha-Nedvězí" appears in both Kolovraty's and Praha 22's ZŠ ordinance; each founder's
+  boundary absorbed Nedvězí and tessellated it separately → overlapping okrsky (and dangling
+  ends where they met the district line). `buildBigCityTables` now carves such a district out
+  of every claimant into its own Voronoi input fed by all claimants' addresses there, so the
+  shared catchment becomes one shared {A,B} okrsek.
+- **Holes are ISÚI's.** The other five "face without def point" obce (Pelhřimov, Blatná,
+  Pardubice, Liberec, Velké Opatovice) are exactly the exported obce whose RÚIAN polygon has a
+  hole (an enclave of a neighbouring obec, 1.7–5 km²). Our okrsky correctly leave the enclave
+  out; ISÚI apparently polygonizes the hole ring as a face of its own. Not fixable on our side —
+  reported back to ČÚZK.
+- **Local MI10 check** (`migration/topology-check.ts`, run by `exportOrdinances` against the
+  RÚIAN obec polygon): dangling seam ends (> 0.5 m from the obec boundary), junctions where an
+  okrsek is missing a seam, and boundary parts with no def point. It reproduced ČÚZK's report
+  exactly (Praha 1176/1176, Karlovy Vary M/1/2).
+
 ---
 
 ## 8. OPEN-2 resolved — cross-district vs cross-obec

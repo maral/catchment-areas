@@ -81,4 +81,22 @@ describe("buildBigCityTables", () => {
     // every okrsek belongs to the city obec
     for (const o of t.okrsky) expect(o.OBEC_KOD).toBe(CITY);
   });
+
+  test("a district claimed whole by two founders is tessellated once, as one shared okrsek", () => {
+    // district 3 (x 10..15) has no founder; both 1 and 2 claim it whole
+    // ("území městské části"), so its addresses sit in both areas
+    const squareC = polygon([[B(10, 0), B(15, 0), B(15, 10), B(10, 10), B(10, 0)]]);
+    const polygons: PolygonsByCodes = { ...districtPolygons, 3: featureCollection([squareC]) };
+    const inC = [addr("C1", 12, 3), addr("C2", 12, 7)];
+    const a = { ...district(1, "600000001", [addr("A1", 2, 5), ...inC]), districtCodes: [1, 3] };
+    const b = { ...district(2, "600000002", [addr("B1", 8, 5), ...inC]), districtCodes: [2, 3] };
+
+    const t = buildBigCityTables(CITY, "1", [a, b], {}, polygons, ctx());
+
+    // A's, B's own okrsek + one shared okrsek for district 3 — not two overlapping ones
+    expect(t.okrsky).toHaveLength(3);
+    const linksByKo = new Map<number, number[]>();
+    for (const l of t.skoKo) linksByKo.set(l.KO_KOD, [...(linksByKo.get(l.KO_KOD) ?? []), l.SKO_KOD]);
+    expect([...linksByKo.values()].map((v) => v.length).sort()).toEqual([1, 1, 2]);
+  });
 });

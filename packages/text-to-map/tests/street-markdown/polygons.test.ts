@@ -7,8 +7,11 @@ import {
   createPolygons,
   deriveSeams,
   dissolveAreaSetComponents,
+  interiorPoint,
   mergeEmptyFragments,
+  okrsekTerritory,
   selectDefPoints,
+  selectExclaveDefPoints,
 } from "../../src/street-markdown/polygons";
 import { Area, Municipality } from "../../src/street-markdown/types";
 
@@ -245,6 +248,37 @@ describe("mergeEmptyFragments", () => {
     expect(covering!.generators.length).toBeGreaterThan(0);
   });
 
+  test("attaches an address-free exclave to the nearest okrsek instead of dropping it", () => {
+    // obec = main square + a detached square to its right; only the main part
+    // has addresses, so the exclave is an isolated empty fragment
+    const exclaveBoundary = {
+      type: "Feature" as const,
+      properties: {},
+      geometry: {
+        type: "MultiPolygon" as const,
+        coordinates: [
+          [[B(0, 0), B(10, 0), B(10, 10), B(0, 10), B(0, 0)]],
+          [[B(12, 0), B(14, 0), B(14, 2), B(12, 2), B(12, 0)]],
+        ],
+      },
+    };
+    const components = dissolveAreaSetComponents(
+      buildLabeledCells(areas),
+      exclaveBoundary
+    );
+    const merged = mergeEmptyFragments(components);
+
+    expect(merged.every((c) => c.generators.length > 0)).toBe(true);
+    const carriers = merged.filter((c) => (c.exclaves ?? []).length > 0);
+    expect(carriers).toHaveLength(1);
+    // the right-hand okrsek (area 1) is the nearer one
+    expect(carriers[0].areaIndexes).toEqual([1]);
+
+    const extra = selectExclaveDefPoints(merged);
+    expect(extra).toHaveLength(1);
+    expect(booleanIntersects(extra[0].point, carriers[0].exclaves![0])).toBe(true);
+  });
+
   test("leaves a clean convex split untouched", () => {
     const components = dissolveAreaSetComponents(buildLabeledCells(areas), boundary);
     const merged = mergeEmptyFragments(components);
@@ -276,6 +310,37 @@ describe("deriveSeams", () => {
     const left = polygon([[B(0, 0), B(2, 0), B(2, 2), B(0, 2), B(0, 0)]]);
     const right = polygon([[B(8, 0), B(10, 0), B(10, 2), B(8, 2), B(8, 0)]]);
     expect(deriveSeams([left, right])).toHaveLength(0);
+  });
+
+  test("pairs a district line where only one side has the seam's vertex (T-junction)", () => {
+    // district 1 (x 0..5) is split into A (bottom) / B (top) at y=5; district 2
+    // (x 5..10) is one okrsek C whose x=5 edge runs unbroken past (5,5)
+    const a = polygon([[B(0, 0), B(5, 0), B(5, 5), B(0, 5), B(0, 0)]]);
+    const b = polygon([[B(0, 5), B(5, 5), B(5, 10), B(0, 10), B(0, 5)]]);
+    const c = polygon([[B(5, 0), B(10, 0), B(10, 10), B(5, 10), B(5, 0)]]);
+
+    const pairs = deriveSeams([a, b, c])
+      .map((s) => `${s.ko1}|${s.ko2}`)
+      .sort();
+
+    expect(pairs).toEqual(["0|1", "0|2", "1|2"]);
+  });
+
+  test("an exclave's edges against a neighbour become seams of the carrying okrsek", () => {
+    const main = polygon([[B(0, 0), B(4, 0), B(4, 4), B(0, 4), B(0, 0)]]);
+    const other = polygon([[B(6, 0), B(10, 0), B(10, 4), B(6, 4), B(6, 0)]]);
+    const exclave = polygon([[B(10, 0), B(12, 0), B(12, 4), B(10, 4), B(10, 0)]]);
+    const carrier = okrsekTerritory({
+      areaIndexes: [0],
+      polygon: main,
+      generators: [B(2, 2)],
+      exclaves: [exclave],
+    });
+
+    const seams = deriveSeams([carrier, other]);
+
+    expect(seams).toHaveLength(1);
+    expect([seams[0].ko1, seams[0].ko2]).toEqual([0, 1]);
   });
 });
 
@@ -339,5 +404,16 @@ describe("assignOkrsekNumbers", () => {
     expect([...forward.entries()].sort()).toEqual(
       [...reversed.entries()].sort()
     );
+  });
+});
+
+describe("interiorPoint", () => {
+  test("lands inside a concave polygon, not in its notch", () => {
+    const u = polygon([
+      [B(0, 0), B(10, 0), B(10, 10), B(7, 10), B(7, 3), B(3, 3), B(3, 10), B(0, 10), B(0, 0)],
+    ]);
+    expect(booleanIntersects(turfPoint(interiorPoint(u)), u)).toBe(true);
+    const [x] = interiorPoint(u);
+    expect(x < B(3, 0)[0] || x > B(7, 0)[0]).toBe(true);
   });
 });
