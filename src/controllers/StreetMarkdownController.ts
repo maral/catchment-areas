@@ -58,7 +58,7 @@ export class StreetMarkdownController {
 
     const streetMarkdowns = await remult.repo(StreetMarkdown).find({
       where: { ordinance, founder, id: { $ne: excludeId } },
-      orderBy: { createdAt: "desc" },
+      orderBy: { createdAt: "desc", id: "desc" },
       limit: HISTORY_LIMIT,
     });
 

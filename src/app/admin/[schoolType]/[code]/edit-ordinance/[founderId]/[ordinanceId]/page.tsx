@@ -47,7 +47,7 @@ export default async function EditorPage(props: {
 
     const streetMarkdowns = await streetMarkdownRepo.find({
       where: { ordinance, founder },
-      orderBy: { createdAt: "desc" },
+      orderBy: { createdAt: "desc", id: "desc" },
       limit: 1,
     });
 

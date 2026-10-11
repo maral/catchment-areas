@@ -79,6 +79,9 @@ export function getRemultOptions(
           user,
           password,
           database,
+          // store dates in UTC regardless of the server's timezone - otherwise a local
+          // dev server (CEST) and prod (UTC) write different times for the same moment
+          timezone: "Z",
         },
         // client: "better-sqlite3",
         // connection: {

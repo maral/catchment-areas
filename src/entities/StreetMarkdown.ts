@@ -1,4 +1,4 @@
-import { Allow, Entity, EntityBase, Field, Fields } from "remult";
+import { Allow, Entity, EntityBase, Field, Fields, isBackend } from "remult";
 import { Ordinance } from "./Ordinance";
 import { User } from "./User";
 import { Founder } from "./Founder";
@@ -6,6 +6,13 @@ import { Founder } from "./Founder";
 @Entity("street-markdowns", {
   allowApiCrud: Allow.authenticated,
   dbName: "street_markdown",
+  // the latest save is picked by createdAt, so it's always set by the server
+  // (not by the browser or whoever calls insert/update)
+  saving: (streetMarkdown: StreetMarkdown) => {
+    if (isBackend()) {
+      streetMarkdown.createdAt = new Date();
+    }
+  },
 })
 export class StreetMarkdown extends EntityBase {
   @Fields.autoIncrement()
