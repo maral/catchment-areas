@@ -282,14 +282,16 @@ single-boundary obce (C-8/Bechyně). A3 (trivial vs complex) is already handled 
 - [x] **Leading-zero IZO lookup (item 2, "doplňujete třídu").** `gradesByIzo` keyed on the raw
   DB string (`047011297`) vs the CSV's `47011297`, so ~1000 schools fell back to the full grade
   band and an unconditional type-2 ŠO. Normalized inside the loader — `1961905`.
+- [x] **MI10 topology (item 5).** Local MI10 check (`topology-check.ts`, reproduced ČÚZK's
+  Praha 1176/1176) + three fixes: T-junction noding on district lines, exclaves attached to the
+  nearest okrsek with their own def point, shared whole-district claims tessellated once —
+  `e6a66de`. Left for ČÚZK: the 5 holed obce (ISÚI polygonizes the enclave hole). Left for
+  data: Praha MŠ doesn't cover Královice / Benice / Křeslice (4 dangling ends).
 
 **Still open from this report:**
 - **Item 3 (MI02)** — ČÚZK now runs the strict check (every okrsek needs a `MIG_SKO_KO` link),
   contradicting Q1. 212 orphans: 20 M/type-1 are leftovers of the MI07 cascade (e.g. Náchod M,
   all 5 MŠ unknown); 192 type-2 are the Part-E design. Needs a decision before any code.
-- **Item 5 (MI10)** — 2584/2602 rows are dangling seam ends on městská-část lines (Praha
-  1172/1172 matched point-for-point): `deriveSeams` exact-segment matching breaks at T-junctions.
-  18 "face without def point" rows in small obce not yet explained.
 - **Item 9 (Kontrola 14)** — Králíky M (one okrsek + vymezení). Not reproduced at HEAD;
   candidate fix: collapse a single-okrsek obec+type to one vymezení row.
 

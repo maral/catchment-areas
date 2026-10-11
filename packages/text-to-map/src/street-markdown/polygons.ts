@@ -728,8 +728,10 @@ const addSegment = (
   }
 };
 
-/** A vertex this close to a segment (metres) lies on it — a few snap cells. */
-const T_JUNCTION_TOLERANCE_M = 0.03;
+/** A vertex this close to a segment (metres) lies on it — RÚIAN district borders
+ * disagree by a few cm in places (Ostrava Poruba/Svinov: 5.7 cm); ISÚI itself
+ * tolerates 0.5 m. */
+const T_JUNCTION_TOLERANCE_M = 0.1;
 const NODE_CELL = 1e-3; // degrees, bucket size of the vertex index
 
 /**
