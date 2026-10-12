@@ -285,15 +285,25 @@ single-boundary obce (C-8/Bechyně). A3 (trivial vs complex) is already handled 
 - [x] **MI10 topology (item 5).** Local MI10 check (`topology-check.ts`, reproduced ČÚZK's
   Praha 1176/1176) + three fixes: T-junction noding on district lines, exclaves attached to the
   nearest okrsek with their own def point, shared whole-district claims tessellated once —
-  `e6a66de`. Left for ČÚZK: the 5 holed obce (ISÚI polygonizes the enclave hole). Left for
-  data: Praha MŠ doesn't cover Královice / Benice / Křeslice (4 dangling ends).
+  `e6a66de`, `870503f`. Big-city territory made independent of other types and of address
+  stamping (Plzeň 7/8, Liberec), plus a per-obec coverage check — `3cb48e0`. Addresses an
+  ordinance reaches in a district nobody else covers are reported as `data:` findings (with
+  ordinance lines), not rerouted — `d98b36e`, `6c1b221`, `607f760`. Left for ČÚZK: the 5 holed
+  obce (ISÚI polygonizes the enclave hole).
+- [x] **Data findings fixed in the SMD (user).** Unknown/merged schools (Hronov, Náchod, Praha,
+  Brno ×3, Olomouc, Čeladná, Karviná, Přerov, Varnsdorf, Jablonec, Bílina), Praha MŠ
+  Královice/Benice/Křeslice, Brno-Kníničky, Brno-Jundrov, Liberec MŠ (without Vratislavice),
+  Králíky (item 9 — a merger with overlapping regions).
+- [x] **Item 3 (MI02).** The 191 remaining orphans are all type 2 (Part-E design); JJ's own
+  answer allows uncovered parts of an obec for a ŠO type ("to ničemu nevadí"). Reply to ČÚZK
+  with that quote; no code change.
 
 **Still open from this report:**
-- **Item 3 (MI02)** — ČÚZK now runs the strict check (every okrsek needs a `MIG_SKO_KO` link),
-  contradicting Q1. 212 orphans: 20 M/type-1 are leftovers of the MI07 cascade (e.g. Náchod M,
-  all 5 MŠ unknown); 192 type-2 are the Part-E design. Needs a decision before any code.
-- **Item 9 (Kontrola 14)** — Králíky M (one okrsek + vymezení). Not reproduced at HEAD;
-  candidate fix: collapse a single-okrsek obec+type to one vymezení row.
+
+- **MI13** — 4 ZŠ with no grades in either registry snapshot (102286183, 102004439, 102241341,
+  102168245); waiting for the MŠMT refresh ČÚZK will send before the final export.
+- **Měchnovská 2426/6 (Praha 11)** — RÚIAN places the point ~20 m inside Praha 10; ČÚZK-side
+  data, mention only.
 
 ## Phase 7 — App trigger (catchment-areas)
 
