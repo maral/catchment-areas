@@ -288,7 +288,7 @@ const findUnstampedForeignAddresses = (
     );
     if (!own) continue;
     const ownParts = polygonParts(own);
-    const byDistrict = new Map<number, string[]>();
+    const byDistrict = new Map<number, ExportAddressPoint[]>();
     for (const area of m.areas) {
       for (const a of area.addresses) {
         if (a.municipalityCode !== undefined || a.lat === null || a.lng === null) {
@@ -297,12 +297,20 @@ const findUnstampedForeignAddresses = (
         const p = [a.lng, a.lat];
         if (inParts(p, ownParts)) continue;
         const home = cityDistricts.find((d) => inParts(p, d.parts));
-        if (home) byDistrict.set(home.code, [...(byDistrict.get(home.code) ?? []), a.address]);
+        if (home) byDistrict.set(home.code, [...(byDistrict.get(home.code) ?? []), a]);
       }
     }
     for (const [code, addresses] of byDistrict) {
+      const byLine = new Map<number, number>();
+      for (const a of addresses) {
+        for (const line of a.lineNumbers ?? []) byLine.set(line, (byLine.get(line) ?? 0) + 1);
+      }
+      const lines = [...byLine]
+        .sort(([a], [b]) => a - b)
+        .map(([line, n]) => `${line + 1} (${n}×)`)
+        .join(", ");
       problems.push(
-        `data: obec ${cityObecKod} typ ${typeCode}: ${m.municipalityName} assigns ${addresses.length} address(es) in district ${code} outside its own territory without a district header — clipped away (e.g. "${addresses[0]}")`
+        `data: obec ${cityObecKod} typ ${typeCode}: ${m.municipalityName} assigns ${addresses.length} address(es) in district ${code} outside its own territory without a district header — clipped away (e.g. "${addresses[0].address}"; ordinance lines ${lines || "?"})`
       );
     }
   }
