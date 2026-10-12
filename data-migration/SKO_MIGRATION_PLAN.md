@@ -335,7 +335,12 @@ benefits (no white gaps, simpler shapes); export re-tags to one obec.
     unstamped, fell outside Bystrc's boundary and were clipped. Kníničky founds no ZŠ, so the
     district had no okrsek at all. **That's a data problem** (fixed in the SMD): the export
     now *reports* any address lying outside its founder's own territory in another district
-    of the city ("data: … clipped away"), rather than rerouting it. Code fix kept: a district
+    of the city ("data: … clipped away", with the ordinance lines), rather than rerouting it.
+    Only a district with **no founder of its own** for the type is reported: one that has a
+    founder is simply outside this founder's scope — a Praha MČ's street lines never reach
+    another MČ, and a whole-city founder's (Liberec's "Kunratická" running into Vratislavice)
+    or a "část obce" line (Jundrov's reaching into Kohoutovice) is read the same way; that
+    district's own ordinance decides. Code fix kept: a district
     reached only by properly stamped pieces, with no founder of its own for the type, gets its
     own Voronoi input (all districts of a pooled city are fetched for this).
   - *Liberec* — the carve-out above briefly dropped a whole-city founder (empty

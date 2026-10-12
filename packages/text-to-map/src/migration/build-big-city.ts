@@ -297,7 +297,11 @@ const findUnstampedForeignAddresses = (
         const p = [a.lng, a.lat];
         if (inParts(p, ownParts)) continue;
         const home = cityDistricts.find((d) => inParts(p, d.parts));
-        if (home) byDistrict.set(home.code, [...(byDistrict.get(home.code) ?? []), a]);
+        // a district with its own founder for this type is simply out of this
+        // founder's scope — as a Praha MČ's street lines never reach another
+        // MČ — so its own ordinance decides; only a district nobody else
+        // covers loses the address (Brno-Kníničky)
+        if (home && !others.includes(home.code)) byDistrict.set(home.code, [...(byDistrict.get(home.code) ?? []), a]);
       }
     }
     for (const [code, addresses] of byDistrict) {

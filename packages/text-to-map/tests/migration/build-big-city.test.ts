@@ -158,4 +158,16 @@ describe("buildBigCityTables", () => {
     expect(problems).toHaveLength(1);
     expect(problems[0]).toMatch(/assigns 1 address\(es\) in district 2 .* "in-2"/);
   });
+
+  test("an unstamped address in a district with its own founder is out of scope, not reported", () => {
+    const a: Municipality = district(1, "600000001", [addr("A1", 2, 2), addr("in-2", 8, 5)]);
+    const b: Municipality = district(2, "600000002", [addr("B1", 8, 8)]);
+    const problems: string[] = [];
+
+    buildBigCityTables(
+      CITY, "1", [a, b], {}, districtPolygons, { ...ctx(), problems }, new Map([[1, CITY], [2, CITY]])
+    );
+
+    expect(problems).toEqual([]);
+  });
 });
