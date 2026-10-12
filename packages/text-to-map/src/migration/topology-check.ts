@@ -193,3 +193,42 @@ const pointSegmentDistance = (p: number[], a: number[], b: number[]): number => 
     len2 === 0 ? 0 : Math.max(0, Math.min(1, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / len2));
   return Math.hypot(p[0] - (a[0] + t * dx), p[1] - (a[1] + t * dy));
 };
+
+/** Planar area (m²) of a polygon / multipolygon, holes subtracted. */
+export const areaM2 = (feature: Feature<Polygon | MultiPolygon>): number => {
+  const projection = localProjection(feature);
+  const ringArea = (ring: number[][]): number => {
+    const pts = ring.map(projection);
+    let sum = 0;
+    for (let i = 0; i + 1 < pts.length; i++) {
+      sum += pts[i][0] * pts[i + 1][1] - pts[i + 1][0] * pts[i][1];
+    }
+    return Math.abs(sum) / 2;
+  };
+  return boundaryParts(feature).reduce(
+    (total, [outer, ...holes]) =>
+      total + ringArea(outer) - holes.reduce((h, ring) => h + ringArea(ring), 0),
+    0
+  );
+};
+
+/** Okrsky must cover the whole obec, without overlaps ("nesmí tam být díry"). */
+const COVERAGE_TOLERANCE = 0.005;
+
+/**
+ * Coverage check per tessellated obec+type: the okrsky's total area against the
+ * RÚIAN obec polygon. Short = a part of the obec no okrsek covers (a whole
+ * district dropped — Brno-Kníničky, Liberec); over = overlapping okrsky. Seam
+ * checks can't see either when no seam ends at the gap.
+ */
+export const checkCoverage = (
+  obecKod: number,
+  typeCode: SchoolTypeCode,
+  okrskyAreaM2: number,
+  boundary: Feature<Polygon | MultiPolygon>
+): string | undefined => {
+  const obecM2 = areaM2(boundary);
+  const ratio = okrskyAreaM2 / obecM2;
+  if (Math.abs(ratio - 1) <= COVERAGE_TOLERANCE) return undefined;
+  return `coverage: obec ${obecKod} typ ${typeCode}: okrsky cover ${(ratio * 100).toFixed(1)} % of the obec area (${((okrskyAreaM2 - obecM2) / 1e6).toFixed(2)} km²)`;
+};

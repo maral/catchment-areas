@@ -1,6 +1,7 @@
 import {
   getCityCodesByDistrictCodes,
   getCityPolygons,
+  getDistrictCodesOfCities,
   getDistrictPolygons,
 } from "../db/cities";
 import { Feature, MultiPolygon, Polygon } from "@turf/helpers";
@@ -20,7 +21,7 @@ import { buildBigCityTables } from "./build-big-city";
 import { buildObecTables, counter, ObecBuildContext } from "./build-obec";
 import { dedupeExport } from "./dedupe";
 import { checkIntegrity } from "./self-check";
-import { checkSeamTopology } from "./topology-check";
+import { checkCoverage, checkSeamTopology } from "./topology-check";
 import {
   MigrationExport,
   MigSkolaSko,
@@ -117,24 +118,35 @@ export const buildMigrationExport = (
 export const buildMigrationExportForGroups = async (
   groups: ExportGroup[],
   gradesByIzo?: GradesByIzo,
-  onProgress?: (done: number, total: number, obecKod: number) => void
+  onProgress?: (done: number, total: number, obecKod: number) => void,
+  problems: string[] = []
 ): Promise<MigrationExport> => {
   const allMunicipalities = groups.flatMap((g) => g.municipalities);
   const { cityCodes, districtCodes } =
     getMunicipalityCodes(allMunicipalities);
-  const [cityPolygons, districtPolygons, parentCityByDistrict] =
-    await Promise.all([
-      getCityPolygons(cityCodes),
-      getDistrictPolygons(districtCodes),
-      getCityCodesByDistrictCodes(districtCodes),
-    ]);
+  const parentCityByDistrict = await getCityCodesByDistrictCodes(districtCodes);
+  // the pooled cities' own outline too — the coverage check measures against it
+  const cityPolygons = await getCityPolygons(
+    new Set([...cityCodes, ...parentCityByDistrict.values()])
+  );
+  // every district of each pooled city — a district can be reached only by
+  // other founders' addresses, without being named by any ordinance
+  // (Brno-Kníničky's ZŠ)
+  const allDistrictsOfCities = await getDistrictCodesOfCities(
+    new Set(parentCityByDistrict.values())
+  );
+  const districtPolygons = await getDistrictPolygons(
+    new Set([...districtCodes, ...allDistrictsOfCities.keys()])
+  );
   return assembleExport(
     groups,
     cityPolygons,
     districtPolygons,
     parentCityByDistrict,
     gradesByIzo,
-    onProgress
+    onProgress,
+    allDistrictsOfCities,
+    problems
   );
 };
 
@@ -173,7 +185,14 @@ export const assembleExport = (
   districtPolygons: PolygonsByCodes,
   parentCityByDistrict: Map<number, number>,
   gradesByIzo?: GradesByIzo,
-  onProgress?: (done: number, total: number, obecKod: number) => void
+  onProgress?: (done: number, total: number, obecKod: number) => void,
+  /**
+   * every district of each pooled city -> its city; kept apart from
+   * `parentCityByDistrict` so it doesn't change which founders get pooled
+   */
+  pieceParentCityByDistrict: Map<number, number> = new Map(),
+  /** sink for the per-obec coverage self-check (see `checkCoverage`) */
+  problems: string[] = []
 ): MigrationExport => {
   const allocObvodKod = counter(OBVOD_KOD_START);
   const allocOkrsekKod = counter(OKRSEK_KOD_START);
@@ -280,13 +299,22 @@ export const assembleExport = (
         districts,
         cityPolygons,
         districtPolygons,
-        ctx
+        ctx,
+        new Map([...pieceParentCityByDistrict, ...parentCityByDistrict])
       );
     } else {
+      // only the districts this municipality names itself: the run-wide map
+      // holds other founders'/types' districts, which a city-type boundary
+      // would otherwise subtract (see buildBigCityTables)
+      const ownDistrictPolygons = Object.fromEntries(
+        item.municipality.districtCodes
+          .filter((code) => districtPolygons[code])
+          .map((code) => [code, districtPolygons[code]])
+      );
       const boundary = getMunicipalityBoundary(
         item.municipality,
         cityPolygons,
-        districtPolygons
+        ownDistrictPolygons
       );
       if (!boundary) {
         throw new Error(
@@ -299,9 +327,19 @@ export const assembleExport = (
       const trueBoundary = getMunicipalityOwnBoundary(
         item.municipality,
         cityPolygons,
-        districtPolygons
+        ownDistrictPolygons
       );
       tables = buildObecTables(item.municipality, boundary, ctx, trueBoundary);
+    }
+    const obecBoundary = getObecBoundary(cityPolygons, item.obecKod);
+    if (tables.okrskyAreaM2 !== undefined && obecBoundary) {
+      const problem = checkCoverage(
+        item.obecKod,
+        item.typeCode,
+        tables.okrskyAreaM2,
+        obecBoundary
+      );
+      if (problem) problems.push(problem);
     }
     cisloStartByObec.set(item.obecKod, cisloStart + tables.okrsky.length);
     appendTables(merged, tables);
@@ -613,17 +651,24 @@ export const exportOrdinances = async (
   });
   // The boundary fetch + assembly is idempotent (fresh allocators each call), so
   // a transient drop here retries the whole step cleanly.
+  let coverageProblems: string[] = [];
   const raw = await withDbRetry(
-    () =>
-      buildMigrationExportForGroups(groups, gradesByIzo, (done, total, obecKod) =>
-        onProgress?.({
-          done,
-          total,
-          founderId: 0,
-          phase: "geometry",
-          obecKod,
-        })
-      ),
+    () => {
+      coverageProblems = []; // a retry rebuilds everything from scratch
+      return buildMigrationExportForGroups(
+        groups,
+        gradesByIzo,
+        (done, total, obecKod) =>
+          onProgress?.({
+            done,
+            total,
+            founderId: 0,
+            phase: "geometry",
+            obecKod,
+          }),
+        coverageProblems
+      );
+    },
     (attempt) =>
       onProgress?.({
         done: inputs.length,
@@ -640,6 +685,7 @@ export const exportOrdinances = async (
     droppedEmptyObvody: dropped,
     integrityProblems: [
       ...checkIntegrity(data),
+      ...coverageProblems,
       ...(await withDbRetry(() => checkTopologyAgainstObce(data))),
     ],
   };

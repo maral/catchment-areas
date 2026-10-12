@@ -324,6 +324,22 @@ benefits (no white gaps, simpler shapes); export re-tags to one obec.
   ends where they met the district line). `buildBigCityTables` now carves such a district out
   of every claimant into its own Voronoi input fed by all claimants' addresses there, so the
   shared catchment becomes one shared {A,B} okrsek.
+- **Big-city territory must not depend on other types' ordinances, nor on how an address was
+  added.** Three follow-ups found by the full re-export (and a new coverage check):
+  - *Plzeň* — a whole-city founder's boundary is the city minus the districts in the run-wide
+    `districtPolygons` it doesn't list. That map also held Plzeň 7/8, named whole only by the
+    **MŠ** ordinance, so the **ZŠ** territory (which reaches them by "část obce") lost them. Now
+    only districts tessellated separately *for the same type* are subtracted.
+  - *Brno-Kníničky* — Bystrc's ZŠ takes "zbytek části obce Kníničky", but the parser stamps an
+    address with its district only for street lines under a district header; these came
+    unstamped, fell outside Bystrc's boundary and were clipped. Kníničky founds no ZŠ, so the
+    district had no okrsek at all. The export now re-stamps any address lying outside its
+    founder's own territory into the district it is in, and a district reached only by such
+    pieces gets its own Voronoi input (all districts of a pooled city are fetched for this).
+  - *Liberec* — the carve-out above briefly dropped a whole-city founder (empty
+    `districtCodes`) entirely; caught by the coverage check, fixed before delivery.
+  - **Coverage check**: per tessellated obec+type, total okrsek area vs the RÚIAN obec area
+    (±0.5 %). Seam checks can't see a gap no seam ends at.
 - **Holes are ISÚI's.** The other five "face without def point" obce (Pelhřimov, Blatná,
   Pardubice, Liberec, Velké Opatovice) are exactly the exported obce whose RÚIAN polygon has a
   hole (an enclave of a neighbouring obec, 1.7–5 km²). Our okrsky correctly leave the enclave

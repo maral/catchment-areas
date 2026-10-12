@@ -22,6 +22,7 @@ import {
   SchoolTypeCode,
   TridaFlag,
 } from "./types";
+import { areaM2 } from "./topology-check";
 
 /** Global, deterministic code/id allocators + grade lookup for one migration run. */
 export interface ObecBuildContext {
@@ -262,6 +263,7 @@ export const buildPooledObecTables = (
   }));
 
   return mergeIdenticalTerritoryObvody({
+    okrskyAreaM2: okrsky.reduce((sum, o) => sum + areaM2(okrsekTerritory(o)), 0),
     obvody,
     okrsky: okrskyRows,
     skoKo,

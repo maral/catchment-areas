@@ -86,6 +86,8 @@ export interface ObecTables {
   skolaSko: MigSkolaSko[];
   /** whole-obec coverage rows for trivial obce (one area = whole obec) */
   vymezeni: MigVymezeniZbylychKo[];
+  /** total okrsek area (m²) when tessellated — the coverage self-check input */
+  okrskyAreaM2?: number;
 }
 
 /**

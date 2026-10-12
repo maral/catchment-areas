@@ -96,6 +96,24 @@ export const getCityPolygons = async (
 };
 
 /**
+ * Every městská část of the given cities, district code -> city code — the
+ * export needs all of a pooled city's district polygons, not only the ones an
+ * ordinance happens to name.
+ */
+export const getDistrictCodesOfCities = async (
+  cityCodes: Set<number>
+): Promise<Map<number, number>> => {
+  if (cityCodes.size === 0) {
+    return new Map();
+  }
+  const rows = await getKnexDb()
+    .from("city_district")
+    .select("code", "city_code")
+    .whereIn("city_code", Array.from(cityCodes));
+  return new Map(rows.map((row) => [Number(row.code), Number(row.city_code)]));
+};
+
+/**
  * Map each městská-část district code to its parent city code — the obec every
  * district-first city (Praha/Ostrava/Plzeň/Liberec) pools into under Q3 (P4-3).
  */

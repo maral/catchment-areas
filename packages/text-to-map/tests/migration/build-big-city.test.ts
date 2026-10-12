@@ -99,4 +99,60 @@ describe("buildBigCityTables", () => {
     for (const l of t.skoKo) linksByKo.set(l.KO_KOD, [...(linksByKo.get(l.KO_KOD) ?? []), l.SKO_KOD]);
     expect([...linksByKo.values()].map((v) => v.length).sort()).toEqual([1, 1, 2]);
   });
+
+  test("a district with no founder of its own still gets okrsky from the pieces stamped into it", () => {
+    // district 2 founds no school of this type; district 1's school takes one
+    // of its addresses ("zbytek části obce …") — that piece must cover district 2
+    const a: Municipality = {
+      ...district(1, "600000001", [addr("A1", 2, 2), addr("A-in-2", 8, 5, 2)]),
+    };
+    a.areas.push({ index: 1, schools: [{ name: "S1b", izo: "600000003" }], addresses: [addr("A2", 2, 8)] });
+
+    const t = buildBigCityTables(
+      CITY, "1", [a], {}, districtPolygons, ctx(), new Map([[2, CITY]])
+    );
+
+    // district 1 split in two + district 2 as one okrsek of the first school
+    expect(t.okrsky).toHaveLength(3);
+    const s1 = t.skolaSko.find((s) => s.SKOLA_IZO === 600000001)!.SKO_KOD;
+    expect(t.skoKo.filter((l) => l.SKO_KOD === s1)).toHaveLength(2);
+  });
+
+  test("a whole-city founder's territory keeps districts no other founder tessellates", () => {
+    // the city founder lists only district 1 whole and reaches into district 2
+    // by street; district 2's polygon is in the run-wide map (another type
+    // named it) — it must not be subtracted from the city territory
+    const city = polygon([[B(0, 0), B(10, 0), B(10, 10), B(0, 10), B(0, 0)]]);
+    const leftover: Municipality = {
+      municipalityName: "Město",
+      code: CITY,
+      municipalityType: "city",
+      cityCodes: [CITY],
+      districtCodes: [1],
+      unmappedPoints: [],
+      areas: [
+        { index: 0, schools: [{ name: "S1", izo: "600000001" }], addresses: [addr("A1", 2, 5)] },
+        { index: 1, schools: [{ name: "S2", izo: "600000002" }], addresses: [addr("B1", 8, 5)] },
+      ],
+    };
+
+    const t = buildBigCityTables(
+      CITY, "1", [leftover], { [CITY]: featureCollection([city]) }, districtPolygons, ctx()
+    );
+
+    // two okrsky meeting at x=5, one seam, nothing cut out at district 2
+    expect(t.okrsky).toHaveLength(2);
+    expect(t.hrany).toHaveLength(1);
+  });
+
+  test("an unstamped address in another district (část obce line) is routed there too", () => {
+    const a: Municipality = district(1, "600000001", [addr("A1", 2, 2), addr("in-2", 8, 5)]);
+    a.areas.push({ index: 1, schools: [{ name: "S1b", izo: "600000003" }], addresses: [addr("A2", 2, 8)] });
+
+    const t = buildBigCityTables(
+      CITY, "1", [a], {}, districtPolygons, ctx(), new Map([[1, CITY], [2, CITY]])
+    );
+
+    expect(t.okrsky).toHaveLength(3);
+  });
 });

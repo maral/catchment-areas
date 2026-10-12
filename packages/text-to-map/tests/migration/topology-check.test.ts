@@ -1,6 +1,6 @@
 import { describe, expect, test } from "@jest/globals";
 import { Feature, MultiPolygon, Polygon } from "@turf/helpers";
-import { checkSeamTopology } from "../../src/migration/topology-check";
+import { areaM2, checkCoverage, checkSeamTopology } from "../../src/migration/topology-check";
 import { MigrationExport } from "../../src/migration/types";
 
 const B = (x: number, y: number): number[] => [14.4 + x * 0.01, 50.0 + y * 0.01];
@@ -79,3 +79,23 @@ describe("checkSeamTopology (local MI10)", () => {
     expect(checkSeamTopology(covered, boundaries(withExclave))).toEqual([]);
   });
 });
+
+describe("checkCoverage", () => {
+  test("flags okrsky that leave part of the obec uncovered, passes full cover", () => {
+    const obec = areaM2(square);
+    expect(checkCoverage(500001, "1", obec, square)).toBeUndefined();
+    expect(checkCoverage(500001, "1", obec * 0.88, square)).toMatch(/okrsky cover 88.0 %/);
+    expect(checkCoverage(500001, "M", obec * 1.2, square)).toMatch(/120.0 %/);
+  });
+
+  test("areaM2 is a sane metric area and subtracts holes", () => {
+    // 0.1° x 0.1° at 50°N ≈ 7.16 km x 11.06 km
+    expect(areaM2(square) / 1e6).toBeCloseTo(79.2, 0);
+    const holed: Feature<Polygon> = {
+      ...square,
+      geometry: { type: "Polygon", coordinates: [square.geometry.coordinates[0], [B(1, 1), B(6, 1), B(6, 6), B(1, 6), B(1, 1)]] },
+    };
+    expect(areaM2(holed) / areaM2(square)).toBeCloseTo(0.75, 2);
+  });
+});
+
