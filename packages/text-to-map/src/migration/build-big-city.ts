@@ -46,23 +46,24 @@ export const buildBigCityTables = (
   // 1. globalise area indexes across founders (extra pieces keep their home
   //    index, so cross-district okrsky resolve to the same obvod)
   let nextIndex = 0;
-  const indexed = districtMunicipalities.map((m) => ({
+  const globalised = districtMunicipalities.map((m) => ({
     ...m,
     areas: m.areas.map((area) => ({ ...area, index: nextIndex++ })),
   }));
 
   // 2. redistribute cross-district points to the district they fall in (§8 D1).
-  //    The parser stamps a foreign address only for street lines under another
-  //    district's header; "část obce" / "zbytek části obce" lines add other
-  //    districts' addresses unstamped (Bystrc's "zbytek části obce Kníničky"),
-  //    which then fell outside the founder's boundary and were clipped away.
-  //    Stamp them by where they actually lie first.
-  const globalised = stampForeignAddresses(
-    indexed,
-    cityObecKod,
-    cityPolygons,
-    districtPolygons,
-    parentCityByDistrict
+  //    An address the ordinance puts in another district without the parser
+  //    stamping it ("zbytek části obce Kníničky" in Bystrc's ZŠ) lies outside
+  //    its founder's boundary and gets clipped away — a data problem: report it.
+  ctx.problems?.push(
+    ...findUnstampedForeignAddresses(
+      globalised,
+      cityObecKod,
+      typeCode,
+      cityPolygons,
+      districtPolygons,
+      parentCityByDistrict
+    )
   );
   const extraAreas = getExtraAreas(globalised);
 
@@ -80,10 +81,9 @@ export const buildBigCityTables = (
     districtPolygons
   );
 
-  // 4. a district only other founders' cross-district pieces land in, with no
-  //    founder of its own for this type (Bystrc's ZŠ takes "zbytek části obce
-  //    Kníničky"; Kníničky founds only an MŠ) still needs tessellating — its
-  //    pieces used to be dropped, leaving the district without okrsky.
+  // 4. a district only other founders' (stamped) cross-district pieces land
+  //    in, with no founder of its own for this type, still needs tessellating
+  //    — its pieces used to be dropped, leaving the district without okrsky.
   const claimed = new Set(sharedInputs.claimants.flatMap((m) => m.districtCodes));
   const piecesOnly = [...extraAreas.keys()]
     .filter(
@@ -252,18 +252,20 @@ const pickPolygons = (
   );
 
 /**
- * Stamp every unstamped address lying outside its founder's own territory (but
- * inside another district of this city) with that district's code, so
- * `getExtraAreas` routes it there as a cross-district piece.
+ * Data check: addresses an ordinance assigns that lie outside their founder's
+ * own territory, inside another district of this city, without the
+ * cross-district stamp — they are clipped away instead of becoming a piece of
+ * that district. One problem per founder + district, with an example address.
  */
-const stampForeignAddresses = (
+const findUnstampedForeignAddresses = (
   municipalities: Municipality[],
   cityObecKod: number,
+  typeCode: SchoolTypeCode,
   cityPolygons: PolygonsByCodes,
   districtPolygons: PolygonsByCodes,
   parentCityByDistrict?: Map<number, number>
-): Municipality[] => {
-  if (!parentCityByDistrict) return municipalities;
+): string[] => {
+  if (!parentCityByDistrict) return [];
   const cityDistricts = Object.keys(districtPolygons)
     .map(Number)
     .filter((code) => parentCityByDistrict.get(code) === cityObecKod)
@@ -272,9 +274,10 @@ const stampForeignAddresses = (
       code,
       parts: polygonParts(districtBoundary(code, cityPolygons, districtPolygons)),
     }));
-  if (cityDistricts.length === 0) return municipalities;
+  if (cityDistricts.length === 0) return [];
 
-  return municipalities.map((m) => {
+  const problems: string[] = [];
+  for (const m of municipalities) {
     const others = municipalities
       .filter((other) => other !== m)
       .flatMap((other) => other.districtCodes);
@@ -283,24 +286,27 @@ const stampForeignAddresses = (
       cityPolygons,
       pickPolygons(districtPolygons, [...m.districtCodes, ...others])
     );
-    if (!own) return m;
+    if (!own) continue;
     const ownParts = polygonParts(own);
-    return {
-      ...m,
-      areas: m.areas.map((area) => ({
-        ...area,
-        addresses: area.addresses.map((a) => {
-          if (a.municipalityCode !== undefined || a.lat === null || a.lng === null) {
-            return a;
-          }
-          const p = [a.lng, a.lat];
-          if (inParts(p, ownParts)) return a;
-          const home = cityDistricts.find((d) => inParts(p, d.parts));
-          return home ? { ...a, municipalityCode: home.code } : a;
-        }),
-      })),
-    };
-  });
+    const byDistrict = new Map<number, string[]>();
+    for (const area of m.areas) {
+      for (const a of area.addresses) {
+        if (a.municipalityCode !== undefined || a.lat === null || a.lng === null) {
+          continue;
+        }
+        const p = [a.lng, a.lat];
+        if (inParts(p, ownParts)) continue;
+        const home = cityDistricts.find((d) => inParts(p, d.parts));
+        if (home) byDistrict.set(home.code, [...(byDistrict.get(home.code) ?? []), a.address]);
+      }
+    }
+    for (const [code, addresses] of byDistrict) {
+      problems.push(
+        `data: obec ${cityObecKod} typ ${typeCode}: ${m.municipalityName} assigns ${addresses.length} address(es) in district ${code} outside its own territory without a district header — clipped away (e.g. "${addresses[0]}")`
+      );
+    }
+  }
+  return problems;
 };
 
 interface PolygonPart {

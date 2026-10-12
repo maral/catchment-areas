@@ -286,6 +286,7 @@ export const assembleExport = (
       allocId,
       gradesByIzo: grades,
       cisloStart,
+      problems,
     };
 
     let tables: ObecTables;

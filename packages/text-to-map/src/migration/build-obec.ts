@@ -44,6 +44,8 @@ export interface ObecBuildContext {
    * `assembleExport`'s `cisloStartByObec`).
    */
   cisloStart?: number;
+  /** sink for data problems found while building (reported, never worked around) */
+  problems?: string[];
 }
 
 const GRADE_BANDS: Record<SchoolTypeCode, number[]> = {

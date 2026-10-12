@@ -145,14 +145,17 @@ describe("buildBigCityTables", () => {
     expect(t.hrany).toHaveLength(1);
   });
 
-  test("an unstamped address in another district (část obce line) is routed there too", () => {
+  test("an unstamped address in another district is reported as a data problem, not rerouted", () => {
     const a: Municipality = district(1, "600000001", [addr("A1", 2, 2), addr("in-2", 8, 5)]);
     a.areas.push({ index: 1, schools: [{ name: "S1b", izo: "600000003" }], addresses: [addr("A2", 2, 8)] });
+    const problems: string[] = [];
 
     const t = buildBigCityTables(
-      CITY, "1", [a], {}, districtPolygons, ctx(), new Map([[1, CITY], [2, CITY]])
+      CITY, "1", [a], {}, districtPolygons, { ...ctx(), problems }, new Map([[1, CITY], [2, CITY]])
     );
 
-    expect(t.okrsky).toHaveLength(3);
+    expect(t.okrsky).toHaveLength(2);
+    expect(problems).toHaveLength(1);
+    expect(problems[0]).toMatch(/assigns 1 address\(es\) in district 2 .* "in-2"/);
   });
 });

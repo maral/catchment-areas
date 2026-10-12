@@ -333,9 +333,11 @@ benefits (no white gaps, simpler shapes); export re-tags to one obec.
   - *Brno-Kníničky* — Bystrc's ZŠ takes "zbytek části obce Kníničky", but the parser stamps an
     address with its district only for street lines under a district header; these came
     unstamped, fell outside Bystrc's boundary and were clipped. Kníničky founds no ZŠ, so the
-    district had no okrsek at all. The export now re-stamps any address lying outside its
-    founder's own territory into the district it is in, and a district reached only by such
-    pieces gets its own Voronoi input (all districts of a pooled city are fetched for this).
+    district had no okrsek at all. **That's a data problem** (fixed in the SMD): the export
+    now *reports* any address lying outside its founder's own territory in another district
+    of the city ("data: … clipped away"), rather than rerouting it. Code fix kept: a district
+    reached only by properly stamped pieces, with no founder of its own for the type, gets its
+    own Voronoi input (all districts of a pooled city are fetched for this).
   - *Liberec* — the carve-out above briefly dropped a whole-city founder (empty
     `districtCodes`) entirely; caught by the coverage check, fixed before delivery.
   - **Coverage check**: per tessellated obec+type, total okrsek area vs the RÚIAN obec area
