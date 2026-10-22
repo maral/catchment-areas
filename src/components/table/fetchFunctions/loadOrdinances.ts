@@ -11,10 +11,14 @@ export async function loadOrdinancesByCityCode(
 ): Promise<Ordinance[]> {
   const city = await remult.repo(City).findFirst({ code: cityCode });
 
-  return await ordinancesRepo.find({
+  const ordinances = await ordinancesRepo.find({
     where: { city, schoolType },
     orderBy: { validFrom: "desc" },
   });
+  // the city's own geodata first
+  return ordinances.sort(
+    (a, b) => Number(Boolean(b.externalData)) - Number(Boolean(a.externalData))
+  );
 }
 
 export function serializeOrdinances(ordinances: Ordinance[]): any[] {

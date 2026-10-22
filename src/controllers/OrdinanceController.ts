@@ -30,24 +30,36 @@ export class OrdinanceController {
       return;
     }
 
-    // deactivate all active ordinances
-    const activeOrdinances = cityOrdinances.filter(
-      (ordinance) => ordinance.isActive
-    );
-    if (activeOrdinances.length) {
-      activeOrdinances.forEach(async (ordinance) => {
-        await ordinanceRepo.save({ ...ordinance, isActive: false });
-      });
-    }
     // find valid ordinances
     const validOrdinances = cityOrdinances.filter((ordinance) =>
       ordinance.validFrom <= new Date() && ordinance.validTo
         ? ordinance.validTo >= new Date()
         : true
     );
-    if (validOrdinances.length > 0) {
+    // an ordinance from the city's own geodata is only ever activated by hand;
+    // once active, it stays so until a newer regular ordinance comes
+    const regularOrdinances = validOrdinances.filter(
+      (ordinance) => !ordinance.externalData
+    );
+    const activeExternal = validOrdinances.find(
+      (ordinance) => ordinance.isActive && ordinance.externalData
+    );
+    const toActivate =
+      activeExternal &&
+      (regularOrdinances.length === 0 ||
+        regularOrdinances[0].validFrom <= activeExternal.validFrom)
+        ? activeExternal
+        : regularOrdinances[0];
+
+    // deactivate all other active ordinances
+    for (const ordinance of cityOrdinances) {
+      if (ordinance.isActive && ordinance.id !== toActivate?.id) {
+        await ordinanceRepo.save({ ...ordinance, isActive: false });
+      }
+    }
+    if (toActivate) {
       // activate the first valid ordinance
-      await ordinanceRepo.save({ ...validOrdinances[0], isActive: true });
+      await ordinanceRepo.save({ ...toActivate, isActive: true });
       // set city status to InProgress
       if (
         city &&

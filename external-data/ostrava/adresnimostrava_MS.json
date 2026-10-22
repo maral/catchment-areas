@@ -1,0 +1,936 @@
+{
+  "displayFieldName": "",
+  "fieldAliases": {
+    "OBJECTID": "OBJECTID",
+    "název_obce": "název_obce",
+    "index_oblasti": "index_oblasti",
+    "název_školy": "název_školy",
+    "IZO": "IZO",
+    "adresa": "adresa"
+  },
+  "geometryType": "esriGeometryPoint",
+  "spatialReference": {
+    "wkid": 4326,
+    "latestWkid": 4326
+  },
+  "fields": [
+    {
+      "name": "OBJECTID",
+      "type": "esriFieldTypeOID",
+      "alias": "OBJECTID"
+    },
+    {
+      "name": "název_obce",
+      "type": "esriFieldTypeString",
+      "alias": "název_obce",
+      "length": 2000000000
+    },
+    {
+      "name": "index_oblasti",
+      "type": "esriFieldTypeDouble",
+      "alias": "index_oblasti"
+    },
+    {
+      "name": "název_školy",
+      "type": "esriFieldTypeString",
+      "alias": "název_školy",
+      "length": 2000000000
+    },
+    {
+      "name": "IZO",
+      "type": "esriFieldTypeString",
+      "alias": "IZO",
+      "length": 2000000000
+    },
+    {
+      "name": "adresa",
+      "type": "esriFieldTypeString",
+      "alias": "adresa",
+      "length": 2000000000
+    }
+  ],
+  "features": [
+    {
+      "attributes": {
+        "OBJECTID": 1,
+        "název_obce": "Statutární město Ostrava, Městský obvod Poruba",
+        "index_oblasti": 0,
+        "název_školy": "Mateřská škola Čtyřlístek, Ostrava-Poruba, Skautská 1082, příspěvková organizace",
+        "IZO": "107630001",
+        "adresa": "Skautská 1082/60, Poruba, 70800 Ostrava"
+      },
+      "geometry": {
+        "x": 18.177212000000054,
+        "y": 49.82380000000006
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 2,
+        "název_obce": "Statutární město Ostrava, Městský obvod Poruba",
+        "index_oblasti": 0,
+        "název_školy": "Mateřská škola, Ostrava-Poruba, Čs. exilu 670, příspěvková organizace",
+        "IZO": "107630567",
+        "adresa": "Čs. exilu 670/18, Poruba, 70800 Ostrava"
+      },
+      "geometry": {
+        "x": 18.167490000000043,
+        "y": 49.825180000000046
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 3,
+        "název_obce": "Statutární město Ostrava, Městský obvod Poruba",
+        "index_oblasti": 0,
+        "název_školy": "Mateřská škola, Ostrava-Poruba, Dětská 920, příspěvková organizace",
+        "IZO": "107629941",
+        "adresa": "Dětská 920/5, Poruba, 70800 Ostrava"
+      },
+      "geometry": {
+        "x": 18.178459000000032,
+        "y": 49.82956600000006
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 4,
+        "název_obce": "Statutární město Ostrava, Městský obvod Poruba",
+        "index_oblasti": 0,
+        "název_školy": "Mateřská škola, Ostrava-Poruba, Dvorní 763, příspěvková organizace",
+        "IZO": "107629950",
+        "adresa": "Dvorní 763/19, Poruba, 70800 Ostrava"
+      },
+      "geometry": {
+        "x": 18.16668500000003,
+        "y": 49.832070000000044
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 5,
+        "název_obce": "Statutární město Ostrava, Městský obvod Poruba",
+        "index_oblasti": 0,
+        "název_školy": "Mateřská škola, Ostrava-Poruba, Jana Šoupala 1611, příspěvková organizace",
+        "IZO": "107630745",
+        "adresa": "Jana Šoupala 1611/2, Poruba, 70800 Ostrava"
+      },
+      "geometry": {
+        "x": 18.174694000000045,
+        "y": 49.84255200000007
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 6,
+        "název_obce": "Statutární město Ostrava, Městský obvod Poruba",
+        "index_oblasti": 0,
+        "název_školy": "Mateřská škola, Ostrava-Poruba, Nezvalovo nám. 856, příspěvková organizace",
+        "IZO": "107630036",
+        "adresa": "Nezvalovo náměstí 856/1, Poruba, 70800 Ostrava"
+      },
+      "geometry": {
+        "x": 18.178711000000078,
+        "y": 49.827964000000065
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 7,
+        "název_obce": "Statutární město Ostrava, Městský obvod Poruba",
+        "index_oblasti": 0,
+        "název_školy": "Mateřská škola, Ostrava-Poruba, Oty Synka 1834, příspěvková organizace",
+        "IZO": "107630044",
+        "adresa": "Oty Synka 1834/10, Poruba, 70800 Ostrava"
+      },
+      "geometry": {
+        "x": 18.160007000000064,
+        "y": 49.84612400000003
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 8,
+        "název_obce": "Statutární město Ostrava, Městský obvod Poruba",
+        "index_oblasti": 0,
+        "název_školy": "Mateřská škola, Ostrava-Poruba, Sokolovská 1168, příspěvková organizace",
+        "IZO": "107630541",
+        "adresa": "Sokolovská 1168/8, Poruba, 70800 Ostrava"
+      },
+      "geometry": {
+        "x": 18.17729600000007,
+        "y": 49.83348100000006
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 9,
+        "název_obce": "Statutární město Ostrava, Městský obvod Poruba",
+        "index_oblasti": 0,
+        "název_školy": "Mateřská škola, Ostrava-Poruba, Ukrajinská 1530-1531, příspěvková organizace",
+        "IZO": "107630800",
+        "adresa": "Ukrajinská 1530/4, Poruba, 70800 Ostrava"
+      },
+      "geometry": {
+        "x": 18.191666000000055,
+        "y": 49.827162000000044
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 10,
+        "název_obce": "Statutární město Ostrava, Městský obvod Poruba",
+        "index_oblasti": 0,
+        "název_školy": "Mateřská škola, Ostrava-Poruba, V. Makovského 4429, příspěvková organizace",
+        "IZO": "107630761",
+        "adresa": "Vincence Makovského 4429/8, Poruba, 70800 Ostrava"
+      },
+      "geometry": {
+        "x": 18.165194000000042,
+        "y": 49.83914400000003
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 11,
+        "název_obce": "Statutární město Ostrava, Městský obvod Petřkovice",
+        "index_oblasti": 1,
+        "název_školy": "Mateřská škola Ostrava-Petřkovice, U Kaple 670, příspěvková organizace",
+        "IZO": "107629887",
+        "adresa": "U Kaple 670, Petřkovice, 72529 Ostrava"
+      },
+      "geometry": {
+        "x": 18.257179000000065,
+        "y": 49.87289300000003
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 12,
+        "název_obce": "Statutární město Ostrava, Městský obvod Hošťálkovice",
+        "index_oblasti": 2,
+        "název_školy": "Základní škola a mateřská škola Ostrava-Hošťálkovice, Výhledy 210, příspěvková organizace",
+        "IZO": "107629607",
+        "adresa": "Výhledy 367, Hošťálkovice, 72528 Ostrava"
+      },
+      "geometry": {
+        "x": 18.21143100000006,
+        "y": 49.84700000000004
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 14,
+        "název_obce": "Statutární město Ostrava, Městský obvod Ostrava-Jih",
+        "index_oblasti": 3,
+        "název_školy": "Mateřská škola Ostrava-Dubina, A. Gavlase 12A, příspěvková organizace",
+        "IZO": "103144706",
+        "adresa": "Aloise Gavlase 182/12a, Dubina, 70030 Ostrava"
+      },
+      "geometry": {
+        "x": 18.254147000000046,
+        "y": 49.77776700000004
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 15,
+        "název_obce": "Statutární město Ostrava, Městský obvod Ostrava-Jih",
+        "index_oblasti": 3,
+        "název_školy": "Mateřská škola Ostrava-Dubina, F. Formana 13, příspěvková organizace",
+        "IZO": "108034101",
+        "adresa": "Františka Formana 251/13, Dubina, 70030 Ostrava"
+      },
+      "geometry": {
+        "x": 18.25062900000006,
+        "y": 49.773716000000036
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 16,
+        "název_obce": "Statutární město Ostrava, Městský obvod Ostrava-Jih",
+        "index_oblasti": 3,
+        "název_školy": "Mateřská škola Jubilejní Ostrava-Hrabůvka, příspěvková organizace",
+        "IZO": "107630443",
+        "adresa": "Adamusova 1041/7, Hrabůvka, 70030 Ostrava"
+      },
+      "geometry": {
+        "x": 18.262692000000072,
+        "y": 49.788965000000076
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 17,
+        "název_obce": "Statutární město Ostrava, Městský obvod Ostrava-Jih",
+        "index_oblasti": 3,
+        "název_školy": "Mateřská škola Odra Ostrava-Výškovice, příspěvková organizace",
+        "IZO": "107630826",
+        "adresa": "Staňkova 156/33, Výškovice, 70030 Ostrava"
+      },
+      "geometry": {
+        "x": 18.22680500000007,
+        "y": 49.78127500000005
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 18,
+        "název_obce": "Statutární město Ostrava, Městský obvod Ostrava-Jih",
+        "index_oblasti": 3,
+        "název_školy": "Mateřská škola Ostrava-Zábřeh, Volgogradská 4, příspěvková organizace",
+        "IZO": "107630923",
+        "adresa": "Volgogradská 2613/4, Zábřeh, 70030 Ostrava"
+      },
+      "geometry": {
+        "x": 18.22881300000006,
+        "y": 49.79290700000007
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 19,
+        "název_obce": "Statutární město Ostrava, Městský obvod Ostrava-Jih",
+        "index_oblasti": 3,
+        "název_školy": "Mateřská škola Pískové doly Ostrava-Zábřeh, příspěvková organizace",
+        "IZO": "107630303",
+        "adresa": "Za Školou 2851/1, Zábřeh, 70030 Ostrava"
+      },
+      "geometry": {
+        "x": 18.241633000000036,
+        "y": 49.80138400000004
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 20,
+        "název_obce": "Statutární město Ostrava, Městský obvod Ostrava-Jih",
+        "index_oblasti": 3,
+        "název_školy": "Základní škola a mateřská škola Ostrava-Bělský Les, B. Dvorského 1, příspěvková organizace",
+        "IZO": "108024911",
+        "adresa": "Bohumíra Dvorského 1009/2, Bělský Les, 70030 Ostrava"
+      },
+      "geometry": {
+        "x": 18.24737600000003,
+        "y": 49.78099100000003
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 21,
+        "název_obce": "Statutární město Ostrava, Městský obvod Ostrava-Jih",
+        "index_oblasti": 3,
+        "název_školy": "Základní škola a mateřská škola Ostrava-Dubina, V. Košaře 6, příspěvková organizace",
+        "IZO": "130000281",
+        "adresa": "Jana Maluchy 267/105, Dubina, 70030 Ostrava"
+      },
+      "geometry": {
+        "x": 18.260640000000024,
+        "y": 49.776891000000035
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 22,
+        "název_obce": "Statutární město Ostrava, Městský obvod Ostrava-Jih",
+        "index_oblasti": 3,
+        "název_školy": "Základní škola a mateřská škola Ostrava-Hrabůvka, A. Kučery 20, příspěvková organizace",
+        "IZO": "107630435",
+        "adresa": "Alberta Kučery 1312/31, Hrabůvka, 70030 Ostrava"
+      },
+      "geometry": {
+        "x": 18.258020000000045,
+        "y": 49.78123300000004
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 23,
+        "název_obce": "Statutární město Ostrava, Městský obvod Ostrava-Jih",
+        "index_oblasti": 3,
+        "název_školy": "Základní škola a mateřská škola Ostrava-Hrabůvka, Krestova 36A, příspěvková organizace",
+        "IZO": "107629658",
+        "adresa": "Ignáta Herrmanna 1550/23, Hrabůvka, 70030 Ostrava"
+      },
+      "geometry": {
+        "x": 18.268470000000036,
+        "y": 49.78351100000003
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 24,
+        "název_obce": "Statutární město Ostrava, Městský obvod Ostrava-Jih",
+        "index_oblasti": 3,
+        "název_školy": "Základní škola a mateřská škola, Ostrava-Hrabůvka, Mitušova 16, příspěvková organizace",
+        "IZO": "107630729",
+        "adresa": "Mitušova 1507/90, Hrabůvka, 70030 Ostrava"
+      },
+      "geometry": {
+        "x": 18.253684000000078,
+        "y": 49.785866000000055
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 28,
+        "název_obce": "Statutární město Ostrava, Městský obvod Ostrava-Jih",
+        "index_oblasti": 3,
+        "název_školy": "Základní škola a mateřská škola Ostrava-Zábřeh, Kosmonautů, příspěvková organizace",
+        "IZO": "107630273",
+        "adresa": "Patrice Lumumby 2431/25, Zábřeh, 70030 Ostrava"
+      },
+      "geometry": {
+        "x": 18.236482000000024,
+        "y": 49.785446000000036
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 29,
+        "název_obce": "Statutární město Ostrava, Městský obvod Ostrava-Jih",
+        "index_oblasti": 3,
+        "název_školy": "Základní škola a mateřská škola Ostrava-Zábřeh, Volgogradská 6B, příspěvková organizace",
+        "IZO": "107630915",
+        "adresa": "Výškovická 2609/120a, Zábřeh, 70030 Ostrava"
+      },
+      "geometry": {
+        "x": 18.22438100000005,
+        "y": 49.79014200000006
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 30,
+        "název_obce": "Statutární město Ostrava, Městský obvod Hrabová",
+        "index_oblasti": 4,
+        "název_školy": "Mateřská škola Klubíčko, Ostrava - Hrabová, Bažanova 6, příspěvková organizace",
+        "IZO": "107629615",
+        "adresa": "Bažanova 1106/6, Hrabová, 72000 Ostrava"
+      },
+      "geometry": {
+        "x": 18.28017200000005,
+        "y": 49.776129000000026
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 31,
+        "název_obce": "Statutární město Ostrava, Městský obvod Krásné Pole",
+        "index_oblasti": 5,
+        "název_školy": "Základní škola a Mateřská škola Ostrava-Krásné Pole, Družební 336, příspěvková organizace",
+        "IZO": "107629739",
+        "adresa": "Sklopčická 796, Krásné Pole, 72526 Ostrava"
+      },
+      "geometry": {
+        "x": 18.121696000000043,
+        "y": 49.841913000000034
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 32,
+        "název_obce": "Statutární město Ostrava, Městský obvod Polanka nad Odrou",
+        "index_oblasti": 6,
+        "název_školy": "Základní škola a mateřská škola Polanka nad Odrou, příspěvková organizace",
+        "IZO": "107630737",
+        "adresa": "Malostranská 124/28, Polanka nad Odrou, 72525 Ostrava"
+      },
+      "geometry": {
+        "x": 18.16281300000003,
+        "y": 49.786988000000065
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 33,
+        "název_obce": "Statutární město Ostrava, Městský obvod Svinov",
+        "index_oblasti": 7,
+        "název_školy": "Základní škola a mateřská škola Ostrava-Svinov, příspěvková organizace",
+        "IZO": "107630788",
+        "adresa": "Evžena Rošického 1082/22, Svinov, 72100 Ostrava"
+      },
+      "geometry": {
+        "x": 18.188731000000075,
+        "y": 49.81902500000007
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 34,
+        "název_obce": "Statutární město Ostrava, Městský obvod Lhotka",
+        "index_oblasti": 8,
+        "název_školy": "Základní škola a mateřská škola Ostrava-Lhotka, příspěvková organizace",
+        "IZO": "107629771",
+        "adresa": "Kalinová 295/4b, Lhotka, 72528 Ostrava"
+      },
+      "geometry": {
+        "x": 18.226131000000066,
+        "y": 49.861181000000045
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 35,
+        "název_obce": "Statutární město Ostrava, Městský obvod Proskovice",
+        "index_oblasti": 9,
+        "název_školy": "Základní škola a Mateřská škola Ostrava - Proskovice, Staroveská 62, příspěvková organizace",
+        "IZO": "107630125",
+        "adresa": "Buková 245/2, Proskovice, 72400 Ostrava"
+      },
+      "geometry": {
+        "x": 18.202161000000046,
+        "y": 49.754166000000055
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 36,
+        "název_obce": "Statutární město Ostrava, Městský obvod Moravská Ostrava a Přívoz",
+        "index_oblasti": 10,
+        "název_školy": "Mateřská škola Ostrava, Blahoslavova 6, příspěvková organizace",
+        "IZO": "107630311",
+        "adresa": "Blahoslavova 1594/6, Moravská Ostrava, 70200 Ostrava"
+      },
+      "geometry": {
+        "x": 18.28971400000006,
+        "y": 49.843800000000044
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 37,
+        "název_obce": "Statutární město Ostrava, Městský obvod Moravská Ostrava a Přívoz",
+        "index_oblasti": 10,
+        "název_školy": "Mateřská škola Ostrava, Dvořákova 4, příspěvková organizace",
+        "IZO": "107630320",
+        "adresa": "Dvořákova 1037/4, Moravská Ostrava, 70200 Ostrava"
+      },
+      "geometry": {
+        "x": 18.288338000000067,
+        "y": 49.837965000000054
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 38,
+        "název_obce": "Statutární město Ostrava, Městský obvod Moravská Ostrava a Přívoz",
+        "index_oblasti": 10,
+        "název_školy": "Mateřská škola Ostrava, Hornická 43A, příspěvková organizace",
+        "IZO": "107630656",
+        "adresa": "Hornická 2679/43a, Moravská Ostrava, 70200 Ostrava"
+      },
+      "geometry": {
+        "x": 18.271427000000074,
+        "y": 49.82636400000007
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 39,
+        "název_obce": "Statutární město Ostrava, Městský obvod Moravská Ostrava a Přívoz",
+        "index_oblasti": 10,
+        "název_školy": "Mateřská škola Ostrava, Křižíkova 18, příspěvková organizace",
+        "IZO": "107630354",
+        "adresa": "Křižíkova 2813/18, Moravská Ostrava, 70200 Ostrava"
+      },
+      "geometry": {
+        "x": 18.28312200000005,
+        "y": 49.84577600000006
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 40,
+        "název_obce": "Statutární město Ostrava, Městský obvod Moravská Ostrava a Přívoz",
+        "index_oblasti": 10,
+        "název_školy": "Mateřská škola Ostrava, Lechowiczova 8, příspěvková organizace",
+        "IZO": "107629577",
+        "adresa": "Lechowiczova 3110/8, Moravská Ostrava, 70200 Ostrava"
+      },
+      "geometry": {
+        "x": 18.264132000000075,
+        "y": 49.83956100000006
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 41,
+        "název_obce": "Statutární město Ostrava, Městský obvod Moravská Ostrava a Přívoz",
+        "index_oblasti": 10,
+        "název_školy": "Mateřská škola Ostrava, Na Jízdárně 19a, příspěvková organizace",
+        "IZO": "107630389",
+        "adresa": "Na Jízdárně 2807/19a, Moravská Ostrava, 70200 Ostrava"
+      },
+      "geometry": {
+        "x": 18.273071000000073,
+        "y": 49.82811300000003
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 42,
+        "název_obce": "Statutární město Ostrava, Městský obvod Moravská Ostrava a Přívoz",
+        "index_oblasti": 10,
+        "název_školy": "Mateřská škola Ostrava, Poděbradova 19, příspěvková organizace",
+        "IZO": "107630397",
+        "adresa": "Poděbradova 1103/19, Moravská Ostrava, 70200 Ostrava"
+      },
+      "geometry": {
+        "x": 18.284286000000066,
+        "y": 49.834734000000026
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 43,
+        "název_obce": "Statutární město Ostrava, Městský obvod Moravská Ostrava a Přívoz",
+        "index_oblasti": 10,
+        "název_školy": "Mateřská škola Ostrava, Repinova 19, příspěvková organizace",
+        "IZO": "102832684",
+        "adresa": "Repinova 3043/19, Moravská Ostrava, 70200 Ostrava"
+      },
+      "geometry": {
+        "x": 18.27729800000003,
+        "y": 49.84758900000003
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 44,
+        "název_obce": "Statutární město Ostrava, Městský obvod Moravská Ostrava a Přívoz",
+        "index_oblasti": 10,
+        "název_školy": "Mateřská škola Ostrava, Šafaříkova 9, příspěvková organizace",
+        "IZO": "107630095",
+        "adresa": "Šafaříkova 1050/9, Přívoz, 70200 Ostrava"
+      },
+      "geometry": {
+        "x": 18.274317000000053,
+        "y": 49.852865000000065
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 45,
+        "název_obce": "Statutární město Ostrava, Městský obvod Moravská Ostrava a Přívoz",
+        "index_oblasti": 10,
+        "název_školy": "Mateřská škola Ostrava, Špálova 32, příspěvková organizace",
+        "IZO": "102832994",
+        "adresa": "Špálova 1073/32, Přívoz, 70200 Ostrava"
+      },
+      "geometry": {
+        "x": 18.276069000000064,
+        "y": 49.85182300000008
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 46,
+        "název_obce": "Statutární město Ostrava, Městský obvod Moravská Ostrava a Přívoz",
+        "index_oblasti": 10,
+        "název_školy": "Mateřská škola Ostrava, Varenská 2a, příspěvková organizace",
+        "IZO": "107630699",
+        "adresa": "Varenská 2977/2a, Moravská Ostrava, 70200 Ostrava"
+      },
+      "geometry": {
+        "x": 18.272674000000052,
+        "y": 49.836239000000035
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 47,
+        "název_obce": "Statutární město Ostrava, Městský obvod Moravská Ostrava a Přívoz",
+        "index_oblasti": 10,
+        "název_školy": "Waldorfská základní škola a mateřská škola Ostrava, příspěvková organizace",
+        "IZO": "181048230",
+        "adresa": "Na Mlýnici 611/36, Přívoz, 70200 Ostrava"
+      },
+      "geometry": {
+        "x": 18.269696000000067,
+        "y": 49.85663600000004
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 48,
+        "název_obce": "Statutární město Ostrava, Městský obvod Moravská Ostrava a Přívoz",
+        "index_oblasti": 10,
+        "název_školy": "Základní škola a mateřská škola Ostrava, Ostrčilova 10, příspěvková organizace",
+        "IZO": "107630346",
+        "adresa": "Josefa Lady 2805/6, Moravská Ostrava, 70200 Ostrava"
+      },
+      "geometry": {
+        "x": 18.284875000000056,
+        "y": 49.84328000000005
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 49,
+        "název_obce": "Statutární město Ostrava, Městský obvod Nová Bělá",
+        "index_oblasti": 11,
+        "název_školy": "Mateřská škola Ostrava-Nová Bělá, Na Pláni 2, příspěvková organizace",
+        "IZO": "107629861",
+        "adresa": "Na Pláni 609/2, Nová Bělá, 72400 Ostrava"
+      },
+      "geometry": {
+        "x": 18.261701000000073,
+        "y": 49.74903400000005
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 50,
+        "název_obce": "Statutární město Ostrava, Městský obvod Stará Bělá",
+        "index_oblasti": 12,
+        "název_školy": "Mateřská škola Ostrava-Stará Bělá, příspěvková organizace",
+        "IZO": "107630150",
+        "adresa": "Blanická 154/180, Stará Bělá, 72400 Ostrava"
+      },
+      "geometry": {
+        "x": 18.236766000000046,
+        "y": 49.762807000000066
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 52,
+        "název_obce": "Statutární město Ostrava, Městský obvod Slezská Ostrava",
+        "index_oblasti": 13,
+        "název_školy": "Mateřská škola Slezská Ostrava I, příspěvková organizace",
+        "IZO": "181027381",
+        "adresa": "Komerční 704/22a, Muglinov, 71200 Ostrava"
+      },
+      "geometry": {
+        "x": 18.29902100000004,
+        "y": 49.85036700000006
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 53,
+        "název_obce": "Statutární město Ostrava, Městský obvod Slezská Ostrava",
+        "index_oblasti": 13,
+        "název_školy": "Mateřská škola Slezská Ostrava II, příspěvková organizace",
+        "IZO": "107629593",
+        "adresa": "Požární 61/8, Heřmanice, 71300 Ostrava"
+      },
+      "geometry": {
+        "x": 18.33146000000005,
+        "y": 49.859646000000055
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 55,
+        "název_obce": "Statutární město Ostrava, Městský obvod Vítkovice",
+        "index_oblasti": 14,
+        "název_školy": "Mateřská škola Ostrava-Vítkovice, Prokopa Velikého 37, příspěvková organizace",
+        "IZO": "107630206",
+        "adresa": "Prokopa Velikého 425/37, Vítkovice, 70300 Ostrava"
+      },
+      "geometry": {
+        "x": 18.268320000000074,
+        "y": 49.81288100000006
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 56,
+        "název_obce": "Statutární město Ostrava, Městský obvod Mariánské Hory a Hulváky",
+        "index_oblasti": 15,
+        "název_školy": "Mateřská škola Ostrava - Mariánské Hory, Gen. Janka 1/1236, příspěvková organizace",
+        "IZO": "107630427",
+        "adresa": "Gen. Janka 1236, Mariánské Hory, 70900 Ostrava"
+      },
+      "geometry": {
+        "x": 18.257108000000073,
+        "y": 49.83523400000007
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 57,
+        "název_obce": "Statutární město Ostrava, Městský obvod Mariánské Hory a Hulváky",
+        "index_oblasti": 15,
+        "název_školy": "Mateřská škola U Dvoru, příspěvková organizace",
+        "IZO": "108024920",
+        "adresa": "U Dvoru 1255/22, Mariánské Hory, 70900 Ostrava"
+      },
+      "geometry": {
+        "x": 18.255011000000025,
+        "y": 49.83369400000004
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 58,
+        "název_obce": "Statutární město Ostrava, Městský obvod Mariánské Hory a Hulváky",
+        "index_oblasti": 15,
+        "název_školy": "Mateřská škola Zelená 73/A, příspěvková organizace",
+        "IZO": "120100754",
+        "adresa": "Zelená 1258/73a, Mariánské Hory, 70900 Ostrava"
+      },
+      "geometry": {
+        "x": 18.26411100000007,
+        "y": 49.82485400000007
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 59,
+        "název_obce": "Statutární město Ostrava, Městský obvod Michálkovice",
+        "index_oblasti": 16,
+        "název_školy": "Mateřská škola, Ostrava-Michálkovice, Sládečkova 80, příspěvková organizace",
+        "IZO": "107629810",
+        "adresa": "Sládečkova 633/80, Michálkovice, 71500 Ostrava"
+      },
+      "geometry": {
+        "x": 18.343939000000034,
+        "y": 49.83910700000007
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 60,
+        "název_obce": "Statutární město Ostrava, Městský obvod Radvanice a Bartovice",
+        "index_oblasti": 17,
+        "název_školy": "Mateřská škola Ostrava-Bartovice, Za Ještěrkou 8, příspěvková organizace",
+        "IZO": "107630851",
+        "adresa": "Za Ještěrkou 507/8, Bartovice, 71700 Ostrava"
+      },
+      "geometry": {
+        "x": 18.359920000000045,
+        "y": 49.79777000000007
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 61,
+        "název_obce": "Statutární město Ostrava, Městský obvod Radvanice a Bartovice",
+        "index_oblasti": 17,
+        "název_školy": "Mateřská škola Ostrava-Radvanice, Těšínská 279, příspěvková organizace",
+        "IZO": "102832871",
+        "adresa": "Těšínská 206/279, Radvanice, 71600 Ostrava"
+      },
+      "geometry": {
+        "x": 18.334660000000042,
+        "y": 49.81688400000007
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 62,
+        "název_obce": "Statutární město Ostrava, Městský obvod Plesná",
+        "index_oblasti": 19,
+        "název_školy": "Mateřská škola Ostrava-Plesná - příspěvková organizace",
+        "IZO": "107629895",
+        "adresa": "Dobroslavická 42/4, Plesná, 72527 Ostrava"
+      },
+      "geometry": {
+        "x": 18.148529000000053,
+        "y": 49.86246300000005
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 63,
+        "název_obce": "Statutární město Ostrava, Městský obvod Martinov",
+        "index_oblasti": 18,
+        "název_školy": "Mateřská škola Ostrava - Martinov, příspěvková organizace",
+        "IZO": "107630478",
+        "adresa": "Martinovská 3154/23, Martinov, 72300 Ostrava"
+      },
+      "geometry": {
+        "x": 18.180787000000066,
+        "y": 49.85462600000005
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 64,
+        "název_obce": "Statutární město Ostrava, Městský obvod Ostrava-Jih",
+        "index_oblasti": 3,
+        "název_školy": "Mateřská škola Harmonie Ostrava-Hrabůvka, Zlepšovatelů 27, příspěvková organizace",
+        "IZO": "102832641",
+        "adresa": "Zlepšovatelů 1502/27, Hrabůvka, 70030 Ostrava"
+      },
+      "geometry": {
+        "x": 18.258152,
+        "y": 49.792364
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 65,
+        "název_obce": "Statutární město Ostrava, Městský obvod Ostrava-Jih",
+        "index_oblasti": 3,
+        "název_školy": "Základní škola a mateřská škola Ostrava-Výškovice, Šeříková 33, příspěvková organizace",
+        "IZO": "107630231",
+        "adresa": "Předškolní 642/1, Výškovice, 70030 Ostrava"
+      },
+      "geometry": {
+        "x": 18.221238,
+        "y": 49.780404
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 66,
+        "název_obce": "Statutární město Ostrava, Městský obvod Ostrava-Jih",
+        "index_oblasti": 3,
+        "název_školy": "Základní škola a mateřská škola Ostrava-Zábřeh, Březinova 52, příspěvková organizace",
+        "IZO": "107630281",
+        "adresa": "Mozartova 1477/9, Zábřeh, 70030 Ostrava"
+      },
+      "geometry": {
+        "x": 18.257581,
+        "y": 49.796544
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 67,
+        "název_obce": "Statutární město Ostrava, Městský obvod Ostrava-Jih",
+        "index_oblasti": 3,
+        "název_školy": "Základní škola a mateřská škola, Ostrava-Zábřeh, Horymírova 100, příspěvková organizace",
+        "IZO": "102844658",
+        "adresa": "Rezkova 2994/14, Zábřeh, 70030 Ostrava"
+      },
+      "geometry": {
+        "x": 18.2344,
+        "y": 49.806737
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 68,
+        "název_obce": "Statutární město Ostrava, Městský obvod Slezská Ostrava",
+        "index_oblasti": 13,
+        "název_školy": "Mateřská škola Slezská Ostrava, Bohumínská 68, příspěvková organizace",
+        "IZO": "181027356",
+        "adresa": "Nástupní 146/19, Kunčičky, 71800 Ostrava"
+      },
+      "geometry": {
+        "x": 18.29625,
+        "y": 49.810267
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 69,
+        "název_obce": "Statutární město Ostrava, Městský obvod Slezská Ostrava",
+        "index_oblasti": 13,
+        "název_školy": "Mateřská škola Slezská Ostrava, Zámostní 31, příspěvková organizace",
+        "IZO": "181069521",
+        "adresa": "Zámostní 1126/31, Slezská Ostrava, 71000 Ostrava"
+      },
+      "geometry": {
+        "x": 18.298799,
+        "y": 49.84032
+      }
+    }
+  ]
+}
