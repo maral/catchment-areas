@@ -56,10 +56,27 @@ export const createMarkers = ({
   const schoolColors: Record<string, string> = {};
   const addressLayerGroupsMap: Record<string, AddressLayerGroup> = {};
 
-  const schoolPositionCounts: Record<string, number> = {};
+  // a school listed in several areas (e.g. its own and a remainder area shared
+  // by all schools) gets one marker, in the color of the area with the fewest
+  // schools
+  const schoolAreas: Record<string, Area> = {};
   data.municipalities.forEach((municipality) => {
     municipality.areas.forEach((area) => {
       area.schools.forEach((school) => {
+        const current = schoolAreas[school.izo];
+        if (!current || area.schools.length < current.schools.length) {
+          schoolAreas[school.izo] = area;
+        }
+      });
+    });
+  });
+  const getMarkerSchools = (area: Area) =>
+    area.schools.filter((school) => schoolAreas[school.izo] === area);
+
+  const schoolPositionCounts: Record<string, number> = {};
+  data.municipalities.forEach((municipality) => {
+    municipality.areas.forEach((area) => {
+      getMarkerSchools(area).forEach((school) => {
         const key = getSchoolPositionKey(school);
         schoolPositionCounts[key] = (schoolPositionCounts[key] ?? 0) + 1;
       });
@@ -72,7 +89,7 @@ export const createMarkers = ({
     municipalityLayerGroups.push(layerGroup);
     addressesLayerGroup.addLayer(layerGroup);
     municipality.areas.forEach((area) => {
-      area.schools.forEach((school) => {
+      getMarkerSchools(area).forEach((school) => {
         const schoolColor =
           options.color ?? colors[areaColorIndicesMap[area.index]];
         const positionKey = getSchoolPositionKey(school);
