@@ -115,6 +115,60 @@ describe("buildExternalObecTables", () => {
     }
   });
 
+  test("land where polygons overlap is one okrsek linked to both ŠO", () => {
+    const polygons = featureCollection<Polygon | MultiPolygon>([
+      polygon(square(0, 5, 10, 10), { areaIndex: 0 }),
+      // overlaps area 2 on 4..6 x 0..5
+      polygon(square(0, 0, 6, 5), { areaIndex: 1 }),
+      polygon(square(4, 0, 10, 5), { areaIndex: 2 }),
+    ]);
+    const problems: string[] = [];
+
+    const t = buildExternalObecTables(
+      municipality,
+      polygons,
+      obecBoundary,
+      ctx(problems)
+    );
+
+    expect(problems).toEqual([]);
+    expect(t.obvody).toHaveLength(3);
+    expect(t.okrsky).toHaveLength(4);
+    const skoByKo = new Map<number, number[]>();
+    for (const l of t.skoKo) {
+      skoByKo.set(l.KO_KOD, [...(skoByKo.get(l.KO_KOD) ?? []), l.SKO_KOD]);
+    }
+    expect([...skoByKo.values()].map((s) => s.length).sort()).toEqual([1, 1, 1, 2]);
+    expect(t.defBody).toHaveLength(4);
+  });
+
+  test("an address-free sliver merges into its neighbour", () => {
+    const polygons = featureCollection<Polygon | MultiPolygon>([
+      polygon(square(0, 5, 10, 10), { areaIndex: 0 }),
+      // its second part, a 1 x 1 m sliver at the obec's corner, has no address
+      multiPolygon(
+        [square(0, 0, 5, 5), [[B(10, 0), B(10, 0.0001), B(9.9999, 0.0001), B(9.9999, 0), B(10, 0)]]],
+        { areaIndex: 1 }
+      ),
+      polygon(
+        [[B(5, 0), B(9.9999, 0), B(9.9999, 0.0001), B(10, 0.0001), B(10, 5), B(5, 5), B(5, 0)]],
+        { areaIndex: 2 }
+      ),
+    ]);
+    const problems: string[] = [];
+
+    const t = buildExternalObecTables(
+      municipality,
+      polygons,
+      obecBoundary,
+      ctx(problems)
+    );
+
+    expect(problems).toEqual([]);
+    expect(t.okrsky).toHaveLength(3);
+    expect(t.defBody).toHaveLength(3);
+  });
+
   test("reports a polygon of an area the map data doesn't have", () => {
     const polygons = featureCollection<Polygon | MultiPolygon>([
       polygon(square(0, 0, 10, 10), { areaIndex: 7 }),
