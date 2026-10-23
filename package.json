@@ -9,6 +9,7 @@
     "ttm:build": "npm run build -w text-to-map",
     "ttm:watch": "npm run build:js -w text-to-map -- --watch",
     "dev": "next dev --turbopack -p 3000",
+    "prebuild": "npm run ttm:build",
     "build": "next build",
     "start": "next start -p 3003",
     "lint": "next lint",
