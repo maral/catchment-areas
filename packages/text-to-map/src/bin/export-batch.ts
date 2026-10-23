@@ -1,13 +1,14 @@
 import { configDotenv } from "dotenv";
-import { mkdirSync, writeFileSync } from "fs";
+import { mkdirSync, readFileSync, writeFileSync } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 
 // Load the repo-root DB config before anything reads it (works from any cwd,
 // e.g. `npm run` sets cwd to the package dir). `override: true` makes .env.local
 // authoritative over any stale TEXTTOMAP_* vars already exported in the shell.
+const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..", "..");
 configDotenv({
-  path: join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..", "..", ".env.local"),
+  path: join(repoRoot, ".env.local"),
   override: true,
 });
 
@@ -15,7 +16,11 @@ import { disconnectKnex, getKnexDb } from "../db/db";
 import { SchoolType } from "../db/types";
 import { writeCsvMirror, writeGeoPackage } from "../migration/geopackage";
 import { loadGradesByIzo } from "../migration/grades";
-import { exportOrdinances, OrdinanceInput } from "../migration/run";
+import {
+  ExternalMapData,
+  exportOrdinances,
+  OrdinanceInput,
+} from "../migration/run";
 
 /**
  * P4-4 — batch runner. Enumerates the ordinances to export from the app DB and
@@ -46,6 +51,11 @@ import { exportOrdinances, OrdinanceInput } from "../migration/run";
  * caps the number of ordinances. To export a single city, pass
  * `--founder <founder_id>` or `--city <name>` (matches the founder name,
  * case-insensitively; a big city's districts all pool into its one obec).
+ *
+ * An operative ordinance with `external_data` set comes from the city's own
+ * geodata (the app's `external-data/<key>/map-data-<type>.json`): it's exported
+ * from that map data as is, with no street markdown. `--city` matches its city
+ * name, `--founder` and `--state` leave it out.
  */
 const PUBLISHED = 3; // City.CityStatus.Published
 
@@ -65,6 +75,8 @@ async function main() {
   }
 
   const db = getKnexDb();
+  const hasExternalData = await db.schema.hasColumn("ordinance", "external_data");
+  let externalInputs: OrdinanceInput[] = [];
   let query;
   if (publishedMode) {
     // Step 1: the operative ordinance per (city, type) — newest currently-valid
@@ -104,12 +116,33 @@ async function main() {
       operativeIds.push(c.id);
     }
 
+    // an ordinance from the city's own geodata has its map data, no markdown
+    const external = hasExternalData
+      ? await db("ordinance as o")
+          .join("city as c", "o.city_code", "c.code")
+          .whereIn("o.id", operativeIds)
+          .whereNotNull("o.external_data")
+          .modify((q) => {
+            if (city) q.whereRaw("LOWER(c.name) LIKE ?", [`%${city.toLowerCase()}%`]);
+            if (founderId > 0) q.whereRaw("1 = 0");
+          })
+          .select("o.id", "o.school_type as schoolType", "o.external_data as externalData")
+      : [];
+    externalInputs = external.map((o) => ({
+      founderId: 0,
+      sourceText: "",
+      schoolType: o.schoolType as SchoolType,
+      externalMapData: loadExternalMapData(o.externalData, o.schoolType),
+    }));
+    const externalIds = new Set(external.map((o) => o.id));
+    const markdownIds = operativeIds.filter((id) => !externalIds.has(id));
+
     // Step 2: latest non-empty markdown per (founder, ordinance) for those
     // operative ordinances.
     const latest = db("street_markdown")
       .select("founder_id", "ordinance_id")
       .max("id as max_id")
-      .whereIn("ordinance_id", operativeIds)
+      .whereIn("ordinance_id", markdownIds)
       .groupBy("founder_id", "ordinance_id");
 
     query = db("street_markdown as s")
@@ -155,24 +188,32 @@ async function main() {
   // districts each contribute a street-markdown row that pools into one obec),
   // so the ordinance count is the meaningful "how many documents" number; the
   // row count is the founder-level breakdown.
-  const ordinanceCount = new Set(rows.map((r) => r.ordinanceId)).size;
+  const ordinanceCount =
+    new Set(rows.map((r) => r.ordinanceId)).size + externalInputs.length;
   const selectorNote = publishedMode ? "published" : `'${state}'`;
   const filterNote =
     founderId > 0 ? ` (founder ${founderId})` : city ? ` (city ~ "${city}")` : "";
   console.log(
     `Found ${ordinanceCount} ${selectorNote} ordinance(s) to export${filterNote}` +
-      ` (${rows.length} street-markdown row(s) across founders).`
+      ` (${rows.length} street-markdown row(s) across founders` +
+      (externalInputs.length > 0
+        ? `, ${externalInputs.length} from the city's own geodata`
+        : "") +
+      ").",
   );
-  if (rows.length === 0) {
+  if (rows.length + externalInputs.length === 0) {
     await disconnectKnex();
     process.exit(0);
   }
 
-  const inputs: OrdinanceInput[] = rows.map((r) => ({
-    founderId: r.founderId,
-    sourceText: r.sourceText,
-    schoolType: r.schoolType as SchoolType,
-  }));
+  const inputs: OrdinanceInput[] = [
+    ...rows.map((r) => ({
+      founderId: r.founderId,
+      sourceText: r.sourceText,
+      schoolType: r.schoolType as SchoolType,
+    })),
+    ...externalInputs,
+  ];
 
   const grades = loadGradesByIzo();
   console.time("export");
@@ -256,6 +297,23 @@ async function main() {
   await disconnectKnex();
   process.exit(integrityProblems.length === 0 ? 0 : 2);
 }
+
+/** The app's map data converted from a city's geodata (`convert-external-data`). */
+const loadExternalMapData = (
+  externalData: string,
+  schoolType: SchoolType
+): ExternalMapData => {
+  if (!/^[a-z0-9-]+$/.test(externalData)) {
+    throw new Error(`Invalid external data key '${externalData}'.`);
+  }
+  const type = schoolType === SchoolType.Elementary ? "elementary" : "kindergarten";
+  return JSON.parse(
+    readFileSync(
+      join(repoRoot, "external-data", externalData, `map-data-${type}.json`),
+      "utf8"
+    )
+  );
+};
 
 const argValue = (args: string[], flag: string): string | undefined => {
   const i = args.indexOf(flag);

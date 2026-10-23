@@ -110,6 +110,11 @@ export const buildObecTables = (
     ctx
   );
 
+/** Okrsky already given (a city's own polygons), not tessellated. */
+export interface PrecomputedOkrsky {
+  okrsky: AreaSetComponent[];
+}
+
 /**
  * The general obec assembler: one set of `allAreas` (the obvody/ŠO/škola rows)
  * plus one or more `districtInputs` (each a Voronoi over some areas clipped to a
@@ -126,7 +131,7 @@ export const buildPooledObecTables = (
   obecKod: number,
   typeCode: SchoolTypeCode,
   allAreas: Area[],
-  districtInputs: DistrictInput[],
+  districtInputs: DistrictInput[] | PrecomputedOkrsky,
   ctx: ObecBuildContext
 ): ObecTables => {
   // --- obvody (one per school circle), numbered in a stable order, + škola rows
@@ -201,13 +206,17 @@ export const buildPooledObecTables = (
 
   // --- geometry pipeline -> okrsky per district input, then combined (C-1..C-3)
   const okrsky: AreaSetComponent[] = [];
-  for (const input of districtInputs) {
-    const cells = buildLabeledCells(input.areas);
-    okrsky.push(
-      ...mergeEmptyFragments(
-        dissolveAreaSetComponents(cells, input.boundary, input.trueBoundary)
-      )
-    );
+  if ("okrsky" in districtInputs) {
+    okrsky.push(...districtInputs.okrsky);
+  } else {
+    for (const input of districtInputs) {
+      const cells = buildLabeledCells(input.areas);
+      okrsky.push(
+        ...mergeEmptyFragments(
+          dissolveAreaSetComponents(cells, input.boundary, input.trueBoundary)
+        )
+      );
+    }
   }
 
   // --- okrsek KOD + CISLO, allocated in CISLO order (C-6)

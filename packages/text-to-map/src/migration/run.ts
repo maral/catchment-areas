@@ -4,7 +4,12 @@ import {
   getDistrictCodesOfCities,
   getDistrictPolygons,
 } from "../db/cities";
-import { Feature, MultiPolygon, Polygon } from "@turf/helpers";
+import {
+  Feature,
+  FeatureCollection,
+  MultiPolygon,
+  Polygon,
+} from "@turf/helpers";
 import { PolygonsByCodes, SchoolType } from "../db/types";
 import {
   getMunicipalityBoundary,
@@ -18,6 +23,7 @@ import {
 } from "../street-markdown/smd";
 import { Municipality } from "../street-markdown/types";
 import { buildBigCityTables } from "./build-big-city";
+import { buildExternalObecTables } from "./build-external";
 import { buildObecTables, counter, ObecBuildContext } from "./build-obec";
 import { dedupeExport } from "./dedupe";
 import { checkIntegrity } from "./self-check";
@@ -83,6 +89,11 @@ export type GradesByIzo = (izo: string) => SchoolGrades | undefined;
 export interface ExportGroup {
   municipalities: Municipality[];
   typeCode: SchoolTypeCode;
+  /**
+   * The city's own catchment polygons, one collection per municipality (see
+   * {@link ExternalMapData}): its okrsky are these, not a tessellation.
+   */
+  externalPolygons?: FeatureCollection<Polygon | MultiPolygon>[];
 }
 
 export interface RunOptions {
@@ -163,6 +174,13 @@ type ObecWorkItem =
       obecKod: number;
       typeCode: SchoolTypeCode;
       municipalities: Municipality[];
+    }
+  | {
+      kind: "external";
+      obecKod: number;
+      typeCode: SchoolTypeCode;
+      municipality: Municipality;
+      polygons: FeatureCollection<Polygon | MultiPolygon>;
     };
 
 /**
@@ -208,8 +226,21 @@ export const assembleExport = (
   const items: ObecWorkItem[] = [];
 
   for (const group of groups) {
-    for (const municipality of group.municipalities) {
+    for (const [i, municipality] of group.municipalities.entries()) {
       if (municipality.areas.length === 0) continue;
+
+      // a city's own geodata is complete for its whole obec: never pooled
+      const externalPolygons = group.externalPolygons?.[i];
+      if (externalPolygons) {
+        items.push({
+          kind: "external",
+          obecKod: municipality.code,
+          typeCode: group.typeCode,
+          municipality,
+          polygons: externalPolygons,
+        });
+        continue;
+      }
 
       // A "leftover" whole-city founder (e.g. "Statutární město Liberec",
       // governing everything outside the separately-founded Vratislavice nad
@@ -290,7 +321,20 @@ export const assembleExport = (
     };
 
     let tables: ObecTables;
-    if (item.kind === "city") {
+    if (item.kind === "external") {
+      const obecBoundary = getObecBoundary(cityPolygons, item.obecKod);
+      if (!obecBoundary) {
+        throw new Error(
+          `No boundary polygon found for obec ${item.obecKod}. Is the DB synced?`
+        );
+      }
+      tables = buildExternalObecTables(
+        item.municipality,
+        item.polygons,
+        obecBoundary,
+        ctx
+      );
+    } else if (item.kind === "city") {
       const districts = [...item.municipalities].sort(
         (a, b) => a.code - b.code
       );
@@ -482,6 +526,19 @@ export interface OrdinanceInput {
   founderId: number;
   sourceText: string;
   schoolType: SchoolType;
+  /** set for an ordinance from the city's own geodata: exported as is, unparsed */
+  externalMapData?: ExternalMapData;
+}
+
+/**
+ * Map data converted once from catchment geodata a city sent us (the app's
+ * `external-data/<key>/map-data-*.json`): our map-data municipalities with
+ * their areas and address points, and one polygon collection per municipality
+ * (properties `areaIndex`, `colorIndex`, `schoolIzos`).
+ */
+export interface ExternalMapData {
+  jsonData: Municipality[];
+  polygons: FeatureCollection<Polygon | MultiPolygon>[];
 }
 
 /** A ŠO dropped from the export because it had no territory (MI04). */
@@ -592,6 +649,20 @@ export const exportOrdinances = async (
 
   for (let i = 0; i < inputs.length; i++) {
     const input = inputs[i];
+    if (input.externalMapData) {
+      const { jsonData, polygons } = input.externalMapData;
+      const baseType = schoolTypeToCode(input.schoolType);
+      for (const typeCode of baseType === "1" ? (["1", "2"] as const) : [baseType]) {
+        groups.push({ municipalities: jsonData, typeCode, externalPolygons: polygons });
+      }
+      onProgress?.({
+        done: i + 1,
+        total: inputs.length,
+        founderId: input.founderId,
+        phase: "parse",
+      });
+      continue;
+    }
     // Resolve + parse as one idempotent unit: a retry re-fetches a clean
     // municipality (getNewMunicipalityByFounderId) rather than reusing one the
     // failed attempt may have partly populated.
