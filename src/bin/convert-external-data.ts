@@ -1,5 +1,4 @@
 import { getAdminRemultAPI } from "@/app/api/[...remult]/config";
-import { OrdinanceControllerServer } from "@/controllers/OrdinanceControllerServer";
 import { StreetMarkdownControllerServer } from "@/controllers/StreetMarkdownControllerServer";
 import { SchoolType } from "@/types/basicTypes";
 import {
@@ -26,7 +25,7 @@ import { Area, ExportAddressPoint, Municipality } from "text-to-map";
  * (`areaIndex`, `colorIndex`, `schoolIzos` as a JSON-encoded string array);
  * schools are an Esri JSON point layer with `index_oblasti`, `IZO`,
  * `název_školy` and `adresa` attributes. The address points are ours, parsed
- * from the city's active regular ordinance, see `attachOurAddresses`.
+ * from the city's latest regular ordinance, see `attachOurAddresses`.
  */
 interface ExternalSource {
   cityCode: number;
@@ -75,18 +74,23 @@ const main = async () => {
   await api.withRemult(async () => {
     for (const [type, files] of Object.entries(source.files)) {
       const schoolType = Number(type) as SchoolType;
-      const [active] =
-        await OrdinanceControllerServer.getActiveOrdinanceIdsByCityCodes(
-          [source.cityCode],
-          schoolType
-        );
-      if (!active) {
-        throw new Error(`${SchoolType[schoolType]}: no active ordinance.`);
+      // the city's latest regular ordinance (the one `external-ordinance`
+      // duplicates) — once activated, the external copy itself has no markdown
+      const regular = await KnexDataProvider.getDb()("ordinance")
+        .where({ city_code: source.cityCode, school_type: schoolType })
+        .whereNull("external_data")
+        .orderBy([
+          { column: "valid_from", order: "desc" },
+          { column: "id", order: "desc" },
+        ])
+        .first("id");
+      if (!regular) {
+        throw new Error(`${SchoolType[schoolType]}: no regular ordinance.`);
       }
       const smdTexts =
         await StreetMarkdownControllerServer.getStreetMarkdownTexts(
           source.cityCode,
-          active.ordinanceId
+          regular.id
         );
       const ourMunicipalities = await getAddressPointsBySmdTexts(
         smdTexts,
@@ -112,7 +116,7 @@ const main = async () => {
         0
       );
       console.log(
-        `${SchoolType[schoolType]}: ${municipality.areas.length} areas, ${points} address points (from ordinance ${active.ordinanceId}), ${municipality.unmappedPoints.length} unmapped -> ${path}`
+        `${SchoolType[schoolType]}: ${municipality.areas.length} areas, ${points} address points (from ordinance ${regular.id}), ${municipality.unmappedPoints.length} unmapped -> ${path}`
       );
     }
 
