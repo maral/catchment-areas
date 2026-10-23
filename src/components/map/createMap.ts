@@ -1,3 +1,4 @@
+import { minZoomForAddressPoints } from "@/components/publicMap/createPublicMap";
 import {
   AddressMarkerMap,
   CreateMapResult,
@@ -77,6 +78,21 @@ export const createMap = (
   map.addLayer(polygonLayerGroup);
   if (schoolsLayerGroup.getLayers().length <= 20) {
     map.addLayer(addressesLayerGroup);
+  } else if (!options.showLayerControls) {
+    // too many address points to show at once: like the public map, show
+    // them only when zoomed in
+    const toggleAddresses = () => {
+      if (map.getZoom() >= minZoomForAddressPoints) {
+        if (!map.hasLayer(addressesLayerGroup)) {
+          map.addLayer(addressesLayerGroup);
+          schoolsLayerGroup.bringToFront();
+        }
+      } else {
+        map.removeLayer(addressesLayerGroup);
+      }
+    };
+    map.on("zoomend", toggleAddresses);
+    toggleAddresses();
   }
   map.addLayer(schoolsLayerGroup);
   map.addLayer(unmappedLayerGroup);

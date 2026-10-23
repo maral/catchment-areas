@@ -82,7 +82,7 @@ export const createPublicMap = (
 };
 
 const minZoomForLoadingCities = 11;
-const minZoomForAddressPoints = 14;
+export const minZoomForAddressPoints = 14;
 const loadedCities = new Map<number, CityData>();
 const loadingCities = new Set<number>();
 const citiesWithShownSchools = new Set<number>();
