@@ -40,7 +40,10 @@ export default function OrdinancesTable({
   const columnDefinitions: ColumnDefinition<Ordinance>[] = [
     {
       title: texts.ordinanceNumber,
-      cellFactory: (item) => item.number,
+      cellFactory: (item) =>
+        item.externalData
+          ? `${item.number} (${texts.externalOrdinance})`
+          : item.number,
     },
     {
       title: texts.validFrom,
@@ -58,17 +61,19 @@ export default function OrdinancesTable({
       title: texts.actions,
       cellFactory: (item, fetchData) => (
         <span className="whitespace-nowrap flex gap-2">
-          <Link
-            className="inline-block"
-            href={`${rootPath}/${cityCode}${routes.editOrdinance}/${founderId}/${item.id}`}
-            prefetch={false}
-          >
-            <IconButton
-              icon={PencilSquareIcon}
-              tooltip={texts.edit}
-              size="sm"
-            />
-          </Link>
+          {!item.externalData && (
+            <Link
+              className="inline-block"
+              href={`${rootPath}/${cityCode}${routes.editOrdinance}/${founderId}/${item.id}`}
+              prefetch={false}
+            >
+              <IconButton
+                icon={PencilSquareIcon}
+                tooltip={texts.edit}
+                size="sm"
+              />
+            </Link>
+          )}
           <Link
             className="inline-block"
             href={`/api/ordinances/download/by-id/${item.id}`}

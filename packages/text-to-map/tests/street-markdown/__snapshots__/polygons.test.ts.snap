@@ -1,0 +1,83 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`createPolygons produces one clipped polygon per area (stable snapshot) 1`] = `
+{
+  "features": [
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            [
+              14.4,
+              50,
+            ],
+            [
+              14.45,
+              50,
+            ],
+            [
+              14.45,
+              50.1,
+            ],
+            [
+              14.4,
+              50.1,
+            ],
+            [
+              14.4,
+              50,
+            ],
+          ],
+        ],
+        "type": "Polygon",
+      },
+      "properties": {
+        "areaIndex": 0,
+        "colorIndex": 0,
+        "schoolIzos": [
+          "izoL",
+        ],
+      },
+      "type": "Feature",
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            [
+              14.45,
+              50,
+            ],
+            [
+              14.5,
+              50,
+            ],
+            [
+              14.5,
+              50.1,
+            ],
+            [
+              14.45,
+              50.1,
+            ],
+            [
+              14.45,
+              50,
+            ],
+          ],
+        ],
+        "type": "Polygon",
+      },
+      "properties": {
+        "areaIndex": 1,
+        "colorIndex": 1,
+        "schoolIzos": [
+          "izoR",
+        ],
+      },
+      "type": "Feature",
+    },
+  ],
+  "type": "FeatureCollection",
+}
+`;

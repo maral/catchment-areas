@@ -1,0 +1,475 @@
+<title>Catchment migration QA</title>
+<style>
+  :root {
+    --paper: #f5f6f4;
+    --panel: #ffffff;
+    --ink: #1b2327;
+    --muted: #647079;
+    --hairline: #d9ddd8;
+    --school: #d8931f;
+    --defcore: #ffffff;
+    --defring: #1b2327;
+    --seam: #12171a;
+    --seam-casing: rgba(255, 255, 255, 0.85);
+    --accent: #c0472b;
+    --fill-opacity: 0.5;
+    --shadow: 0 1px 2px rgba(20, 30, 35, 0.06), 0 6px 22px rgba(20, 30, 35, 0.08);
+    --mono: ui-monospace, "SF Mono", "SFMono-Regular", "Menlo", "Consolas", monospace;
+    --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", "Helvetica Neue", sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #12171a;
+      --panel: #1a2126;
+      --ink: #e6eaea;
+      --muted: #8b979e;
+      --hairline: #2b343a;
+      --school: #e6a93b;
+      --defcore: #12171a;
+      --defring: #e6eaea;
+      --seam: #f4f6f6;
+      --seam-casing: rgba(10, 14, 16, 0.85);
+      --accent: #e2705a;
+      --fill-opacity: 0.42;
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 26px rgba(0, 0, 0, 0.4);
+    }
+  }
+  :root[data-theme="light"] {
+    --paper: #f5f6f4; --panel: #ffffff; --ink: #1b2327; --muted: #647079;
+    --hairline: #d9ddd8; --school: #d8931f; --defcore: #ffffff; --defring: #1b2327;
+    --seam: #12171a; --seam-casing: rgba(255,255,255,0.85); --accent: #c0472b;
+    --fill-opacity: 0.5; --shadow: 0 1px 2px rgba(20,30,35,.06), 0 6px 22px rgba(20,30,35,.08);
+  }
+  :root[data-theme="dark"] {
+    --paper: #12171a; --panel: #1a2126; --ink: #e6eaea; --muted: #8b979e;
+    --hairline: #2b343a; --school: #e6a93b; --defcore: #12171a; --defring: #e6eaea;
+    --seam: #f4f6f6; --seam-casing: rgba(10,14,16,.85); --accent: #e2705a;
+    --fill-opacity: 0.42; --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 26px rgba(0,0,0,.4);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    font-family: var(--sans);
+    color: var(--ink);
+    background: var(--paper);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .app {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    height: 100vh;
+    height: 100dvh;
+  }
+  @media (max-width: 720px) {
+    .app { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+  }
+
+  /* --- control rail --- */
+  .rail {
+    background: var(--panel);
+    border-right: 1px solid var(--hairline);
+    padding: 22px 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+  }
+  @media (max-width: 720px) {
+    .rail { border-right: none; border-bottom: 1px solid var(--hairline); }
+  }
+
+  .eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 6px;
+    font-weight: 600;
+  }
+  h1 {
+    font-size: 20px;
+    line-height: 1.2;
+    margin: 0;
+    font-weight: 650;
+    text-wrap: balance;
+  }
+  .sub { color: var(--muted); font-size: 13px; margin: 4px 0 0; }
+
+  .stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--hairline);
+    border: 1px solid var(--hairline);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .stat { background: var(--panel); padding: 10px 12px; }
+  .stat b {
+    display: block;
+    font-family: var(--mono);
+    font-size: 18px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+  .stat span {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .group-label {
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+
+  .layers { display: flex; flex-direction: column; gap: 2px; }
+  .layer {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 8px;
+    border-radius: 7px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .layer:hover { background: color-mix(in srgb, var(--ink) 5%, transparent); }
+  .layer input { position: absolute; opacity: 0; width: 0; height: 0; }
+  .swatch {
+    width: 26px; height: 18px; border-radius: 4px; flex: none;
+    display: grid; place-items: center;
+  }
+  .layer-name { font-size: 13.5px; flex: 1; }
+  .layer-count {
+    font-family: var(--mono); font-size: 12px; color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .layer.off { opacity: 0.42; }
+  .layer.off .layer-name { text-decoration: line-through; }
+  .layer:focus-within { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  .legend { display: flex; flex-direction: column; gap: 7px; }
+  .legend-item { display: flex; gap: 9px; align-items: baseline; font-size: 12.5px; }
+  .legend-dot { width: 11px; height: 11px; border-radius: 3px; flex: none; position: relative; top: 1px; }
+  .legend-name { line-height: 1.3; }
+  .legend-izo { font-family: var(--mono); font-size: 10.5px; color: var(--muted); }
+
+  .readout {
+    margin-top: auto;
+    border-top: 1px solid var(--hairline);
+    padding-top: 14px;
+    font-size: 12.5px;
+    min-height: 74px;
+  }
+  .readout .kind {
+    font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--accent); font-weight: 600;
+  }
+  .readout .val { font-family: var(--mono); font-size: 12px; color: var(--muted); margin-top: 3px; }
+  .readout .empty { color: var(--muted); font-style: italic; }
+
+  /* --- map --- */
+  .map-wrap { position: relative; overflow: hidden; background: var(--paper); }
+  svg { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+  svg.dragging { cursor: grabbing; }
+  .area { stroke: color-mix(in srgb, var(--ink) 30%, transparent); stroke-width: 0.6; vector-effect: non-scaling-stroke; }
+  .area.dim { opacity: 0.28; }
+  .seam-casing { fill: none; stroke: var(--seam-casing); stroke-width: 4.2; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+  .seam { fill: none; stroke: var(--seam); stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+  .seam.hot { stroke: var(--accent); stroke-width: 3; }
+  .defpt { fill: var(--defcore); stroke: var(--defring); stroke-width: 1.6; vector-effect: non-scaling-stroke; }
+  .defpt.hot { fill: var(--accent); }
+  .school { stroke: var(--ink); stroke-width: 1.4; vector-effect: non-scaling-stroke; }
+  .school-label {
+    font-family: var(--mono); font-size: 10px; fill: var(--ink);
+    paint-order: stroke; stroke: var(--paper); stroke-width: 3px; stroke-linejoin: round;
+  }
+  .hidden { display: none; }
+
+  .zoom {
+    position: absolute; right: 14px; bottom: 14px;
+    display: flex; flex-direction: column; gap: 1px;
+    background: var(--hairline); border: 1px solid var(--hairline);
+    border-radius: 8px; overflow: hidden; box-shadow: var(--shadow);
+  }
+  .zoom button {
+    width: 34px; height: 34px; border: none; background: var(--panel);
+    color: var(--ink); font-size: 17px; cursor: pointer; font-family: var(--mono);
+  }
+  .zoom button:hover { background: color-mix(in srgb, var(--ink) 7%, transparent); }
+  .zoom button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+  .hint {
+    position: absolute; left: 14px; bottom: 14px;
+    font-size: 11px; color: var(--muted); background: color-mix(in srgb, var(--panel) 80%, transparent);
+    padding: 4px 9px; border-radius: 6px; backdrop-filter: blur(3px);
+  }
+</style>
+
+<div class="app">
+  <aside class="rail">
+    <header>
+      <p class="eyebrow">ŠO → ISÚI · migration QA</p>
+      <h1 id="title">Česká Lípa</h1>
+      <p class="sub">Generated seams &amp; definition points over the rendered catchment areas.</p>
+    </header>
+
+    <div class="stats" id="stats"></div>
+
+    <div>
+      <div class="group-label">Layers</div>
+      <div class="layers" id="layers"></div>
+    </div>
+
+    <div>
+      <div class="group-label">Schools &amp; catchments</div>
+      <div class="legend" id="legend"></div>
+    </div>
+
+    <div class="readout" id="readout">
+      <div class="empty">Hover the map to inspect a feature.</div>
+    </div>
+  </aside>
+
+  <div class="map-wrap">
+    <svg id="map" aria-label="Catchment map of Česká Lípa"></svg>
+    <div class="zoom">
+      <button id="zin" aria-label="Zoom in">+</button>
+      <button id="zout" aria-label="Zoom out">−</button>
+      <button id="zreset" aria-label="Reset view" style="font-size:13px">⤢</button>
+    </div>
+    <div class="hint">drag to pan · scroll to zoom</div>
+  </div>
+</div>
+
+<script>
+const DATA = /*__DATA__*/ {};
+
+const SCHOOL_HUES = [
+  "#4e79a7", "#59a14f", "#b07aa1", "#76b7b2",
+  "#9c755f", "#e15759", "#5b8ca5", "#8cae4a"
+];
+const NS = "http://www.w3.org/2000/svg";
+
+// --- projection: equirectangular with cos(lat) x-correction, fit to viewport ---
+const feats = DATA.areas.features;
+let minLng = Infinity, minLat = Infinity, maxLng = -Infinity, maxLat = -Infinity;
+const scan = (c) => {
+  if (typeof c[0] === "number") {
+    if (c[0] < minLng) minLng = c[0]; if (c[0] > maxLng) maxLng = c[0];
+    if (c[1] < minLat) minLat = c[1]; if (c[1] > maxLat) maxLat = c[1];
+  } else c.forEach(scan);
+};
+feats.forEach((f) => scan(f.geometry.coordinates));
+const midLat = (minLat + maxLat) / 2;
+const kx = Math.cos((midLat * Math.PI) / 180);
+const PAD = 24;
+const W = 1000;
+const spanX = (maxLng - minLng) * kx;
+const spanY = maxLat - minLat;
+const H = Math.round(((W - 2 * PAD) * spanY) / spanX + 2 * PAD);
+const project = (lng, lat) => [
+  PAD + ((lng - minLng) * kx / spanX) * (W - 2 * PAD),
+  PAD + ((maxLat - lat) / spanY) * (H - 2 * PAD),
+];
+const ringPath = (ring) =>
+  ring.map((pt, i) => {
+    const [x, y] = project(pt[0], pt[1]);
+    return (i ? "L" : "M") + x.toFixed(2) + " " + y.toFixed(2);
+  }).join(" ") + "Z";
+const polyPath = (geom) => {
+  const polys = geom.type === "MultiPolygon" ? geom.coordinates : [geom.coordinates];
+  return polys.map((poly) => poly.map(ringPath).join(" ")).join(" ");
+};
+const linePath = (coords) =>
+  coords.map((pt, i) => {
+    const [x, y] = project(pt[0], pt[1]);
+    return (i ? "L" : "M") + x.toFixed(2) + " " + y.toFixed(2);
+  }).join(" ");
+
+const svg = document.getElementById("map");
+svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+
+const gAreas = mk("g"), gSeams = mk("g"), gDef = mk("g"), gSchools = mk("g");
+svg.append(gAreas, gSeams, gDef, gSchools);
+function mk(tag, attrs) {
+  const el = document.createElementNS(NS, tag);
+  if (attrs) for (const k in attrs) el.setAttribute(k, attrs[k]);
+  return el;
+}
+
+const readout = document.getElementById("readout");
+function say(kind, main, val) {
+  readout.innerHTML = `<div class="kind">${kind}</div><div>${main}</div>` +
+    (val ? `<div class="val">${val}</div>` : "");
+}
+function clearSay() {
+  readout.innerHTML = `<div class="empty">Hover the map to inspect a feature.</div>`;
+}
+
+// sort so smaller areas paint last (stay clickable/visible)
+const order = feats.map((f, i) => i);
+// --- areas ---
+feats.forEach((f) => {
+  const idx = f.properties.areaIndex;
+  const hue = SCHOOL_HUES[idx % SCHOOL_HUES.length];
+  const p = mk("path", { class: "area", d: polyPath(f.geometry), fill: hue });
+  p.style.fillOpacity = "var(--fill-opacity)";
+  p.dataset.area = idx;
+  p.addEventListener("mouseenter", () => {
+    const s = DATA.schools[idx] || {};
+    say("Catchment area", s.name || ("area #" + idx), "IZO " + (f.properties.schoolIzos || []).join(", "));
+  });
+  p.addEventListener("mouseleave", clearSay);
+  gAreas.appendChild(p);
+});
+
+// --- seams (casing under, ink over) ---
+DATA.seams.forEach((s) => {
+  const d = linePath(s.coordinates);
+  gSeams.appendChild(mk("path", { class: "seam-casing", d }));
+  const line = mk("path", { class: "seam", d });
+  line.addEventListener("mouseenter", () => {
+    line.classList.add("hot");
+    say("Interior seam", `okrsek ${s.ko1} ↔ ${s.ko2}`, `MIG_HRAN_KO #${s.id} · ${s.coordinates.length} pts`);
+  });
+  line.addEventListener("mouseleave", () => { line.classList.remove("hot"); clearSay(); });
+  gSeams.appendChild(line);
+});
+
+// --- def points ---
+DATA.defPoints.forEach((d) => {
+  const [x, y] = project(d.lng, d.lat);
+  const c = mk("circle", { class: "defpt", cx: x.toFixed(2), cy: y.toFixed(2), r: 3.4 });
+  c.addEventListener("mouseenter", () => {
+    c.classList.add("hot");
+    say("Definition point", "okrsek " + d.ko, `${d.lat.toFixed(5)}, ${d.lng.toFixed(5)}`);
+  });
+  c.addEventListener("mouseleave", () => { c.classList.remove("hot"); clearSay(); });
+  gDef.appendChild(c);
+});
+
+// --- schools ---
+DATA.schools.forEach((s, i) => {
+  const [x, y] = project(s.lng, s.lat);
+  const r = 5.5;
+  const dm = mk("path", {
+    class: "school",
+    d: `M ${x} ${y - r} L ${x + r} ${y} L ${x} ${y + r} L ${x - r} ${y} Z`,
+    fill: "var(--school)",
+  });
+  dm.addEventListener("mouseenter", () =>
+    say("School", s.name, s.address || ("IZO " + s.izo)));
+  dm.addEventListener("mouseleave", clearSay);
+  gSchools.appendChild(dm);
+  const label = mk("text", { class: "school-label", x: (x + r + 3).toFixed(1), y: (y + 3.2).toFixed(1) });
+  label.textContent = s.izo;
+  gSchools.appendChild(label);
+});
+
+// --- stats ---
+const statDefs = [
+  ["areas", "Catchments"], ["okrsky", "Okrsky"], ["seams", "Seams"],
+  ["defPoints", "Def. points"],
+];
+document.getElementById("stats").innerHTML = statDefs
+  .map(([k, l]) => `<div class="stat"><b>${DATA.counts[k]}</b><span>${l}</span></div>`)
+  .join("");
+
+// --- legend ---
+document.getElementById("legend").innerHTML = DATA.schools
+  .map((s, i) => {
+    const hue = SCHOOL_HUES[i % SCHOOL_HUES.length];
+    const short = s.name.replace(/, příspěvková organizace$/, "").replace(/^Základní škola/, "ZŠ");
+    return `<div class="legend-item"><span class="legend-dot" style="background:${hue}"></span>` +
+      `<span class="legend-name">${short}<br><span class="legend-izo">IZO ${s.izo}</span></span></div>`;
+  })
+  .join("");
+
+// --- layer toggles ---
+const LAYERS = [
+  { id: "areas", name: "Catchment areas", count: DATA.counts.areas, g: gAreas, sw: `<span class="legend-dot" style="width:16px;height:11px;border-radius:3px;background:linear-gradient(90deg,#4e79a7,#59a14f,#b07aa1)"></span>` },
+  { id: "seams", name: "Interior seams", count: DATA.counts.seams, g: gSeams, sw: `<svg width="20" height="10"><line x1="1" y1="5" x2="19" y2="5" stroke="var(--seam)" stroke-width="2"/></svg>` },
+  { id: "def", name: "Definition points", count: DATA.counts.defPoints, g: gDef, sw: `<svg width="16" height="16"><circle cx="8" cy="8" r="4" fill="var(--defcore)" stroke="var(--defring)" stroke-width="1.6"/></svg>` },
+  { id: "schools", name: "Schools", count: DATA.counts.schools, g: gSchools, sw: `<svg width="14" height="14"><path d="M7 1 L13 7 L7 13 L1 7 Z" fill="var(--school)" stroke="var(--ink)" stroke-width="1"/></svg>` },
+];
+document.getElementById("layers").innerHTML = LAYERS
+  .map((l) => `<label class="layer" data-layer="${l.id}">
+      <input type="checkbox" checked>
+      <span class="swatch">${l.sw}</span>
+      <span class="layer-name">${l.name}</span>
+      <span class="layer-count">${l.count}</span>
+    </label>`)
+  .join("");
+LAYERS.forEach((l) => {
+  const el = document.querySelector(`.layer[data-layer="${l.id}"]`);
+  const box = el.querySelector("input");
+  box.addEventListener("change", () => {
+    l.g.classList.toggle("hidden", !box.checked);
+    el.classList.toggle("off", !box.checked);
+  });
+});
+
+// --- pan / zoom via viewBox ---
+let view = { x: 0, y: 0, w: W, h: H };
+const applyView = () => svg.setAttribute("viewBox", `${view.x} ${view.y} ${view.w} ${view.h}`);
+function zoomAt(cx, cy, factor) {
+  const nw = Math.min(W, Math.max(W * 0.06, view.w * factor));
+  const nh = nw * (H / W);
+  view.x = cx - ((cx - view.x) * nw) / view.w;
+  view.y = cy - ((cy - view.y) * nh) / view.h;
+  view.w = nw; view.h = nh;
+  clampView();
+  applyView();
+}
+function clampView() {
+  view.x = Math.max(-W * 0.1, Math.min(view.x, W * 1.1 - view.w));
+  view.y = Math.max(-H * 0.1, Math.min(view.y, H * 1.1 - view.h));
+}
+function toSvg(evt) {
+  const r = svg.getBoundingClientRect();
+  return [
+    view.x + ((evt.clientX - r.left) / r.width) * view.w,
+    view.y + ((evt.clientY - r.top) / r.height) * view.h,
+  ];
+}
+svg.addEventListener("wheel", (e) => {
+  e.preventDefault();
+  const [cx, cy] = toSvg(e);
+  zoomAt(cx, cy, e.deltaY > 0 ? 1.12 : 0.89);
+}, { passive: false });
+
+let drag = null;
+svg.addEventListener("pointerdown", (e) => {
+  drag = { x: e.clientX, y: e.clientY, vx: view.x, vy: view.y };
+  svg.setPointerCapture(e.pointerId);
+  svg.classList.add("dragging");
+});
+svg.addEventListener("pointermove", (e) => {
+  if (!drag) return;
+  const r = svg.getBoundingClientRect();
+  view.x = drag.vx - ((e.clientX - drag.x) / r.width) * view.w;
+  view.y = drag.vy - ((e.clientY - drag.y) / r.height) * view.h;
+  clampView();
+  applyView();
+});
+const endDrag = () => { drag = null; svg.classList.remove("dragging"); };
+svg.addEventListener("pointerup", endDrag);
+svg.addEventListener("pointercancel", endDrag);
+
+document.getElementById("zin").onclick = () => zoomAt(view.x + view.w / 2, view.y + view.h / 2, 0.8);
+document.getElementById("zout").onclick = () => zoomAt(view.x + view.w / 2, view.y + view.h / 2, 1.25);
+document.getElementById("zreset").onclick = () => { view = { x: 0, y: 0, w: W, h: H }; applyView(); };
+
+document.getElementById("title").textContent = DATA.name || "Catchment map";
+document.title = (DATA.name || "Catchment") + " — migration QA";
+svg.setAttribute("aria-label", "Catchment map of " + (DATA.name || "municipality"));
+</script>

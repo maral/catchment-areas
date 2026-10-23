@@ -42,8 +42,11 @@ export default function OrdinanceFoundersTable({
   const data = useMemo(() => {
     const ordinances = deserializeOrdinances(initialOrdinances);
     const founders = remult.repo(Founder).fromJson(initialFounders);
+    // an ordinance from the city's own geodata isn't edited per founder
     return ordinances.flatMap((ordinance) =>
-      [null, ...founders].map((founder) => ({ founder, ordinance }))
+      (ordinance.externalData ? [null] : [null, ...founders]).map(
+        (founder) => ({ founder, ordinance })
+      )
     );
   }, [initialOrdinances, initialFounders]);
 
@@ -54,7 +57,12 @@ export default function OrdinanceFoundersTable({
       title: texts.ordinanceNumber,
       cellFactory: (item) =>
         item.founder === null ? (
-          <strong>{item.ordinance.number}</strong>
+          <>
+            <strong>{item.ordinance.number}</strong>
+            {item.ordinance.externalData && (
+              <span className="pl-2">({texts.externalOrdinance})</span>
+            )}
+          </>
         ) : (
           <span className="pl-2">{item.founder.name}</span>
         ),
@@ -118,18 +126,20 @@ export default function OrdinanceFoundersTable({
                   size="sm"
                 />
               </Link>
-              <Link
-                className="inline-block"
-                href={`/api/download/smd-text/${item.ordinance.id}`}
-                prefetch={false}
-                target="_blank"
-              >
-                <IconButton
-                  icon={DocumentTextIcon}
-                  tooltip={texts.downloadSmd}
-                  size="sm"
-                />
-              </Link>
+              {!item.ordinance.externalData && (
+                <Link
+                  className="inline-block"
+                  href={`/api/download/smd-text/${item.ordinance.id}`}
+                  prefetch={false}
+                  target="_blank"
+                >
+                  <IconButton
+                    icon={DocumentTextIcon}
+                    tooltip={texts.downloadSmd}
+                    size="sm"
+                  />
+                </Link>
+              )}
             </>
           )}
 

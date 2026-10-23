@@ -16,6 +16,7 @@ import {
   parseOrdinanceToAddressPoints,
 } from "text-to-map";
 import { TextToMapError } from "../shared/types";
+import { loadExternalMapData } from "./externalMapData";
 
 export async function validateStreetMarkdown(
   lines: string[],
@@ -167,6 +168,35 @@ export async function getOrCreateDataForMapByCityCode(
 
   let jsonData = mapData?.jsonData ?? null;
   let polygons = mapData?.polygons ?? null;
+
+  // an ordinance from the city's own geodata serves its converted map data
+  const ordinance = await remult.repo(Ordinance).findId(ordinanceId);
+  if (ordinance?.externalData && (jsonData === null || polygons === null)) {
+    ({ jsonData, polygons } = await loadExternalMapData(
+      ordinance.externalData,
+      schoolType
+    ));
+
+    if (!mapData) {
+      mapData = await remult.repo(MapData).insert({
+        cityCode,
+        ordinanceId,
+      });
+    }
+
+    await OrdinanceControllerServer.setJsonData(
+      ordinanceId,
+      jsonData,
+      cityCode,
+      undefined
+    );
+    await OrdinanceControllerServer.setPolygons(
+      ordinanceId,
+      polygons,
+      cityCode,
+      undefined
+    );
+  }
 
   if (jsonData === null) {
     if (smdTexts.length === 0) {
@@ -373,7 +403,7 @@ export function getSmdText(smdTexts: SmdText[]) {
     .join("\n\n");
 }
 
-async function getAddressPointsBySmdTexts(
+export async function getAddressPointsBySmdTexts(
   smdTexts: SmdText[],
   schoolType: SchoolType
 ): Promise<Municipality[] | null> {

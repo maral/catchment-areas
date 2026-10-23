@@ -33,4 +33,12 @@ export class Ordinance extends EntityBase {
 
   @Fields.string({ dbName: "original_text" })
   originalText: string = "";
+
+  /**
+   * Key of geodata the city sent us, converted once into our map data (see
+   * `externalMapData.ts`). Such an ordinance serves that map data instead of
+   * one parsed from street markdown.
+   */
+  @Fields.string({ dbName: "external_data", allowNull: true })
+  externalData: string | null = null;
 }

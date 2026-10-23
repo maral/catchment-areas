@@ -1,0 +1,731 @@
+import {
+  getCityCodesByDistrictCodes,
+  getCityPolygons,
+  getDistrictCodesOfCities,
+  getDistrictPolygons,
+} from "../db/cities";
+import { Feature, MultiPolygon, Polygon } from "@turf/helpers";
+import { PolygonsByCodes, SchoolType } from "../db/types";
+import {
+  getMunicipalityBoundary,
+  getMunicipalityCodes,
+  getMunicipalityOwnBoundary,
+  getObecBoundary,
+} from "../street-markdown/polygons";
+import {
+  getNewMunicipalityByFounderId,
+  parseOrdinanceToAddressPoints,
+} from "../street-markdown/smd";
+import { Municipality } from "../street-markdown/types";
+import { buildBigCityTables } from "./build-big-city";
+import { buildObecTables, counter, ObecBuildContext } from "./build-obec";
+import { dedupeExport } from "./dedupe";
+import { checkIntegrity } from "./self-check";
+import { checkCoverage, checkSeamTopology } from "./topology-check";
+import {
+  MigrationExport,
+  MigSkolaSko,
+  MigVymezeniZbylychKo,
+  ObecTables,
+  SchoolGrades,
+  SchoolTypeCode,
+} from "./types";
+
+/**
+ * Transient MySQL/socket error codes worth retrying — a dropped or timed-out
+ * connection over a long batch, not a logical failure. Read-only work, so a
+ * retry is always safe.
+ */
+const TRANSIENT_DB_ERRORS = new Set([
+  "ETIMEDOUT",
+  "PROTOCOL_CONNECTION_LOST",
+  "PROTOCOL_SEQUENCE_TIMEOUT",
+  "ECONNRESET",
+  "EPIPE",
+  "ECONNREFUSED",
+]);
+
+/**
+ * Run `fn`, retrying it on a transient DB/connection error with exponential
+ * backoff (1s, 2s, 4s…). On a fatal connection error knex discards the dead
+ * pooled connection, so the retry acquires a fresh one. `fn` MUST be idempotent
+ * — callers wrap a self-contained read (e.g. resolve+parse one ordinance) so a
+ * retry starts from clean state, never a half-mutated one.
+ */
+export const withDbRetry = async <T>(
+  fn: () => Promise<T>,
+  onRetry?: (attempt: number, err: unknown) => void,
+  attempts = 5,
+  backoffMs: (attempt: number) => number = (a) => 1000 * 2 ** (a - 1)
+): Promise<T> => {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await fn();
+    } catch (err) {
+      const code = (err as { code?: string } | null)?.code;
+      if (attempt >= attempts || !code || !TRANSIENT_DB_ERRORS.has(code)) {
+        throw err;
+      }
+      onRetry?.(attempt, err);
+      await new Promise((r) => setTimeout(r, backoffMs(attempt)));
+    }
+  }
+};
+
+/** Starting seeds for the deterministic, globally-unique code/id allocators. */
+const OBVOD_KOD_START = 10001; // 5-digit space
+const OKRSEK_KOD_START = 100001; // 6-digit space
+const ID_START = 1;
+
+export type GradesByIzo = (izo: string) => SchoolGrades | undefined;
+
+/** Parsed municipalities that all export under one type code. */
+export interface ExportGroup {
+  municipalities: Municipality[];
+  typeCode: SchoolTypeCode;
+}
+
+export interface RunOptions {
+  typeCode: SchoolTypeCode;
+  /** grades a school teaches (ČÚZK CSV); undefined => full band for the type */
+  gradesByIzo?: GradesByIzo;
+}
+
+/**
+ * Build the full {@link MigrationExport} for one type's parsed municipalities.
+ * Thin wrapper over {@link buildMigrationExportForGroups}; kept for the
+ * single-type callers (the `export-obec` dry run, tests).
+ */
+export const buildMigrationExport = (
+  municipalities: Municipality[],
+  options: RunOptions
+): Promise<MigrationExport> =>
+  buildMigrationExportForGroups(
+    [{ municipalities, typeCode: options.typeCode }],
+    options.gradesByIzo
+  );
+
+/**
+ * Build one {@link MigrationExport} across several groups (types) of
+ * municipalities. Fetches the clip boundaries for the union of all
+ * municipalities once, then assembles every obec under **run-wide allocators**
+ * so KOD/ID are globally unique across obce *and* types.
+ *
+ * NOTE: district-first cities (Praha/Ostrava/Plzeň/Liberec) still need the
+ * per-district clip → empty-merge → combine flow (§7, P4-3). For plain
+ * single-boundary obce this is complete.
+ */
+export const buildMigrationExportForGroups = async (
+  groups: ExportGroup[],
+  gradesByIzo?: GradesByIzo,
+  onProgress?: (done: number, total: number, obecKod: number) => void,
+  problems: string[] = []
+): Promise<MigrationExport> => {
+  const allMunicipalities = groups.flatMap((g) => g.municipalities);
+  const { cityCodes, districtCodes } =
+    getMunicipalityCodes(allMunicipalities);
+  const parentCityByDistrict = await getCityCodesByDistrictCodes(districtCodes);
+  // the pooled cities' own outline too — the coverage check measures against it
+  const cityPolygons = await getCityPolygons(
+    new Set([...cityCodes, ...parentCityByDistrict.values()])
+  );
+  // every district of each pooled city — a district can be reached only by
+  // other founders' addresses, without being named by any ordinance
+  // (Brno-Kníničky's ZŠ)
+  const allDistrictsOfCities = await getDistrictCodesOfCities(
+    new Set(parentCityByDistrict.values())
+  );
+  const districtPolygons = await getDistrictPolygons(
+    new Set([...districtCodes, ...allDistrictsOfCities.keys()])
+  );
+  return assembleExport(
+    groups,
+    cityPolygons,
+    districtPolygons,
+    parentCityByDistrict,
+    gradesByIzo,
+    onProgress,
+    allDistrictsOfCities,
+    problems
+  );
+};
+
+/** One obec's worth of work: a standalone obec or a pooled big city. */
+type ObecWorkItem =
+  | {
+      kind: "obec";
+      obecKod: number;
+      typeCode: SchoolTypeCode;
+      municipality: Municipality;
+    }
+  | {
+      kind: "city";
+      obecKod: number;
+      typeCode: SchoolTypeCode;
+      municipalities: Municipality[];
+    };
+
+/**
+ * Pure assembly step: given the groups and pre-fetched boundaries, assemble every
+ * obec with shared allocators and dedupe. No DB access — unit-testable with
+ * synthetic municipalities + boundaries.
+ *
+ * District-first cities are pooled: all městská-část municipalities sharing a
+ * parent city (per `parentCityByDistrict`) are exported as one obec (P4-3);
+ * everything else is a standalone obec. Obce are processed in a deterministic
+ * order (by obec code, then type) so shared allocators are reproducible.
+ * `onProgress`, when given, fires once per obec (`done`/`total` count work
+ * items, not okrsky) — this is the slow part of a big batch (per-obec
+ * Voronoi tessellation), noticeably slower than the DB-bound parse loop
+ * `exportOrdinances` already reports on.
+ */
+export const assembleExport = (
+  groups: ExportGroup[],
+  cityPolygons: PolygonsByCodes,
+  districtPolygons: PolygonsByCodes,
+  parentCityByDistrict: Map<number, number>,
+  gradesByIzo?: GradesByIzo,
+  onProgress?: (done: number, total: number, obecKod: number) => void,
+  /**
+   * every district of each pooled city -> its city; kept apart from
+   * `parentCityByDistrict` so it doesn't change which founders get pooled
+   */
+  pieceParentCityByDistrict: Map<number, number> = new Map(),
+  /** sink for the per-obec coverage self-check (see `checkCoverage`) */
+  problems: string[] = []
+): MigrationExport => {
+  const allocObvodKod = counter(OBVOD_KOD_START);
+  const allocOkrsekKod = counter(OKRSEK_KOD_START);
+  const allocId = counter(ID_START);
+  const grades = gradesByIzo ?? (() => undefined);
+
+  // Cities that also have at least one self-governing district (Vratislavice
+  // nad Nisou under Liberec; Praha/Ostrava/Brno's městské části) — used below
+  // to pool a "leftover" whole-city founder in with its district siblings.
+  const citiesWithDistricts = new Set(parentCityByDistrict.values());
+
+  const cityBuckets = new Map<string, ObecWorkItem & { kind: "city" }>();
+  const items: ObecWorkItem[] = [];
+
+  for (const group of groups) {
+    for (const municipality of group.municipalities) {
+      if (municipality.areas.length === 0) continue;
+
+      // A "leftover" whole-city founder (e.g. "Statutární město Liberec",
+      // governing everything outside the separately-founded Vratislavice nad
+      // Nisou) is still `municipalityType: "city"`, but its city code is the
+      // *parent* of a real district being processed in this same run. Pool it
+      // with that district instead of building it standalone: standalone, its
+      // own `mergeIdenticalTerritoryObvody` pass never sees the district's
+      // output (and vice versa), so an obec+type can end up covered *both* by
+      // real okrsky and an independent whole-obec vymezeni row (ČÚZK
+      // kontroly_v1 items 14/16 — confirmed live for Liberec, obec 563889).
+      // Brno is excluded to mirror `getMunicipalityPolygons`'s own "don't
+      // subtract district polygons from the city polygon for Brno" guard
+      // (`street-markdown/polygons.ts`) — pooling it here would silently
+      // resolve its boundary to the *undivided* city polygon (overlapping
+      // every real district) rather than throwing, which is worse than today.
+      const isPoolableLeftoverCity =
+        municipality.municipalityType === "city" &&
+        municipality.municipalityName !== "Brno" &&
+        citiesWithDistricts.has(municipality.code);
+
+      if (municipality.municipalityType === "district" || isPoolableLeftoverCity) {
+        const cityCode =
+          municipality.municipalityType === "district"
+            ? parentCityByDistrict.get(municipality.code)
+            : municipality.code;
+        if (cityCode === undefined) {
+          throw new Error(
+            `No parent city for district ${municipality.code} (${municipality.municipalityName}).`
+          );
+        }
+        const key = `${group.typeCode}:${cityCode}`;
+        let bucket = cityBuckets.get(key);
+        if (!bucket) {
+          bucket = {
+            kind: "city",
+            obecKod: cityCode,
+            typeCode: group.typeCode,
+            municipalities: [],
+          };
+          cityBuckets.set(key, bucket);
+          items.push(bucket);
+        }
+        bucket.municipalities.push(municipality);
+      } else {
+        items.push({
+          kind: "obec",
+          obecKod: municipality.code,
+          typeCode: group.typeCode,
+          municipality,
+        });
+      }
+    }
+  }
+
+  // deterministic processing order regardless of input order
+  items.sort(
+    (a, b) => a.obecKod - b.obecKod || a.typeCode.localeCompare(b.typeCode)
+  );
+
+  const merged = emptyExport();
+  // CR0025 requires okrsek CISLO to be unique within an obec across all three
+  // types (M/1/2), not just within one type — so the next free number carries
+  // forward between an obec's per-type calls. `items` is sorted by obecKod
+  // first, so each obec's calls are contiguous and this map never grows stale.
+  const cisloStartByObec = new Map<number, number>();
+  let itemsDone = 0;
+  for (const item of items) {
+    const cisloStart = cisloStartByObec.get(item.obecKod) ?? 1;
+    const ctx: ObecBuildContext = {
+      obecKod: item.obecKod,
+      typeCode: item.typeCode,
+      allocObvodKod,
+      allocOkrsekKod,
+      allocId,
+      gradesByIzo: grades,
+      cisloStart,
+      problems,
+    };
+
+    let tables: ObecTables;
+    if (item.kind === "city") {
+      const districts = [...item.municipalities].sort(
+        (a, b) => a.code - b.code
+      );
+      tables = buildBigCityTables(
+        item.obecKod,
+        item.typeCode,
+        districts,
+        cityPolygons,
+        districtPolygons,
+        ctx,
+        new Map([...pieceParentCityByDistrict, ...parentCityByDistrict])
+      );
+    } else {
+      // only the districts this municipality names itself: the run-wide map
+      // holds other founders'/types' districts, which a city-type boundary
+      // would otherwise subtract (see buildBigCityTables)
+      const ownDistrictPolygons = Object.fromEntries(
+        item.municipality.districtCodes
+          .filter((code) => districtPolygons[code])
+          .map((code) => [code, districtPolygons[code]])
+      );
+      const boundary = getMunicipalityBoundary(
+        item.municipality,
+        cityPolygons,
+        ownDistrictPolygons
+      );
+      if (!boundary) {
+        throw new Error(
+          `No boundary polygon found for municipality ${item.municipality.municipalityName} (${item.obecKod}). Is the DB synced?`
+        );
+      }
+      // re-clip to the obec's own polygon after `boundary` (wider, if it
+      // absorbed a whole village via §8) has shaped the tessellation — see
+      // getMunicipalityOwnBoundary.
+      const trueBoundary = getMunicipalityOwnBoundary(
+        item.municipality,
+        cityPolygons,
+        ownDistrictPolygons
+      );
+      tables = buildObecTables(item.municipality, boundary, ctx, trueBoundary);
+    }
+    const obecBoundary = getObecBoundary(cityPolygons, item.obecKod);
+    if (tables.okrskyAreaM2 !== undefined && obecBoundary) {
+      const problem = checkCoverage(
+        item.obecKod,
+        item.typeCode,
+        tables.okrskyAreaM2,
+        obecBoundary
+      );
+      if (problem) problems.push(problem);
+    }
+    cisloStartByObec.set(item.obecKod, cisloStart + tables.okrsky.length);
+    appendTables(merged, tables);
+    itemsDone++;
+    onProgress?.(itemsDone, items.length, item.obecKod);
+  }
+
+  // MI07 cascade must run before the MI11 fill-in: dropping a ŠO can leave an
+  // obec+type newly uncovered, and the fill-in needs to see that.
+  const withoutUnknownSchools = gradesByIzo
+    ? pruneUnknownSchools(merged, gradesByIzo).data
+    : merged;
+
+  // B5 — collapse duplicate join/attribute rows before serialization.
+  return dedupeExport(fillObecCoverage(withoutUnknownSchools));
+};
+
+/** A MIG_SKOLA_SKO row dropped because its IZO isn't in the ČÚZK registry (MI07). */
+export interface DroppedSchool {
+  SKO_KOD: number;
+  SKOLA_IZO: number;
+}
+
+/**
+ * CR0025 **MI07** cascade (ČÚZK kontroly_v1 item 2): a school whose IZO isn't
+ * carried in the ČÚZK školský rejstřík (`gradesByIzo` returns undefined) can't
+ * be migrated — drop its MIG_SKOLA_SKO row. If that leaves a ŠO with no
+ * schools at all, the ŠO can't be migrated either: drop the obvod, its
+ * MIG_SKO_KO links, and any MIG_VYMEZENI_ZBYLYCH_KO row pointing at it. Its
+ * okrsek geometry is left untouched — an orphan okrsek is allowed (MI02).
+ */
+export const pruneUnknownSchools = (
+  data: MigrationExport,
+  gradesByIzo: GradesByIzo
+): {
+  data: MigrationExport;
+  droppedSchools: DroppedSchool[];
+  droppedObvody: DroppedObvod[];
+} => {
+  const skolaSko: MigSkolaSko[] = [];
+  const droppedSchools: DroppedSchool[] = [];
+  const survivingObvody = new Set<number>();
+  for (const s of data.skolaSko) {
+    if (gradesByIzo(String(s.SKOLA_IZO)) === undefined) {
+      droppedSchools.push({ SKO_KOD: s.SKO_KOD, SKOLA_IZO: s.SKOLA_IZO });
+    } else {
+      skolaSko.push(s);
+      survivingObvody.add(s.SKO_KOD);
+    }
+  }
+  if (droppedSchools.length === 0) {
+    return { data, droppedSchools: [], droppedObvody: [] };
+  }
+
+  const izosByObvod = new Map<number, number[]>();
+  for (const s of data.skolaSko) {
+    const arr = izosByObvod.get(s.SKO_KOD);
+    if (arr) arr.push(s.SKOLA_IZO);
+    else izosByObvod.set(s.SKO_KOD, [s.SKOLA_IZO]);
+  }
+
+  const dropKods = new Set<number>();
+  const droppedObvody: DroppedObvod[] = [];
+  for (const o of data.obvody) {
+    if (!survivingObvody.has(o.KOD)) {
+      dropKods.add(o.KOD);
+      droppedObvody.push({
+        KOD: o.KOD,
+        OBEC_KOD: o.OBEC_KOD,
+        TYP_OBVODU_KOD: o.TYP_OBVODU_KOD,
+        izos: izosByObvod.get(o.KOD) ?? [],
+      });
+    }
+  }
+
+  return {
+    data: {
+      ...data,
+      obvody: data.obvody.filter((o) => !dropKods.has(o.KOD)),
+      skolaSko,
+      skoKo: data.skoKo.filter((l) => !dropKods.has(l.SKO_KOD)),
+      vymezeni: data.vymezeni.filter(
+        (v) => v.SKO_KOD === null || !dropKods.has(v.SKO_KOD)
+      ),
+    },
+    droppedSchools,
+    droppedObvody,
+  };
+};
+
+/**
+ * CR0025 **MI11** fill-in (ČÚZK kontroly_v1 item 11): every obec appearing in
+ * the export must be covered for all three types (M/1/2) — an okrsek of that
+ * type, or a vymezeni row resolving to a ŠO of that type. Where a type has
+ * neither, add one blanket `{OBEC_KOD, SKO_KOD: null}` row.
+ * MIG_VYMEZENI_ZBYLYCH_KO carries no type column, so a single null row
+ * declares "no ŠO here" across every otherwise-uncovered type for that obec —
+ * ČÚZK's fix asks for one row per obec, not one per missing type.
+ */
+const fillObecCoverage = (data: MigrationExport): MigrationExport => {
+  const obvodType = new Map(data.obvody.map((o) => [o.KOD, o.TYP_OBVODU_KOD]));
+  const okrskyByObecType = new Set(
+    data.okrsky.map((o) => `${o.OBEC_KOD}/${o.TYP_OBVODU_KOD}`)
+  );
+  const obceInScope = new Set<number>([
+    ...data.okrsky.map((o) => o.OBEC_KOD),
+    ...data.vymezeni.map((v) => v.OBEC_KOD),
+  ]);
+  const nullVymezeniByObec = new Set(
+    data.vymezeni.filter((v) => v.SKO_KOD === null).map((v) => v.OBEC_KOD)
+  );
+  const vymezeniTypesByObec = new Map<number, Set<SchoolTypeCode>>();
+  for (const v of data.vymezeni) {
+    if (v.SKO_KOD === null) continue;
+    const type = obvodType.get(v.SKO_KOD);
+    if (!type) continue;
+    const set = vymezeniTypesByObec.get(v.OBEC_KOD);
+    if (set) set.add(type);
+    else vymezeniTypesByObec.set(v.OBEC_KOD, new Set([type]));
+  }
+
+  const additions: MigVymezeniZbylychKo[] = [];
+  for (const obec of obceInScope) {
+    if (nullVymezeniByObec.has(obec)) continue; // already blanket-covered
+    const vymTypes = vymezeniTypesByObec.get(obec);
+    const covered = (["M", "1", "2"] as const).every(
+      (type) =>
+        okrskyByObecType.has(`${obec}/${type}`) || (vymTypes?.has(type) ?? false)
+    );
+    if (!covered) additions.push({ OBEC_KOD: obec, SKO_KOD: null });
+  }
+  return additions.length === 0
+    ? data
+    : { ...data, vymezeni: [...data.vymezeni, ...additions] };
+};
+
+/** One ordinance to export: its founder, the raw street-markdown, and the type. */
+export interface OrdinanceInput {
+  founderId: number;
+  sourceText: string;
+  schoolType: SchoolType;
+}
+
+/** A ŠO dropped from the export because it had no territory (MI04). */
+export interface DroppedObvod {
+  KOD: number;
+  OBEC_KOD: number;
+  TYP_OBVODU_KOD: SchoolTypeCode;
+  izos: number[];
+}
+
+export interface ExportResult {
+  data: MigrationExport;
+  /** ordinances skipped because their founder couldn't be resolved */
+  skipped: { founderId: number; reason: string }[];
+  /** ŠO pruned for having no catchment (school with no addresses — MI04) */
+  droppedEmptyObvody: DroppedObvod[];
+  /** structural self-check findings (empty === clean) */
+  integrityProblems: string[];
+}
+
+/**
+ * Drop ŠO that ended up with no territory — no MIG_SKO_KO okrsek link and no
+ * MIG_VYMEZENI_ZBYLYCH_KO whole-obec row. That happens when a school is listed
+ * in the ordinance with no addresses: it yields a school circle but no okrsek.
+ * Such a ŠO can't be migrated (CR0025 MI04, severity E), so it's excluded from
+ * the export and returned in `dropped` for reporting. Its MIG_SKOLA_SKO rows go
+ * with it; okrsky/def points/seams are untouched (an empty ŠO owns none).
+ */
+export const pruneEmptyObvody = (
+  data: MigrationExport
+): { data: MigrationExport; dropped: DroppedObvod[] } => {
+  const linked = new Set(data.skoKo.map((l) => l.SKO_KOD));
+  const wholeObec = new Set(
+    data.vymezeni.map((v) => v.SKO_KOD).filter((k): k is number => k !== null)
+  );
+  const izosByObvod = new Map<number, number[]>();
+  for (const s of data.skolaSko) {
+    const arr = izosByObvod.get(s.SKO_KOD);
+    if (arr) arr.push(s.SKOLA_IZO);
+    else izosByObvod.set(s.SKO_KOD, [s.SKOLA_IZO]);
+  }
+
+  const dropKods = new Set<number>();
+  const dropped: DroppedObvod[] = [];
+  for (const o of data.obvody) {
+    if (!linked.has(o.KOD) && !wholeObec.has(o.KOD)) {
+      dropKods.add(o.KOD);
+      dropped.push({
+        KOD: o.KOD,
+        OBEC_KOD: o.OBEC_KOD,
+        TYP_OBVODU_KOD: o.TYP_OBVODU_KOD,
+        izos: izosByObvod.get(o.KOD) ?? [],
+      });
+    }
+  }
+  if (dropKods.size === 0) return { data, dropped };
+
+  return {
+    data: {
+      ...data,
+      obvody: data.obvody.filter((o) => !dropKods.has(o.KOD)),
+      skolaSko: data.skolaSko.filter((s) => !dropKods.has(s.SKO_KOD)),
+    },
+    dropped,
+  };
+};
+
+/** Progress tick from {@link exportOrdinances} (see its `onProgress`). */
+export interface ExportProgress {
+  /** how many ordinance inputs (parse) or obce (geometry) are done so far */
+  done: number;
+  /** total ordinance inputs (parse) or obce (geometry) */
+  total: number;
+  /** the founder just processed — 0 outside the `parse` phase */
+  founderId: number;
+  /**
+   * `parse` = per-ordinance DB parse loop; `assemble` = a brief transition
+   * tick before the geometry loop starts; `geometry` = per-obec Voronoi
+   * tessellation (`assembleExport`'s obec/city loop) — usually the slowest
+   * phase of a big batch, noticeably slower than `parse`; `retry` = a
+   * transient DB error is being retried (see `attempt`).
+   */
+  phase: "parse" | "assemble" | "geometry" | "retry";
+  /** the obec just finished, set only when `phase === "geometry"` */
+  obecKod?: number;
+  /** retry attempt number, set only when `phase === "retry"` */
+  attempt?: number;
+}
+
+/**
+ * P4-2 — the multi-founder / multi-type entrypoint. For each ordinance: resolve
+ * the founder context (`getNewMunicipalityByFounderId`), seed it as the initial
+ * parser state (DB `source_text` has no municipality header), parse to
+ * municipalities, then assemble all of them into one export under shared
+ * allocators + the supplied grade lookup, and self-check.
+ *
+ * The parse loop is the slow, DB-heavy part (address-point resolution per
+ * ordinance); `onProgress` fires once per input so a long batch can show how far
+ * it has got, then once with `phase: "assemble"` before the geometry pass.
+ */
+export const exportOrdinances = async (
+  inputs: OrdinanceInput[],
+  gradesByIzo?: GradesByIzo,
+  onProgress?: (p: ExportProgress) => void
+): Promise<ExportResult> => {
+  const groups: ExportGroup[] = [];
+  const skipped: { founderId: number; reason: string }[] = [];
+
+  for (let i = 0; i < inputs.length; i++) {
+    const input = inputs[i];
+    // Resolve + parse as one idempotent unit: a retry re-fetches a clean
+    // municipality (getNewMunicipalityByFounderId) rather than reusing one the
+    // failed attempt may have partly populated.
+    const parsed = await withDbRetry(
+      async (): Promise<{ skip: string } | { municipalities: Municipality[] }> => {
+        const resolved = await getNewMunicipalityByFounderId(
+          input.founderId,
+          input.schoolType
+        );
+        if (resolved.errors.length > 0) {
+          return { skip: resolved.errors.map((e) => e.message).join("; ") };
+        }
+        const municipalities = await parseOrdinanceToAddressPoints({
+          lines: input.sourceText.split("\n"),
+          schoolType: input.schoolType,
+          initialState: { currentMunicipality: resolved.municipality },
+          onError: () => {},
+          onWarning: () => {},
+          includeUnmappedAddressPoints: false,
+        });
+        return { municipalities };
+      },
+      (attempt) =>
+        onProgress?.({
+          done: i,
+          total: inputs.length,
+          founderId: input.founderId,
+          phase: "retry",
+          attempt,
+        })
+    );
+
+    if ("skip" in parsed) {
+      skipped.push({ founderId: input.founderId, reason: parsed.skip });
+    } else {
+      // A zš ordinance drives both 1.stupeň and (derived, same partition)
+      // 2.stupeň (Part E); a mš ordinance is only type M.
+      const baseType = schoolTypeToCode(input.schoolType);
+      groups.push({ municipalities: parsed.municipalities, typeCode: baseType });
+      if (baseType === "1") {
+        groups.push({ municipalities: parsed.municipalities, typeCode: "2" });
+      }
+    }
+
+    onProgress?.({
+      done: i + 1,
+      total: inputs.length,
+      founderId: input.founderId,
+      phase: "parse",
+    });
+  }
+
+  onProgress?.({
+    done: inputs.length,
+    total: inputs.length,
+    founderId: 0,
+    phase: "assemble",
+  });
+  // The boundary fetch + assembly is idempotent (fresh allocators each call), so
+  // a transient drop here retries the whole step cleanly.
+  let coverageProblems: string[] = [];
+  const raw = await withDbRetry(
+    () => {
+      coverageProblems = []; // a retry rebuilds everything from scratch
+      return buildMigrationExportForGroups(
+        groups,
+        gradesByIzo,
+        (done, total, obecKod) =>
+          onProgress?.({
+            done,
+            total,
+            founderId: 0,
+            phase: "geometry",
+            obecKod,
+          }),
+        coverageProblems
+      );
+    },
+    (attempt) =>
+      onProgress?.({
+        done: inputs.length,
+        total: inputs.length,
+        founderId: 0,
+        phase: "retry",
+        attempt,
+      })
+  );
+  const { data, dropped } = pruneEmptyObvody(raw);
+  return {
+    data,
+    skipped,
+    droppedEmptyObvody: dropped,
+    integrityProblems: [
+      ...checkIntegrity(data),
+      ...coverageProblems,
+      ...(await withDbRetry(() => checkTopologyAgainstObce(data))),
+    ],
+  };
+};
+
+/** Ordinance school type → MIG_* obvod type code (2.stupeň is derived, Phase 5). */
+/** MI10 needs each obec's whole outline — fetched once for every obec with okrsky. */
+const checkTopologyAgainstObce = async (
+  data: MigrationExport
+): Promise<string[]> => {
+  const obecKods = new Set(data.okrsky.map((o) => o.OBEC_KOD));
+  const cityPolygons = await getCityPolygons(obecKods);
+  const boundaryByObec = new Map<number, Feature<Polygon | MultiPolygon>>();
+  for (const obecKod of obecKods) {
+    const boundary = getObecBoundary(cityPolygons, obecKod);
+    if (boundary) boundaryByObec.set(obecKod, boundary);
+  }
+  return checkSeamTopology(data, boundaryByObec);
+};
+
+export const schoolTypeToCode = (type: SchoolType): SchoolTypeCode =>
+  type === SchoolType.Kindergarten ? "M" : "1";
+
+const emptyExport = (): MigrationExport => ({
+  obvody: [],
+  okrsky: [],
+  skoKo: [],
+  defBody: [],
+  hrany: [],
+  skolaSko: [],
+  vymezeni: [],
+});
+
+const appendTables = (into: MigrationExport, from: ObecTables): void => {
+  into.obvody.push(...from.obvody);
+  into.okrsky.push(...from.okrsky);
+  into.skoKo.push(...from.skoKo);
+  into.defBody.push(...from.defBody);
+  into.hrany.push(...from.hrany);
+  into.skolaSko.push(...from.skolaSko);
+  into.vymezeni.push(...from.vymezeni);
+};

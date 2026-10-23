@@ -1,0 +1,22 @@
+{
+  "ts-node": {
+    "experimentalSpecifierResolution": "node",
+    "esm": true,
+  },
+  "compilerOptions": {
+    "outDir": "./dist",
+    "allowJs": true,
+    "module": "es2020",
+    "moduleResolution": "Node",
+    "target": "ES2020",
+    "allowSyntheticDefaultImports": true,
+    "inlineSourceMap": true,
+    "inlineSources": true,
+    "esModuleInterop": true,
+    "typeRoots": [
+      "src/@types",
+      "node_modules/@types"
+    ],
+  },
+  "include": ["./src/**/*"],
+}

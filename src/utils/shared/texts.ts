@@ -38,6 +38,7 @@ export const texts = {
   embedMap: "Vložit mapu na web",
   expert: "Expert",
   expertsEntrance: "Vstup pro experty",
+  externalOrdinance: "data od obce",
   featureUnderConstruction: "Přípravovaná funkce",
   fillOutEmail: "Vyplňte e-mail...",
   fillOutFullName: "Vyplňte jméno a příjmení...",
