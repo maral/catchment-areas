@@ -101,9 +101,14 @@ const processSchoolRegisterJsonld = async (
       const locationsWithRuian = allPlaces.filter(
         (p) => p.adresa?.kodRUIAN != null
       );
-      // Prefer the main building (IDmista matches school IZO), fall back to first available
+      // Prefer the main building (IDmista matches school IZO), then the place at the
+      // entity's seat (sídlo), fall back to first available
+      const seatRuian = entity.adresa?.kodRUIAN;
       const mainPlace =
         locationsWithRuian.find((p) => p.IDmista === school.izo) ??
+        locationsWithRuian.find(
+          (p) => seatRuian != null && p.adresa.kodRUIAN === seatRuian
+        ) ??
         locationsWithRuian[0];
 
       const locations: SchoolLocation[] = mainPlace
