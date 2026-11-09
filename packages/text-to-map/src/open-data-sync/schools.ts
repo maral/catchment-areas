@@ -76,11 +76,14 @@ const processSchoolRegisterJsonld = async (
   schoolsWithoutRuian: SchoolAddress[];
   /** candidate address points per school IZO, best first */
   locationCandidates: Map<string, number[]>;
+  /** the same places (and seat) as address text, best first */
+  addressCandidates: Map<string, RegistryAddress[]>;
 }> => {
   const founders = new Map<string, Founder>();
   const schools: School[] = [];
   const schoolsWithoutRuian: SchoolAddress[] = [];
   const locationCandidates = new Map<string, number[]>();
+  const addressCandidates = new Map<string, RegistryAddress[]>();
 
   const stream = createReadStream(getJsonldFilePath(options))
     .pipe(parser())
@@ -114,7 +117,8 @@ const processSchoolRegisterJsonld = async (
       // matches school IZO), the place at the entity's seat (sídlo), the other
       // places, then the seat itself — for a place the registry lists without
       // a RUIAN code (MŠ Turnov-Mašov) or with one RÚIAN doesn't have. The
-      // first one we have an address point for is used (see importDataToDb).
+      // first one we have an address point for is used, else the first
+      // address found by its text (see resolveLocations).
       const seatRuian: number | undefined = entity.adresa?.kodRUIAN ?? undefined;
       const placeRuians = allPlaces
         .filter((p) => p.adresa?.kodRUIAN != null)
@@ -127,6 +131,20 @@ const processSchoolRegisterJsonld = async (
         ...new Set([...placeRuians, ...(seatRuian != null ? [seatRuian] : [])]),
       ];
       locationCandidates.set(school.izo, candidates);
+      // their addresses as text, for a RUIAN code RÚIAN doesn't have (an
+      // outdated one: MŠ Litvínovská 490, Praha)
+      addressCandidates.set(
+        school.izo,
+        [
+          ...[...allPlaces].sort(
+            (a, b) =>
+              placeRank(a, school.izo, seatRuian) - placeRank(b, school.izo, seatRuian)
+          ),
+          { adresa: entity.adresa },
+        ]
+          .map((p) => p.adresa)
+          .filter((a): a is RegistryAddress => a?.cisloDomovni != null)
+      );
       if (candidates.length === 0 && allPlaces.length > 0) {
         const addr = allPlaces[0].adresa ?? {};
         const addressParts = [
@@ -189,7 +207,7 @@ const processSchoolRegisterJsonld = async (
     }
   }
 
-  return { schools, founders, schoolsWithoutRuian, locationCandidates };
+  return { schools, founders, schoolsWithoutRuian, locationCandidates, addressCandidates };
 };
 
 /**
@@ -200,7 +218,8 @@ const processSchoolRegisterJsonld = async (
  */
 const resolveLocations = async (
   schools: School[],
-  locationCandidates: Map<string, number[]>
+  locationCandidates: Map<string, number[]>,
+  addressCandidates: Map<string, RegistryAddress[]>
 ): Promise<School[]> => {
   const knex = getKnexDb();
   const all = [...new Set([...locationCandidates.values()].flat())];
@@ -213,11 +232,56 @@ const resolveLocations = async (
   }
   const unresolved: School[] = [];
   for (const school of schools) {
-    const id = (locationCandidates.get(school.izo) ?? []).find((c) => known.has(c));
+    let id = (locationCandidates.get(school.izo) ?? []).find((c) => known.has(c));
+    for (const address of addressCandidates.get(school.izo) ?? []) {
+      if (id !== undefined) break;
+      id = await findAddressPointByText(address);
+    }
     school.locations = id === undefined ? [] : [{ addressPointId: id }];
     if (id === undefined) unresolved.push(school);
   }
   return unresolved;
+};
+
+/** An address as the school registry gives it. */
+interface RegistryAddress {
+  ulice?: string | null;
+  cisloDomovni?: number | null;
+  cisloOrientacni?: number | null;
+  dodatekOrientacnihoCisla?: string | null;
+  obec?: string | null;
+  castObce?: string | null;
+}
+
+/**
+ * The one address point matching an address by its text — street (or none),
+ * č.p., č.o. and the municipality part or the municipality; undefined when
+ * there's no match or several.
+ */
+const findAddressPointByText = async (
+  address: RegistryAddress
+): Promise<number | undefined> => {
+  let query = getKnexDb()("address_point as ap")
+    .leftJoin("street as s", "s.code", "ap.street_code")
+    .join("city as c", "c.code", "ap.city_code")
+    .leftJoin("municipality_part as mp", "mp.code", "ap.municipality_part_code")
+    .where("ap.descriptive_number", address.cisloDomovni);
+  query = address.ulice
+    ? query.where("s.name", address.ulice)
+    : query.whereNull("ap.street_code");
+  if (address.cisloOrientacni != null) {
+    query = query.where("ap.orientational_number", address.cisloOrientacni);
+    query = address.dodatekOrientacnihoCisla
+      ? query.where("ap.orientational_number_letter", address.dodatekOrientacnihoCisla)
+      : query.whereNull("ap.orientational_number_letter");
+  }
+  // the registry's municipality part can differ from RÚIAN's (Litvínovská
+  // 490/52: Střížkov vs. Prosek), so either it or the municipality will do
+  query = query.where((q) =>
+    q.where("mp.name", address.castObce ?? "").orWhere("c.name", address.obec ?? "")
+  );
+  const rows = await query.limit(2).select("ap.id");
+  return rows.length === 1 ? Number(rows[0].id) : undefined;
 };
 
 const importDataToDb = async (
@@ -225,9 +289,13 @@ const importDataToDb = async (
   saveFoundersToCsv: boolean = false,
   saveSchoolsWithoutRuianToCsv: boolean = false
 ) => {
-  const { schools, founders, schoolsWithoutRuian, locationCandidates } =
+  const { schools, founders, schoolsWithoutRuian, locationCandidates, addressCandidates } =
     await processSchoolRegisterJsonld(options);
-  const withoutLocation = await resolveLocations(schools, locationCandidates);
+  const withoutLocation = await resolveLocations(
+    schools,
+    locationCandidates,
+    addressCandidates
+  );
 
   if (saveFoundersToCsv) {
     const csvFile = "founders.csv";
