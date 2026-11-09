@@ -55,6 +55,11 @@ export const texts = {
     "Uživatel musí mít pod tímto e-mailem účet u Microsoftu (Office 365 apod.)",
   new: "nová",
   newOrdinances: "Nové vyhlášky",
+  schoolNameIssues: "Chybný název školy",
+  schoolNameIssuesFound: (count: number) =>
+    `${count} ${
+      count === 1 ? "obec má" : count >= 2 && count <= 4 ? "obce mají" : "obcí má"
+    } v aktivní vyhlášce řádek, který není přesným názvem školy z rejstříku. Mapa ho přiřadí k nejpodobnější škole, po přejmenování často k jiné.`,
   newOrdinancesAvailable: (count: number) =>
     `${count} ${
       count === 1

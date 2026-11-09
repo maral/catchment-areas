@@ -10,6 +10,7 @@ import {
   loadNewOrdinanceMetadata,
   serializeOrdinanceMetadata,
 } from "@/components/table/fetchFunctions/loadOrdinanceMetadata";
+import { loadSchoolNameIssueCityCodes } from "@/components/table/fetchFunctions/loadSchoolNameIssues";
 import {
   loadRegions,
   serializeRegions,
@@ -22,7 +23,10 @@ import { getSchoolTypeCode } from "@/entities/School";
 import { SchoolType } from "@/types/basicTypes";
 import { calculateStatusCounts } from "@/utils/client/progress";
 import { texts } from "@/utils/shared/texts";
-import { NewspaperIcon } from "@heroicons/react/24/outline";
+import {
+  ExclamationTriangleIcon,
+  NewspaperIcon,
+} from "@heroicons/react/24/outline";
 
 export default async function Cities(props: {
   params: Promise<{ schoolType: string }>;
@@ -42,14 +46,33 @@ export default async function Cities(props: {
     regions,
     newOrdinanceMetadata,
     serializedNewOrdinanceMetadata,
+    schoolNameIssueCityCodes,
   } = await api.withRemult(async () => {
     const newOrdinanceMetadata = await loadNewOrdinanceMetadata(schoolTypeCode);
     const regionCode =
       selectedRegion === "all" ? undefined : Number(selectedRegion);
-    const cities = await loadCities(schoolTypeCode, regionCode);
+    const schoolNameIssueCityCodes = await loadSchoolNameIssueCityCodes(
+      schoolTypeCode
+    );
+    // cities needing attention first: a problem in the active ordinance, then
+    // a new ordinance, then the rest — each group alphabetical as loaded
+    const newOrdinanceCityCodes = new Set(
+      newOrdinanceMetadata.map((row) => row.cityCode)
+    );
+    const rank = (city: { code: number }) =>
+      schoolNameIssueCityCodes.includes(city.code)
+        ? 0
+        : newOrdinanceCityCodes.has(city.code)
+        ? 1
+        : 2;
+    const cities = (await loadCities(schoolTypeCode, regionCode))
+      .map((city, i) => ({ city, i }))
+      .sort((a, b) => rank(a.city) - rank(b.city) || a.i - b.i)
+      .map(({ city }) => city);
     return {
       cities,
       serializedCities: serializeCities(cities),
+      schoolNameIssueCityCodes,
       regions: serializeRegions(await loadRegions()),
       newOrdinanceMetadata,
       serializedNewOrdinanceMetadata:
@@ -76,6 +99,20 @@ export default async function Cities(props: {
         </HeaderBox>
       </CardHeader>
       <CardContent className="space-y-6">
+        {schoolNameIssueCityCodes.length > 0 && (
+          <Alert variant="destructive">
+            <ExclamationTriangleIcon className="h-4 w-4 mr-2" />
+            <AlertTitle>{texts.schoolNameIssues}</AlertTitle>
+            <AlertDescription>
+              {texts.schoolNameIssuesFound(
+                cities.filter((city) =>
+                  schoolNameIssueCityCodes.includes(city.code)
+                ).length
+              )}
+            </AlertDescription>
+          </Alert>
+        )}
+
         {newOrdinanceMetadata.length > 0 && (
           <Alert variant="warning">
             <NewspaperIcon className="h-4 w-4 mr-2" />
@@ -98,6 +135,7 @@ export default async function Cities(props: {
         <CitiesTable
           initialData={serializedCities}
           newOrdinanceMetadata={serializedNewOrdinanceMetadata}
+          schoolNameIssueCityCodes={schoolNameIssueCityCodes}
           schoolType={schoolTypeCode}
         />
       </CardContent>

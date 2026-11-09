@@ -21,12 +21,16 @@ import { deserializeOrdinanceMetadata } from "../../fetchFunctions/loadOrdinance
 export function CitiesTable({
   initialData,
   newOrdinanceMetadata,
+  schoolNameIssueCityCodes,
   schoolType,
 }: {
   initialData: any[];
   newOrdinanceMetadata: any[];
+  /** cities whose active ordinance names a school not exactly */
+  schoolNameIssueCityCodes: number[];
   schoolType: SchoolType;
 }) {
+  const schoolNameIssues = new Set(schoolNameIssueCityCodes);
   const newOrdinancesCityCodes = new Set(
     deserializeOrdinanceMetadata(newOrdinanceMetadata).map(
       (row) => row.cityCode
@@ -71,6 +75,12 @@ export function CitiesTable({
           <CityStatusChip
             cityStatus={item[getStatusPropertyBySchoolType(schoolType)]}
           />
+          {schoolNameIssues.has(item.code) && (
+            <>
+              {" "}
+              <Badge variant="destructive">{texts.schoolNameIssues}</Badge>
+            </>
+          )}
           {newOrdinancesCityCodes.has(item.code) && (
             <>
               {" "}
