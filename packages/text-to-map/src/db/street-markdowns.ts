@@ -3,6 +3,7 @@ import {
   SchoolLine,
   SchoolNameCandidate,
 } from "../street-markdown/school-lines";
+import { cleanLine } from "../street-markdown/smd";
 import { getKnexDb } from "./db";
 import { SchoolType } from "./types";
 
@@ -160,11 +161,15 @@ export const saveStreetMarkdownEdits = async (
   let changed = false;
   for (const edit of edits) {
     const current = lines[edit.lineNumber - 1];
-    if (current === undefined || current.trim() !== edit.from) {
+    // `from` may be the line as the parser reads it (en dashes as hyphens)
+    if (
+      current === undefined ||
+      (current.trim() !== edit.from && cleanLine(current) !== edit.from)
+    ) {
       skipped.push(edit);
       continue;
     }
-    lines[edit.lineNumber - 1] = current.replace(edit.from, edit.to);
+    lines[edit.lineNumber - 1] = current.replace(current.trim(), edit.to);
     changed = true;
   }
   if (!changed) return skipped;
