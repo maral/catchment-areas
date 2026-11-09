@@ -48,12 +48,18 @@ export default async function Cities(props: {
     serializedNewOrdinanceMetadata,
     schoolNameIssueCityCodes,
   } = await api.withRemult(async () => {
-    const newOrdinanceMetadata = await loadNewOrdinanceMetadata(schoolTypeCode);
     const regionCode =
       selectedRegion === "all" ? undefined : Number(selectedRegion);
-    const schoolNameIssueCityCodes = await loadSchoolNameIssueCityCodes(
-      schoolTypeCode
-    );
+    const listedCities = await loadCities(schoolTypeCode, regionCode);
+    // alerts and badges count only the cities listed here (a city with a
+    // single school isn't, even when it has a new ordinance)
+    const listed = new Set(listedCities.map((city) => city.code));
+    const newOrdinanceMetadata = (
+      await loadNewOrdinanceMetadata(schoolTypeCode)
+    ).filter((row) => row.cityCode !== null && listed.has(row.cityCode));
+    const schoolNameIssueCityCodes = (
+      await loadSchoolNameIssueCityCodes(schoolTypeCode)
+    ).filter((code) => listed.has(code));
     // cities needing attention first: a problem in the active ordinance, then
     // a new ordinance, then the rest — each group alphabetical as loaded
     const newOrdinanceCityCodes = new Set(
@@ -65,7 +71,7 @@ export default async function Cities(props: {
         : newOrdinanceCityCodes.has(city.code)
         ? 1
         : 2;
-    const cities = (await loadCities(schoolTypeCode, regionCode))
+    const cities = listedCities
       .map((city, i) => ({ city, i }))
       .sort((a, b) => rank(a.city) - rank(b.city) || a.i - b.i)
       .map(({ city }) => city);
@@ -104,11 +110,7 @@ export default async function Cities(props: {
             <ExclamationTriangleIcon className="h-4 w-4 mr-2" />
             <AlertTitle>{texts.schoolNameIssues}</AlertTitle>
             <AlertDescription>
-              {texts.schoolNameIssuesFound(
-                cities.filter((city) =>
-                  schoolNameIssueCityCodes.includes(city.code)
-                ).length
-              )}
+              {texts.schoolNameIssuesFound(schoolNameIssueCityCodes.length)}
             </AlertDescription>
           </Alert>
         )}
