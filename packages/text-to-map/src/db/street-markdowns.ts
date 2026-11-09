@@ -68,8 +68,8 @@ export const getLatestStreetMarkdowns = async (
 
 /**
  * The schools a founder's street-markdown lines resolve against, per city and
- * type — every school of that type in the founder's city that has a location,
- * as `getSchoolsByCityCode` loads them for the parser.
+ * type — every school of that type in the founder's city, as
+ * `getSchoolsByCityCode` loads them for the parser.
  */
 export const getSchoolCandidatesByCity = async (
   cityCodes: number[],
@@ -81,7 +81,6 @@ export const getSchoolCandidatesByCity = async (
     .distinct("f.city_code as cityCode", "s.izo", "s.name")
     .from("school as s")
     .join("school_founder as sf", "s.izo", "sf.school_izo")
-    .join("school_location as sl", "s.izo", "sl.school_izo")
     .join("founder as f", "sf.founder_id", "f.id")
     .whereIn("f.city_code", cityCodes)
     .where("s.type", schoolType);

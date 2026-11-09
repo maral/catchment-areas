@@ -512,7 +512,9 @@ const getSchoolsByCityCode = async (
     .select("s.izo", "s.redizo", "s.name", "s.capacity", "sl.address_point_id")
     .from("school as s")
     .join("school_founder as sf", "s.izo", "sf.school_izo")
-    .join("school_location as sl", "s.izo", "sl.school_izo")
+    // a school without a location still has to match by name (it just gets
+    // no marker); an inner join made the parser silently pick another school
+    .leftJoin("school_location as sl", "s.izo", "sl.school_izo")
     .join("founder as f", "sf.founder_id", "f.id")
     .where("f.city_code", cityCode)
     .where("s.type", schoolType);
@@ -522,11 +524,10 @@ const getSchoolsByCityCode = async (
     redizo: String(row.redizo),
     name: String(row.name),
     capacity: parseInt(row.capacity),
-    locations: [
-      {
-        addressPointId: parseInt(row.address_point_id),
-      },
-    ],
+    locations:
+      row.address_point_id == null
+        ? []
+        : [{ addressPointId: parseInt(row.address_point_id) }],
     type: schoolType,
   }));
 };

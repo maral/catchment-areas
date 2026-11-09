@@ -43,6 +43,10 @@ const downloadJsonld = async (options: OpenDataSyncOptions): Promise<void> => {
 
 const normalizeName = (name: string): string => name.replace(/\s+/g, " ").trim();
 
+/** Preference of a place of instruction as a school's location (lower first). */
+const placeRank = (place: any, izo: string, seatRuian?: number): number =>
+  place.IDmista === izo ? 0 : seatRuian != null && place.adresa.kodRUIAN === seatRuian ? 1 : 2;
+
 const SCHOOL_TYPE_KINDERGARTEN = "A00";
 const SCHOOL_TYPE_ELEMENTARY = "B00";
 
@@ -70,10 +74,13 @@ const processSchoolRegisterJsonld = async (
   schools: School[];
   founders: Map<string, Founder>;
   schoolsWithoutRuian: SchoolAddress[];
+  /** candidate address points per school IZO, best first */
+  locationCandidates: Map<string, number[]>;
 }> => {
   const founders = new Map<string, Founder>();
   const schools: School[] = [];
   const schoolsWithoutRuian: SchoolAddress[] = [];
+  const locationCandidates = new Map<string, number[]>();
 
   const stream = createReadStream(getJsonldFilePath(options))
     .pipe(parser())
@@ -103,24 +110,24 @@ const processSchoolRegisterJsonld = async (
         school.kapacity?.[0];
       const capacity: number = capacityEntry?.nejvyssiPovolenyPocet ?? 0;
       const allPlaces = school.mistaVyuky ?? [];
-      const locationsWithRuian = allPlaces.filter(
-        (p) => p.adresa?.kodRUIAN != null
-      );
-      // Prefer the main building (IDmista matches school IZO), then the place at the
-      // entity's seat (sídlo), fall back to first available
-      const seatRuian = entity.adresa?.kodRUIAN;
-      const mainPlace =
-        locationsWithRuian.find((p) => p.IDmista === school.izo) ??
-        locationsWithRuian.find(
-          (p) => seatRuian != null && p.adresa.kodRUIAN === seatRuian
-        ) ??
-        locationsWithRuian[0];
-
-      const locations: SchoolLocation[] = mainPlace
-        ? [{ addressPointId: mainPlace.adresa.kodRUIAN }]
-        : [];
-
-      if (!mainPlace && allPlaces.length > 0) {
+      // Candidate address points, best first: the main building (IDmista
+      // matches school IZO), the place at the entity's seat (sídlo), the other
+      // places, then the seat itself — for a place the registry lists without
+      // a RUIAN code (MŠ Turnov-Mašov) or with one RÚIAN doesn't have. The
+      // first one we have an address point for is used (see importDataToDb).
+      const seatRuian: number | undefined = entity.adresa?.kodRUIAN ?? undefined;
+      const placeRuians = allPlaces
+        .filter((p) => p.adresa?.kodRUIAN != null)
+        .sort(
+          (a, b) =>
+            placeRank(a, school.izo, seatRuian) - placeRank(b, school.izo, seatRuian)
+        )
+        .map((p) => p.adresa.kodRUIAN as number);
+      const candidates = [
+        ...new Set([...placeRuians, ...(seatRuian != null ? [seatRuian] : [])]),
+      ];
+      locationCandidates.set(school.izo, candidates);
+      if (candidates.length === 0 && allPlaces.length > 0) {
         const addr = allPlaces[0].adresa ?? {};
         const addressParts = [
           addr.ulice,
@@ -129,6 +136,8 @@ const processSchoolRegisterJsonld = async (
         ].filter(Boolean);
         schoolsWithoutRuian.push({ izo: school.izo, address: addressParts, type });
       }
+      // resolved against the DB once every school is parsed
+      const locations: SchoolLocation[] = [];
 
       currentSchools.push({
         izo: school.izo,
@@ -180,7 +189,35 @@ const processSchoolRegisterJsonld = async (
     }
   }
 
-  return { schools, founders, schoolsWithoutRuian };
+  return { schools, founders, schoolsWithoutRuian, locationCandidates };
+};
+
+/**
+ * Give each school the first of its candidate address points that exists in
+ * our RÚIAN data. Inserting one that doesn't would be dropped without a word
+ * (MySQL `INSERT IGNORE` swallows the foreign-key error) — after the old
+ * location was already deleted. Returns the schools left without any.
+ */
+const resolveLocations = async (
+  schools: School[],
+  locationCandidates: Map<string, number[]>
+): Promise<School[]> => {
+  const knex = getKnexDb();
+  const all = [...new Set([...locationCandidates.values()].flat())];
+  const known = new Set<number>();
+  for (let i = 0; i < all.length; i += 1000) {
+    const rows = await knex("address_point")
+      .whereIn("id", all.slice(i, i + 1000))
+      .select("id");
+    rows.forEach((r: { id: number }) => known.add(Number(r.id)));
+  }
+  const unresolved: School[] = [];
+  for (const school of schools) {
+    const id = (locationCandidates.get(school.izo) ?? []).find((c) => known.has(c));
+    school.locations = id === undefined ? [] : [{ addressPointId: id }];
+    if (id === undefined) unresolved.push(school);
+  }
+  return unresolved;
 };
 
 const importDataToDb = async (
@@ -188,8 +225,9 @@ const importDataToDb = async (
   saveFoundersToCsv: boolean = false,
   saveSchoolsWithoutRuianToCsv: boolean = false
 ) => {
-  const { schools, founders, schoolsWithoutRuian } =
+  const { schools, founders, schoolsWithoutRuian, locationCandidates } =
     await processSchoolRegisterJsonld(options);
+  const withoutLocation = await resolveLocations(schools, locationCandidates);
 
   if (saveFoundersToCsv) {
     const csvFile = "founders.csv";
@@ -280,6 +318,10 @@ const importDataToDb = async (
   console.log(`New founders inserted:  ${foundersAfter - foundersBefore}`);
   console.log(`Field updates:          ${statsFieldUpdates} (name/capacity changed)`);
   console.log(`Location updates:       ${statsLocationUpdates} (first location changed)`);
+  console.log(`Without location:       ${withoutLocation.length} (no usable RUIAN code in the registry)`);
+  for (const s of withoutLocation) {
+    console.log(`  ${s.izo} ${s.name}`);
+  }
   console.log(`Renamed schools:        ${renames.size}`);
   console.log(`Street markdowns fixed: ${renameResult.rewritten.length} (${renameResult.rewritten.reduce((n, r) => n + r.lines, 0)} lines)`);
   console.log(`Cached maps dropped:    ${renameResult.mapDataDeleted}`);
