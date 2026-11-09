@@ -180,7 +180,9 @@ export const saveStreetMarkdownEdits = async (
     ordinance_id: smd.ordinanceId,
     founder_id: smd.founderId,
     state: smd.state,
-    created_at: new Date(),
+    // UTC wall-clock, as the app saves it: a Date would be written in this
+    // process's local time and, ahead of UTC, outrank the editor's later saves
+    created_at: new Date().toISOString().slice(0, 19).replace("T", " "),
     comment,
     source_text: lines.join("\n"),
   });

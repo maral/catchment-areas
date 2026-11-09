@@ -71,7 +71,7 @@ beforeAll(async () => {
     { id: 1, city_code: 500011, school_type: SchoolType.Elementary, valid_from: "2024-01-01", valid_to: null, is_active: true },
     { id: 2, city_code: 500011, school_type: SchoolType.Elementary, valid_from: "2019-01-01", valid_to: "2020-12-31", is_active: false },
   ]);
-  const smd = (ordinance_id: number, created_at: Date, source_text: string) => ({
+  const smd = (ordinance_id: number, created_at: string, source_text: string) => ({
     user_id: "editor-1",
     ordinance_id,
     founder_id: founderId,
@@ -81,9 +81,9 @@ beforeAll(async () => {
     source_text,
   });
   await knex("street_markdown").insert([
-    smd(1, new Date("2024-01-01"), "older version"),
-    smd(1, new Date("2024-02-01"), smdText(oldName)),
-    smd(2, new Date("2019-02-01"), smdText(oldName)),
+    smd(1, "2024-01-01 00:00:00", "older version"),
+    smd(1, "2024-02-01 00:00:00", smdText(oldName)),
+    smd(2, "2019-02-01 00:00:00", smdText(oldName)),
   ]);
   await knex("map_data").insert([
     { ordinance_id: 1, city_code: 500011, json_data: JSON.stringify([{ areas: [{ schools: [{ izo: school.izo, name: oldName }] }] }]) },
@@ -117,6 +117,9 @@ describe("rewriteRenamedSchools", () => {
     const saved = await getKnexDb()("street_markdown").orderBy("id", "desc").first();
     expect(saved).toMatchObject({ user_id: "editor-1", state: '"auto-save"' });
     expect(saved.comment).toContain(`„${oldName}“ → „${newName}“`);
+    // UTC, whatever this process's time zone
+    expect(saved.created_at).toBe(saved.created_at.replace(/[^0-9 :-]/g, ""));
+    expect(Math.abs(Date.parse(`${saved.created_at}Z`) - Date.now())).toBeLessThan(60_000);
     expect(await getKnexDb()("map_data").pluck("ordinance_id")).toEqual([3]);
 
     expect(await findActiveSchoolNameIssues(SchoolType.Elementary)).toEqual([]);
