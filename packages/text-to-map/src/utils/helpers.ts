@@ -136,6 +136,14 @@ export const findClosestString = (
 
   for (let i = 0; i < arr.length; i++) {
     const currentStr = arr[i];
+    // a candidate that can't come within maxDistance can't be returned: skip
+    // the quadratic distance (a street line vs. every school of a big city)
+    if (
+      maxDistance !== undefined &&
+      interpunctionDistanceLowerBound(str, currentStr) > maxDistance
+    ) {
+      continue;
+    }
     const distance = interpunctionDistance(str, currentStr);
 
     if (distance < closestDistance) {
@@ -156,8 +164,19 @@ export const findClosestString = (
   return closestStr;
 };
 
-const interpunctionDistance = (str1: string, str2: string): number => {
-  let distance = levenshteinDistance(str1, str2);
+/**
+ * A cheap lower bound of {@link interpunctionDistance}: the Levenshtein
+ * distance is at least the length difference, and the interpunction discount
+ * is at most what it subtracts.
+ */
+const interpunctionDistanceLowerBound = (str1: string, str2: string): number =>
+  Math.abs(str1.length - str2.length) - interpunctionDiscount(str1, str2);
+
+const interpunctionDistance = (str1: string, str2: string): number =>
+  levenshteinDistance(str1, str2) - interpunctionDiscount(str1, str2);
+
+const interpunctionDiscount = (str1: string, str2: string): number => {
+  let discount = 0;
 
   const interpunctionMistakes = {
     a: ["á"],
@@ -202,11 +221,11 @@ const interpunctionDistance = (str1: string, str2: string): number => {
       interpunctionMistakes[char1].includes(char2)
     ) {
       // Subtract a penalty from the distance for interpunction mistakes
-      distance -= 0.5;
+      discount += 0.5;
     }
   }
 
-  return distance;
+  return discount;
 };
 
 const levenshteinDistance = (str1: string, str2: string): number => {

@@ -21,6 +21,7 @@ import {
   getNewMunicipalityByFounderId,
   parseOrdinanceToAddressPoints,
 } from "../street-markdown/smd";
+import { findSchoolNameIssues, SchoolLine } from "../street-markdown/school-lines";
 import { Municipality } from "../street-markdown/types";
 import { buildBigCityTables } from "./build-big-city";
 import { buildExternalObecTables } from "./build-external";
@@ -656,6 +657,7 @@ export const exportOrdinances = async (
 ): Promise<ExportResult> => {
   const groups: ExportGroup[] = [];
   const skipped: { founderId: number; reason: string }[] = [];
+  const schoolNameProblems: string[] = [];
 
   for (let i = 0; i < inputs.length; i++) {
     const input = inputs[i];
@@ -677,7 +679,9 @@ export const exportOrdinances = async (
     // municipality (getNewMunicipalityByFounderId) rather than reusing one the
     // failed attempt may have partly populated.
     const parsed = await withDbRetry(
-      async (): Promise<{ skip: string } | { municipalities: Municipality[] }> => {
+      async (): Promise<
+        { skip: string } | { municipalities: Municipality[]; nameIssues: SchoolLine[] }
+      > => {
         const resolved = await getNewMunicipalityByFounderId(
           input.founderId,
           input.schoolType
@@ -685,6 +689,10 @@ export const exportOrdinances = async (
         if (resolved.errors.length > 0) {
           return { skip: resolved.errors.map((e) => e.message).join("; ") };
         }
+        const nameIssues = findSchoolNameIssues(
+          input.sourceText.split("\n"),
+          resolved.municipality.founder.schools
+        );
         const municipalities = await parseOrdinanceToAddressPoints({
           lines: input.sourceText.split("\n"),
           schoolType: input.schoolType,
@@ -693,7 +701,7 @@ export const exportOrdinances = async (
           onWarning: () => {},
           includeUnmappedAddressPoints: false,
         });
-        return { municipalities };
+        return { municipalities, nameIssues };
       },
       (attempt) =>
         onProgress?.({
@@ -708,6 +716,15 @@ export const exportOrdinances = async (
     if ("skip" in parsed) {
       skipped.push({ founderId: input.founderId, reason: parsed.skip });
     } else {
+      // A line that isn't a school's exact name resolves to the closest one —
+      // after a rename usually another school, so the export would carry the
+      // wrong IZO. Reported for the street markdown to be fixed, not guessed.
+      for (const issue of parsed.nameIssues) {
+        schoolNameProblems.push(
+          `data: founder ${input.founderId} line ${issue.lineNumber}: "${issue.line}" is not a school name ` +
+            `(resolves to "${issue.school?.name ?? "—"}", IZO ${issue.school?.izo ?? "—"})`
+        );
+      }
       // A zš ordinance drives both 1.stupeň and (derived, same partition)
       // 2.stupeň (Part E); a mš ordinance is only type M.
       const baseType = schoolTypeToCode(input.schoolType);
@@ -766,6 +783,7 @@ export const exportOrdinances = async (
     skipped,
     droppedEmptyObvody: dropped,
     integrityProblems: [
+      ...schoolNameProblems,
       ...checkIntegrity(data),
       ...coverageProblems,
       ...(await withDbRetry(() => checkTopologyAgainstObce(data))),

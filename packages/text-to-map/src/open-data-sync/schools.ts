@@ -23,6 +23,7 @@ import {
   prepareOptions,
 } from "../utils/helpers";
 import { runSyncPart } from "./common";
+import { rewriteRenamedSchools, SchoolRename } from "./school-renames";
 
 const downloadJsonld = async (options: OpenDataSyncOptions): Promise<void> => {
   if (existsSync(getJsonldFilePath(options))) {
@@ -39,6 +40,8 @@ const downloadJsonld = async (options: OpenDataSyncOptions): Promise<void> => {
   await pipeline(response.body, createWriteStream(getJsonldFilePath(options)));
   console.log("Finished downloading.");
 };
+
+const normalizeName = (name: string): string => name.replace(/\s+/g, " ").trim();
 
 const SCHOOL_TYPE_KINDERGARTEN = "A00";
 const SCHOOL_TYPE_ELEMENTARY = "B00";
@@ -80,7 +83,9 @@ const processSchoolRegisterJsonld = async (
   for await (const { value: entity } of stream) {
     const redizo: string = entity.redIzo ?? "";
     const ico: string = entity.ico ?? "";
-    const entityName: string = entity.uplnyNazev ?? "";
+    // the registry has stray double and trailing spaces; a street-markdown line
+    // has to match the name exactly, so it's normalized
+    const entityName: string = normalizeName(entity.uplnyNazev ?? "");
     const currentSchools: School[] = [];
 
     for (const school of entity.skolyAZarizeni ?? []) {
@@ -127,7 +132,7 @@ const processSchoolRegisterJsonld = async (
 
       currentSchools.push({
         izo: school.izo,
-        name: entityName || school.uplnyNazev || "",
+        name: entityName || normalizeName(school.uplnyNazev ?? ""),
         redizo,
         capacity,
         type,
@@ -250,8 +255,17 @@ const importDataToDb = async (
     return row && row.address_point_id !== null && newRuians.length > 0 && !newRuians.includes(row.address_point_id);
   }).length;
 
+  const renames = new Map<string, SchoolRename>();
+  for (const s of schools) {
+    const row = existingSnapMap.get(s.izo);
+    if (row && row.name && s.name && row.name !== s.name) {
+      renames.set(s.izo, { izo: s.izo, type: s.type, oldName: row.name, newName: s.name });
+    }
+  }
+
   await insertSchools(schools);
   await insertFounders(Array.from(founders.values()));
+  const renameResult = await rewriteRenamedSchools([...renames.values()]);
 
   const schoolsAfter = (await knex("school").count("izo as count").first()).count as number;
   const foundersAfter = (await knex("founder").count("id as count").first()).count as number;
@@ -266,6 +280,12 @@ const importDataToDb = async (
   console.log(`New founders inserted:  ${foundersAfter - foundersBefore}`);
   console.log(`Field updates:          ${statsFieldUpdates} (name/capacity changed)`);
   console.log(`Location updates:       ${statsLocationUpdates} (first location changed)`);
+  console.log(`Renamed schools:        ${renames.size}`);
+  console.log(`Street markdowns fixed: ${renameResult.rewritten.length} (${renameResult.rewritten.reduce((n, r) => n + r.lines, 0)} lines)`);
+  console.log(`Cached maps dropped:    ${renameResult.mapDataDeleted}`);
+  for (const r of renameResult.ambiguous) {
+    console.log(`  not rewritten (old name still another school's): ${r.izo} "${r.oldName}" -> "${r.newName}"`);
+  }
   console.log(`Total schools in DB:    ${schoolsAfter}`);
   console.log(`Total founders in DB:   ${foundersAfter}`);
 };

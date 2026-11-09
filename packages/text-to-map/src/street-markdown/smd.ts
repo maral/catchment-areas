@@ -700,7 +700,7 @@ const mapAreaForExport = (area: IntermediateArea): IntermediateArea => ({
   })),
 });
 
-const cleanLine = (line: string) => {
+export const cleanLine = (line: string) => {
   return line.trim().replace(/–/g, "-");
 };
 
