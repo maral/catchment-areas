@@ -36,6 +36,13 @@ Answered by **Jiří Jindřich (JJ)** and **Petr Souček (PSO)**.
 - **Q4 — geometry format & CRS.** Deliver as **GeoPackage (GPKG)**; ČÚZK loads to DB
   themselves via GDAL. CRS: **S-JTSK / EPSG:5514 preferred** (their default, cm rounding);
   **WGS-84 is acceptable** (GDAL reprojects on ingest).
+- **Q-overlap — several same-type ŠO over one whole obec** (JJ, 2026-11, after the Chomutov
+  test migration; `data/cuzk/chyby_KO.xlsx`). ISÚI can't take more than one
+  `MIG_VYMEZENI_ZBYLYCH_KO` row per obec + type (not in CR0025; a data-side fix agreed instead
+  of an ISÚI change). Where whole-obec ŠO of one type overlap, define that type **explicitly**:
+  an okrsek per obec polygon part in `MIG_SKOLSKY_OKRSEK`, a def point in `MIG_DEF_BOD_KO`, no
+  `MIG_HRAN_KO`, every overlapping ŠO linked in `MIG_SKO_KO`. Only the overlapping type —
+  explicit and replacement definitions may mix within one obec. → see §8 "Overlap".
 - **Q-delivery — handover format & timeline** (JJ, later thread). **CSV is enough, but JJ's
   mental model is "everything in one GeoPackage."** No API / no online delivery. Timeline:
   ČÚZK will **request the final handover at the start of 2027**, run a last test on the test
@@ -395,6 +402,15 @@ inclusion.)*
 - **Street-level cross-obec** — mechanism A is districts-only.
 - **Part-level cross-boundary** — disallowed in practice (it breaks the result polygons), and
   `smd.ts:436` drops the foreign stamp anyway.
+
+**Overlap — one village absorbed by several ŠO of a type** (Q-overlap). Common where a
+town's schools share a free-choice catchment (Kolín's 8 ZŠ all list the same villages; 70 obce
+in ČÚZK's first report). The rows are emitted as above, then `assembleExport` converts every
+obec + type with >1 vymezeni row to explicit okrsky (`explicitOverlappingVymezeni`, after the
+MI07 prune so a group that shrank to one row stays a plain row). One okrsek per part of the
+village's RÚIAN polygon (Q2 — no multipolygon okrsky), CISLO continuing after the obec's
+existing okrsky, a synthetic interior def point (an exclave has no address). No seams: each
+okrsek's outline is the obec boundary part itself, which MI10 already accepts.
 
 So the CR's general cross-obec geometry/skip machinery never fires for us; cross-obec is
 always the trivial whole-obec form (B).

@@ -26,6 +26,7 @@ import { buildBigCityTables } from "./build-big-city";
 import { buildExternalObecTables } from "./build-external";
 import { buildObecTables, counter, ObecBuildContext } from "./build-obec";
 import { dedupeExport } from "./dedupe";
+import { explicitOverlappingVymezeni } from "./explicit-overlap";
 import { checkIntegrity } from "./self-check";
 import { checkCoverage, checkSeamTopology } from "./topology-check";
 import {
@@ -398,8 +399,17 @@ export const assembleExport = (
     ? pruneUnknownSchools(merged, gradesByIzo).data
     : merged;
 
+  // After the MI07 prune, so a group of overlapping whole-obec ŠO it shrank to
+  // one stays a plain vymezeni row.
+  const withoutOverlaps = explicitOverlappingVymezeni(
+    withoutUnknownSchools,
+    cityPolygons,
+    allocOkrsekKod,
+    allocId
+  );
+
   // B5 — collapse duplicate join/attribute rows before serialization.
-  return dedupeExport(fillObecCoverage(withoutUnknownSchools));
+  return dedupeExport(fillObecCoverage(withoutOverlaps));
 };
 
 /** A MIG_SKOLA_SKO row dropped because its IZO isn't in the ČÚZK registry (MI07). */

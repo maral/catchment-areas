@@ -305,6 +305,16 @@ single-boundary obce (C-8/Bechyně). A3 (trivial vs complex) is already handled 
 - **Měchnovská 2426/6 (Praha 11)** — RÚIAN places the point ~20 m inside Praha 10; ČÚZK-side
   data, mention only.
 
+## Phase 6d — Third ČÚZK round-trip (overlapping whole-obec ŠO, 2026-11)
+
+ČÚZK's Chomutov test migration passed; `data/cuzk/chyby_KO.xlsx` lists obce with several
+same-type `MIG_VYMEZENI_ZBYLYCH_KO` rows (rationale: `SKO_MIGRATION_PLAN.md` §1 Q-overlap, §8).
+
+- [ ] **Explicit okrsky for overlapping whole-obec ŠO.** >1 vymezeni row per obec + type →
+  one okrsek per polygon part + def point, all ŠO linked; new self-check rule.
+- [ ] **Registry refresh.** ČÚZK's 2026-11 snapshot (8385 IZOs: −13, +2, 4 ZŠ gain grades
+  1–5 — clears the MI13 open item above).
+
 ## Phase 7 — App trigger (catchment-areas)
 
 - [ ] Thin trigger in the app: resolve the `Active` StreetMarkdown per founder/ordinance/type,

@@ -288,6 +288,24 @@ describe("checkIntegrity", () => {
     expect(checkIntegrity(d).some((p) => p.includes("Kontrola 14"))).toBe(false);
   });
 
+  test("Překryv: flags several same-type vymezení rows for one obec, not one per type", () => {
+    const d = base();
+    d.obvody.push(
+      { KOD: 10002, NAZEV: null, POZNAMKA: null, OBEC_KOD: 500001, TYP_OBVODU_KOD: "1" },
+      { KOD: 10003, NAZEV: null, POZNAMKA: null, OBEC_KOD: 500001, TYP_OBVODU_KOD: "M" }
+    );
+    d.vymezeni = [
+      { OBEC_KOD: 555000, SKO_KOD: 10001 },
+      { OBEC_KOD: 555000, SKO_KOD: 10003 },
+    ];
+    expect(checkIntegrity(d).some((p) => p.includes("Překryv"))).toBe(false);
+
+    d.vymezeni.push({ OBEC_KOD: 555000, SKO_KOD: 10002 });
+    expect(checkIntegrity(d).filter((p) => p.includes("Překryv"))).toEqual([
+      "Překryv: obec 555000 type 1 has 2 MIG_VYMEZENI_ZBYLYCH_KO rows (obvody 10001, 10002)",
+    ]);
+  });
+
   test("flags a self-referential seam (MI10 precondition)", () => {
     const d = base();
     d.hrany[0].KO_KOD2 = d.hrany[0].KO_KOD1;

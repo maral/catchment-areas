@@ -298,6 +298,29 @@ export const checkIntegrity = (
     }
   }
 
+  // === Překryv — at most one MIG_VYMEZENI_ZBYLYCH_KO row per obec + type =====
+  // (ČÚZK 2026-11, `SKO_MIGRATION_PLAN.md` §1 Q-overlap — not in CR0025: ISÚI
+  // can't take several same-type ŠO over one whole obec). Overlapping ŠO must
+  // be defined by explicit okrsky instead — see `explicitOverlappingVymezeni`.
+  const vymezeniSkoByObecType = new Map<string, Set<number>>();
+  for (const v of data.vymezeni) {
+    if (v.SKO_KOD === null) continue;
+    const type = obvodType.get(v.SKO_KOD);
+    if (!type) continue;
+    const key = `${v.OBEC_KOD}/${type}`;
+    const set = vymezeniSkoByObecType.get(key) ?? new Set<number>();
+    set.add(v.SKO_KOD);
+    vymezeniSkoByObecType.set(key, set);
+  }
+  for (const [key, skoKods] of vymezeniSkoByObecType) {
+    if (skoKods.size > 1) {
+      const [obec, type] = key.split("/");
+      problems.push(
+        `Překryv: obec ${obec} type ${type} has ${skoKods.size} MIG_VYMEZENI_ZBYLYCH_KO rows (obvody ${[...skoKods].sort((a, b) => a - b).join(", ")})`
+      );
+    }
+  }
+
   // === Additional internal invariants (beyond MI01–14) ======================
   // Deterministic code minting -> KODs must be globally unique; a collision is an
   // allocator regression. CISLO is unique within an obec+type (C2). (An okrsek may carry several def points —
