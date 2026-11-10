@@ -903,34 +903,6 @@
         "x": 18.2344,
         "y": 49.806737
       }
-    },
-    {
-      "attributes": {
-        "OBJECTID": 68,
-        "název_obce": "Statutární město Ostrava, Městský obvod Slezská Ostrava",
-        "index_oblasti": 13,
-        "název_školy": "Mateřská škola Slezská Ostrava, Bohumínská 68, příspěvková organizace",
-        "IZO": "181027356",
-        "adresa": "Nástupní 146/19, Kunčičky, 71800 Ostrava"
-      },
-      "geometry": {
-        "x": 18.29625,
-        "y": 49.810267
-      }
-    },
-    {
-      "attributes": {
-        "OBJECTID": 69,
-        "název_obce": "Statutární město Ostrava, Městský obvod Slezská Ostrava",
-        "index_oblasti": 13,
-        "název_školy": "Mateřská škola Slezská Ostrava, Zámostní 31, příspěvková organizace",
-        "IZO": "181069521",
-        "adresa": "Zámostní 1126/31, Slezská Ostrava, 71000 Ostrava"
-      },
-      "geometry": {
-        "x": 18.298799,
-        "y": 49.84032
-      }
     }
   ]
 }

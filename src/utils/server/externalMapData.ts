@@ -3,8 +3,6 @@ import type { FeatureCollection } from "geojson";
 import { existsSync } from "fs";
 import { readFile } from "fs/promises";
 import { join } from "path";
-import { School } from "@/entities/School";
-import { remult } from "remult";
 import { Municipality } from "text-to-map";
 
 /**
@@ -41,29 +39,14 @@ export const hasExternalMapData = (
 ): boolean => existsSync(getExternalMapDataPath(externalData, schoolType));
 
 /**
- * The converted map data, with each school's name as the registry has it now:
- * the conversion took the names from the city's file, which aren't kept up to
- * date (and a rename in a schools sync would never reach them).
+ * The converted map data as it is, school names included: the city's file is
+ * trusted over our registry (it already has renames the registry doesn't), so
+ * a wrong name gets fixed in the city's file and converted again.
  */
 export const loadExternalMapData = async (
   externalData: string,
   schoolType: SchoolType
-): Promise<ExternalMapData> => {
-  const data: ExternalMapData = JSON.parse(
+): Promise<ExternalMapData> =>
+  JSON.parse(
     await readFile(getExternalMapDataPath(externalData, schoolType), "utf8")
   );
-  const schools = data.jsonData.flatMap((m) =>
-    m.areas.flatMap((a) => a.schools)
-  );
-  const names = new Map(
-    (
-      await remult.repo(School).find({
-        where: { izo: Array.from(new Set(schools.map((s) => s.izo))) },
-      })
-    ).map((s) => [s.izo, s.name])
-  );
-  for (const school of schools) {
-    school.name = names.get(school.izo) ?? school.name;
-  }
-  return data;
-};
