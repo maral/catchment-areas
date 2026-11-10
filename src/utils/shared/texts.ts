@@ -55,6 +55,11 @@ export const texts = {
     "Uživatel musí mít pod tímto e-mailem účet u Microsoftu (Office 365 apod.)",
   new: "nová",
   newOrdinances: "Nové vyhlášky",
+  noActiveOrdinance: "Bez aktivní vyhlášky",
+  noActiveOrdinanceFound: (count: number) =>
+    `${count} ${
+      count === 1 ? "obec má" : count >= 2 && count <= 4 ? "obce mají" : "obcí má"
+    } vyhlášku, ale žádnou aktivní. Mapa pro ni nemá co zobrazit a do exportu pro ČÚZK se nedostane.`,
   schoolNameIssues: "Chybný název školy",
   schoolNameIssuesFound: (count: number) =>
     `${count} ${

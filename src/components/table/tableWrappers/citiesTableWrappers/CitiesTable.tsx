@@ -22,15 +22,19 @@ export function CitiesTable({
   initialData,
   newOrdinanceMetadata,
   schoolNameIssueCityCodes,
+  noActiveOrdinanceCityCodes,
   schoolType,
 }: {
   initialData: any[];
   newOrdinanceMetadata: any[];
   /** cities whose active ordinance names a school not exactly */
   schoolNameIssueCityCodes: number[];
+  /** cities with ordinances of this type but none active */
+  noActiveOrdinanceCityCodes: number[];
   schoolType: SchoolType;
 }) {
   const schoolNameIssues = new Set(schoolNameIssueCityCodes);
+  const noActiveOrdinance = new Set(noActiveOrdinanceCityCodes);
   const newOrdinancesCityCodes = new Set(
     deserializeOrdinanceMetadata(newOrdinanceMetadata).map(
       (row) => row.cityCode
@@ -75,6 +79,12 @@ export function CitiesTable({
           <CityStatusChip
             cityStatus={item[getStatusPropertyBySchoolType(schoolType)]}
           />
+          {noActiveOrdinance.has(item.code) && (
+            <>
+              {" "}
+              <Badge variant="destructive">{texts.noActiveOrdinance}</Badge>
+            </>
+          )}
           {schoolNameIssues.has(item.code) && (
             <>
               {" "}

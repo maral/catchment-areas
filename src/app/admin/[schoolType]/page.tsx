@@ -10,6 +10,7 @@ import {
   loadNewOrdinanceMetadata,
   serializeOrdinanceMetadata,
 } from "@/components/table/fetchFunctions/loadOrdinanceMetadata";
+import { loadNoActiveOrdinanceCityCodes } from "@/components/table/fetchFunctions/loadNoActiveOrdinance";
 import { loadSchoolNameIssueCityCodes } from "@/components/table/fetchFunctions/loadSchoolNameIssues";
 import {
   loadRegions,
@@ -47,6 +48,7 @@ export default async function Cities(props: {
     newOrdinanceMetadata,
     serializedNewOrdinanceMetadata,
     schoolNameIssueCityCodes,
+    noActiveOrdinanceCityCodes,
   } = await api.withRemult(async () => {
     const regionCode =
       selectedRegion === "all" ? undefined : Number(selectedRegion);
@@ -60,13 +62,18 @@ export default async function Cities(props: {
     const schoolNameIssueCityCodes = (
       await loadSchoolNameIssueCityCodes(schoolTypeCode)
     ).filter((code) => listed.has(code));
-    // cities needing attention first: a problem in the active ordinance, then
-    // a new ordinance, then the rest — each group alphabetical as loaded
+    const noActiveOrdinanceCityCodes = (
+      await loadNoActiveOrdinanceCityCodes(schoolTypeCode)
+    ).filter((code) => listed.has(code));
+    // cities needing attention first: an error (no active ordinance, or a
+    // problem in it), then a new ordinance, then the rest — each group
+    // alphabetical as loaded
     const newOrdinanceCityCodes = new Set(
       newOrdinanceMetadata.map((row) => row.cityCode)
     );
     const rank = (city: { code: number }) =>
-      schoolNameIssueCityCodes.includes(city.code)
+      schoolNameIssueCityCodes.includes(city.code) ||
+      noActiveOrdinanceCityCodes.includes(city.code)
         ? 0
         : newOrdinanceCityCodes.has(city.code)
         ? 1
@@ -79,6 +86,7 @@ export default async function Cities(props: {
       cities,
       serializedCities: serializeCities(cities),
       schoolNameIssueCityCodes,
+      noActiveOrdinanceCityCodes,
       regions: serializeRegions(await loadRegions()),
       newOrdinanceMetadata,
       serializedNewOrdinanceMetadata:
@@ -105,6 +113,16 @@ export default async function Cities(props: {
         </HeaderBox>
       </CardHeader>
       <CardContent className="space-y-6">
+        {noActiveOrdinanceCityCodes.length > 0 && (
+          <Alert variant="destructive">
+            <ExclamationTriangleIcon className="h-4 w-4 mr-2" />
+            <AlertTitle>{texts.noActiveOrdinance}</AlertTitle>
+            <AlertDescription>
+              {texts.noActiveOrdinanceFound(noActiveOrdinanceCityCodes.length)}
+            </AlertDescription>
+          </Alert>
+        )}
+
         {schoolNameIssueCityCodes.length > 0 && (
           <Alert variant="destructive">
             <ExclamationTriangleIcon className="h-4 w-4 mr-2" />
@@ -138,6 +156,7 @@ export default async function Cities(props: {
           initialData={serializedCities}
           newOrdinanceMetadata={serializedNewOrdinanceMetadata}
           schoolNameIssueCityCodes={schoolNameIssueCityCodes}
+          noActiveOrdinanceCityCodes={noActiveOrdinanceCityCodes}
           schoolType={schoolTypeCode}
         />
       </CardContent>
