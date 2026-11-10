@@ -33,18 +33,16 @@ import {
  * Selection modes (mutually exclusive):
  *   - default / --published : the handover set. For every city marked Published
  *     for a school type (status_elementary / status_kindergarten = 3), export
- *     its *operative* ordinance — the newest currently-valid one, mirroring the
- *     app's OrdinanceController.determineActiveOrdinanceByCityCode: valid_from
- *     <= as-of AND (valid_to is null OR valid_to >= as-of), newest valid_from
- *     wins (`--as-of` defaults to today; the handover targets the next year),
- *     exactly one per (city, type). We recompute this from valid_from/valid_to
- *     rather than trusting the stored `ordinance.is_active` flag, which has
- *     drifted stale in prod (Published cities with no active row; some with
- *     several). Then take the current `street_markdown` per (founder,
- *     ordinance) for that operative ordinance (newest created_at, as the
- *     editor shows it), skipping an empty one — content lives in `auto-save`,
- *     never `active`, so the finalized set is defined by the *city* status +
- *     ordinance validity, not the markdown lifecycle state.
+ *     its *operative* ordinance — the one marked active in the app
+ *     (`is_active`; the overview flags a city with none). With `--as-of
+ *     YYYY-MM-DD` instead the newest one in force on that date: valid_from <=
+ *     as-of AND (valid_to is null OR valid_to >= as-of). A Published city+type
+ *     with ordinances but none picked, or several picked, is reported in the
+ *     self-check. Then take the current `street_markdown` per (founder,
+ *     ordinance) for that ordinance (newest created_at, as the editor shows
+ *     it), skipping an empty one — content lives in `auto-save`, never
+ *     `active`, so the finalized set is defined by the *city* status + the
+ *     ordinance, not the markdown lifecycle state.
  *   - --state <lifecycle> : legacy/dry-run mode — pick the latest markdown per
  *     (founder, ordinance) whose markdown is in that raw lifecycle state
  *     (auto-save / draft / initial …). Useful to smoke a specific state.
@@ -69,10 +67,10 @@ async function main() {
   const limit = Number(argValue(args, "--limit") ?? "0");
   const founderId = Number(argValue(args, "--founder") ?? "0");
   const city = argValue(args, "--city");
-  // the date whose ordinances are exported (default: today) — the handover
-  // targets the next year, when newer ordinances will be in force
-  const asOf = argValue(args, "--as-of") ?? new Date().toISOString().slice(0, 10);
-  if (!outDir || !/^\d{4}-\d{2}-\d{2}$/.test(asOf)) {
+  // by default the ordinance marked active in the app; `--as-of` instead takes
+  // the newest one in force on that date
+  const asOf = argValue(args, "--as-of");
+  if (!outDir || (asOf !== undefined && !/^\d{4}-\d{2}-\d{2}$/.test(asOf))) {
     console.error(
       "Usage: export-batch <outDir> [--as-of YYYY-MM-DD] [--state <lifecycle>] [--limit N] [--founder <id>] [--city <name>]"
     );
@@ -83,42 +81,80 @@ async function main() {
   const hasExternalData = await db.schema.hasColumn("ordinance", "external_data");
   let externalInputs: OrdinanceInput[] = [];
   let query;
+  const selectionProblems: string[] = [];
   if (publishedMode) {
-    // Step 1: the operative ordinance per (city, type) — newest ordinance
-    // valid on `asOf` of each Published city+type. One row per candidate; we pick the
-    // first per (city, type) in JS (ordered newest valid_from first).
-    const candidates = await db("ordinance as o")
-      .join("city as c", "o.city_code", "c.code")
-      .where((b) =>
-        b
-          .where((e) =>
-            e
-              .where("o.school_type", SchoolType.Elementary)
-              .andWhere("c.status_elementary", PUBLISHED)
-          )
-          .orWhere((k) =>
-            k
-              .where("o.school_type", SchoolType.Kindergarten)
-              .andWhere("c.status_kindergarten", PUBLISHED)
-          )
-      )
-      .where("o.valid_from", "<=", asOf)
-      .where((q) => q.whereNull("o.valid_to").orWhere("o.valid_to", ">=", asOf))
+    // Step 1: the operative ordinance per (city, type) of each Published
+    // city+type — the active one, or with `--as-of` the newest valid on that
+    // date. One row per candidate; we pick the first per (city, type) in JS
+    // (ordered newest valid_from first).
+    const publishedOrdinances = () =>
+      db("ordinance as o")
+        .join("city as c", "o.city_code", "c.code")
+        .where((b) =>
+          b
+            .where((e) =>
+              e
+                .where("o.school_type", SchoolType.Elementary)
+                .andWhere("c.status_elementary", PUBLISHED)
+            )
+            .orWhere((k) =>
+              k
+                .where("o.school_type", SchoolType.Kindergarten)
+                .andWhere("c.status_kindergarten", PUBLISHED)
+            )
+        );
+    const candidates = await publishedOrdinances()
+      .modify((q) => {
+        if (asOf === undefined) q.where("o.is_active", true);
+        else
+          q.where("o.valid_from", "<=", asOf).where((v) =>
+            v.whereNull("o.valid_to").orWhere("o.valid_to", ">=", asOf)
+          );
+      })
       .orderBy([
         { column: "o.city_code" },
         { column: "o.school_type" },
         { column: "o.valid_from", order: "desc" },
         { column: "o.id", order: "desc" },
       ])
-      .select("o.id", "o.city_code as cityCode", "o.school_type as schoolType");
+      .select(
+        "o.id",
+        "o.number",
+        "o.city_code as cityCode",
+        "c.name as cityName",
+        "o.school_type as schoolType"
+      );
 
     const operativeIds: number[] = [];
-    const seen = new Set<string>();
+    const picked = new Map<string, (typeof candidates)[number]>();
+    const typeName = (type: number) =>
+      type === SchoolType.Kindergarten ? "MŠ" : "ZŠ";
     for (const c of candidates) {
       const key = `${c.cityCode}-${c.schoolType}`;
-      if (seen.has(key)) continue;
-      seen.add(key);
+      const first = picked.get(key);
+      if (first) {
+        selectionProblems.push(
+          `data: ${c.cityName} ${typeName(c.schoolType)}: several ${
+            asOf === undefined ? "active" : "equally new"
+          } ordinances — exported ${first.number} (${first.id}), not ${c.number} (${c.id})`
+        );
+        continue;
+      }
+      picked.set(key, c);
       operativeIds.push(c.id);
+    }
+    // a Published city+type with ordinances but none picked drops out of the
+    // export entirely — report it rather than lose it silently
+    const withOrdinances = await publishedOrdinances()
+      .distinct("o.city_code as cityCode", "c.name as cityName", "o.school_type as schoolType");
+    for (const c of withOrdinances) {
+      if (!picked.has(`${c.cityCode}-${c.schoolType}`)) {
+        selectionProblems.push(
+          `data: ${c.cityName} ${typeName(c.schoolType)}: no ${
+            asOf === undefined ? "active ordinance" : `ordinance in force on ${asOf}`
+          } — not exported`
+        );
+      }
     }
 
     // an ordinance from the city's own geodata has its map data, no markdown
@@ -207,7 +243,9 @@ async function main() {
   // row count is the founder-level breakdown.
   const ordinanceCount =
     new Set(rows.map((r) => r.ordinanceId)).size + externalInputs.length;
-  const selectorNote = publishedMode ? `published (as of ${asOf})` : `'${state}'`;
+  const selectorNote = publishedMode
+    ? `published (${asOf === undefined ? "active" : `in force on ${asOf}`})`
+    : `'${state}'`;
   const filterNote =
     founderId > 0 ? ` (founder ${founderId})` : city ? ` (city ~ "${city}")` : "";
   console.log(
@@ -236,7 +274,7 @@ async function main() {
   console.time("export");
   const isTty = process.stdout.isTTY;
   const startedAt = Date.now();
-  const { data, skipped, droppedEmptyObvody, integrityProblems } =
+  const { data, skipped, droppedEmptyObvody, integrityProblems: checkProblems } =
     await exportOrdinances(inputs, grades, (p) => {
       const secs = Math.round((Date.now() - startedAt) / 1000);
       if (p.phase === "retry") {
@@ -264,6 +302,7 @@ async function main() {
       if (isTty) process.stdout.write(`\r${line}\x1b[K`);
       else if (p.done % 25 === 0 || p.done === p.total) console.log(line);
     });
+  const integrityProblems = [...selectionProblems, ...checkProblems];
   // the last geometry tick left the cursor mid-line (no trailing \n, same as
   // the parse phase's ticks do before the "assemble" transition message)
   if (isTty) process.stdout.write("\n");
