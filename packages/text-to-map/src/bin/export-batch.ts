@@ -27,7 +27,7 @@ import {
  * runs the whole export, writing the batch GeoPackage + CSV mirror. CLI
  * counterpart of the Phase 7 app trigger.
  *
- *   npm run -w text-to-map export-batch -- <outDir> [--state <lifecycle>] [--limit N]
+ *   npm run -w text-to-map export-batch -- <outDir> [--as-of YYYY-MM-DD] [--state <lifecycle>] [--limit N]
  *                                                   [--founder <id>] [--city <name>]
  *
  * Selection modes (mutually exclusive):
@@ -35,7 +35,8 @@ import {
  *     for a school type (status_elementary / status_kindergarten = 3), export
  *     its *operative* ordinance — the newest currently-valid one, mirroring the
  *     app's OrdinanceController.determineActiveOrdinanceByCityCode: valid_from
- *     <= now AND (valid_to is null OR valid_to >= now), newest valid_from wins,
+ *     <= as-of AND (valid_to is null OR valid_to >= as-of), newest valid_from
+ *     wins (`--as-of` defaults to today; the handover targets the next year),
  *     exactly one per (city, type). We recompute this from valid_from/valid_to
  *     rather than trusting the stored `ordinance.is_active` flag, which has
  *     drifted stale in prod (Published cities with no active row; some with
@@ -68,9 +69,12 @@ async function main() {
   const limit = Number(argValue(args, "--limit") ?? "0");
   const founderId = Number(argValue(args, "--founder") ?? "0");
   const city = argValue(args, "--city");
-  if (!outDir) {
+  // the date whose ordinances are exported (default: today) — the handover
+  // targets the next year, when newer ordinances will be in force
+  const asOf = argValue(args, "--as-of") ?? new Date().toISOString().slice(0, 10);
+  if (!outDir || !/^\d{4}-\d{2}-\d{2}$/.test(asOf)) {
     console.error(
-      "Usage: export-batch <outDir> [--state <lifecycle>] [--limit N] [--founder <id>] [--city <name>]"
+      "Usage: export-batch <outDir> [--as-of YYYY-MM-DD] [--state <lifecycle>] [--limit N] [--founder <id>] [--city <name>]"
     );
     process.exit(1);
   }
@@ -80,8 +84,8 @@ async function main() {
   let externalInputs: OrdinanceInput[] = [];
   let query;
   if (publishedMode) {
-    // Step 1: the operative ordinance per (city, type) — newest currently-valid
-    // ordinance of each Published city+type. One row per candidate; we pick the
+    // Step 1: the operative ordinance per (city, type) — newest ordinance
+    // valid on `asOf` of each Published city+type. One row per candidate; we pick the
     // first per (city, type) in JS (ordered newest valid_from first).
     const candidates = await db("ordinance as o")
       .join("city as c", "o.city_code", "c.code")
@@ -98,8 +102,8 @@ async function main() {
               .andWhere("c.status_kindergarten", PUBLISHED)
           )
       )
-      .whereRaw("o.valid_from <= NOW()")
-      .whereRaw("(o.valid_to IS NULL OR o.valid_to >= NOW())")
+      .where("o.valid_from", "<=", asOf)
+      .where((q) => q.whereNull("o.valid_to").orWhere("o.valid_to", ">=", asOf))
       .orderBy([
         { column: "o.city_code" },
         { column: "o.school_type" },
@@ -203,7 +207,7 @@ async function main() {
   // row count is the founder-level breakdown.
   const ordinanceCount =
     new Set(rows.map((r) => r.ordinanceId)).size + externalInputs.length;
-  const selectorNote = publishedMode ? "published" : `'${state}'`;
+  const selectorNote = publishedMode ? `published (as of ${asOf})` : `'${state}'`;
   const filterNote =
     founderId > 0 ? ` (founder ${founderId})` : city ? ` (city ~ "${city}")` : "";
   console.log(
