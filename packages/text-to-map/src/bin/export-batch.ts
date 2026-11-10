@@ -39,8 +39,9 @@ import {
  *     exactly one per (city, type). We recompute this from valid_from/valid_to
  *     rather than trusting the stored `ordinance.is_active` flag, which has
  *     drifted stale in prod (Published cities with no active row; some with
- *     several). Then take the latest non-empty `street_markdown` per (founder,
- *     ordinance) for that operative ordinance — content lives in `auto-save`,
+ *     several). Then take the current `street_markdown` per (founder,
+ *     ordinance) for that operative ordinance (newest created_at, as the
+ *     editor shows it), skipping an empty one — content lives in `auto-save`,
  *     never `active`, so the finalized set is defined by the *city* status +
  *     ordinance validity, not the markdown lifecycle state.
  *   - --state <lifecycle> : legacy/dry-run mode — pick the latest markdown per
@@ -137,13 +138,25 @@ async function main() {
     const externalIds = new Set(external.map((o) => o.id));
     const markdownIds = operativeIds.filter((id) => !externalIds.has(id));
 
-    // Step 2: latest non-empty markdown per (founder, ordinance) for those
-    // operative ordinances.
-    const latest = db("street_markdown")
-      .select("founder_id", "ordinance_id")
-      .max("id as max_id")
-      .whereIn("ordinance_id", markdownIds)
-      .groupBy("founder_id", "ordinance_id");
+    // Step 2: the current markdown per (founder, ordinance) for those
+    // operative ordinances — the one the editor and the map use: newest
+    // `created_at`, `id` breaking ties. (The highest id isn't always it: the
+    // ordinance's raw extracted text can be saved after the editor's first
+    // backup, Uherský Brod ZŠ.) An empty current one is skipped below.
+    const latest = db
+      .from(
+        db("street_markdown")
+          .select(
+            "id",
+            db.raw(
+              "ROW_NUMBER() OVER (PARTITION BY founder_id, ordinance_id ORDER BY created_at DESC, id DESC) AS rn"
+            )
+          )
+          .whereIn("ordinance_id", markdownIds)
+          .as("ranked")
+      )
+      .where("rn", 1)
+      .select("id as max_id");
 
     query = db("street_markdown as s")
       .join("ordinance as o", "s.ordinance_id", "o.id")
